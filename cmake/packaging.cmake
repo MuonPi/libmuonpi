@@ -17,23 +17,29 @@ macro(install_with_directory)
 endmacro(install_with_directory)
 
 
+set(LIBMUONPI_PACKAGE_ADDITION "")
+set(LIBMUONPI_IS_RELEASE OFF)
 
-if(CMAKE_BUILD_TYPE STREQUAL Release)
-    configure_file("${PROJECT_CONFIG_DIR}/changelog-core" "${CMAKE_CURRENT_BINARY_DIR}/core/changelog")
-    add_custom_target(changelog-libmuonpi-core ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/core/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/core/changelog.gz")
+configure_file("${PROJECT_CONFIG_DIR}/changelog-core" "${CMAKE_CURRENT_BINARY_DIR}/core/changelog")
+add_custom_target(changelog-libmuonpi-core ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/core/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/core/changelog.gz")
 
-    if (LIBMUONPI_BUILD_MQTT)
-        configure_file("${PROJECT_CONFIG_DIR}/changelog-mqtt" "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog")
-        add_custom_target(changelog-libmuonpi-mqtt ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz")
-    endif ()
-    if (LIBMUONPI_BUILD_REST)
-        configure_file("${PROJECT_CONFIG_DIR}/changelog-rest" "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog")
-        add_custom_target(changelog-libmuonpi-rest ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog.gz")
-    endif ()
-    if (LIBMUONPI_BUILD_DETECTOR)
-        configure_file("${PROJECT_CONFIG_DIR}/changelog-detector" "${CMAKE_CURRENT_BINARY_DIR}/detector/changelog")
-        add_custom_target(changelog-libmuonpi-detector ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/detector/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/detector/changelog.gz")
-    endif ()
+if (LIBMUONPI_BUILD_MQTT)
+    configure_file("${PROJECT_CONFIG_DIR}/changelog-mqtt" "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog")
+    add_custom_target(changelog-libmuonpi-mqtt ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz")
+endif ()
+if (LIBMUONPI_BUILD_REST)
+    configure_file("${PROJECT_CONFIG_DIR}/changelog-rest" "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog")
+    add_custom_target(changelog-libmuonpi-rest ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog.gz")
+endif ()
+if (LIBMUONPI_BUILD_DETECTOR)
+    configure_file("${PROJECT_CONFIG_DIR}/changelog-detector" "${CMAKE_CURRENT_BINARY_DIR}/detector/changelog")
+    add_custom_target(changelog-libmuonpi-detector ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/detector/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/detector/changelog.gz")
+endif ()
+
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+    set(LIBMUONPI_PACKAGE_ADDITION "-dbg")
+elseif (CMAKE_BUILD_TYPE STREQUAL Release)
+    set(LIBMUONPI_IS_RELEASE ON)
 endif()
 
 install(
@@ -46,12 +52,13 @@ install(
   DESTINATION "${CMAKE_INSTALL_DOCDIR}"
   COMPONENT libmuonpicore
   )
+if (${LIBMUONPI_IS_RELEASE})
 install_with_directory(
     FILES ${CORE_HEADER_FILES}
     DESTINATION include
     BASEDIR ${PROJECT_HEADER_DIR}
     COMPONENT libmuonpicoredev)
-
+endif ()
 
 if (LIBMUONPI_BUILD_MQTT)
     install(
@@ -63,11 +70,13 @@ if (LIBMUONPI_BUILD_MQTT)
         DESTINATION "${CMAKE_INSTALL_DOCDIR}"
         COMPONENT libmuonpimqtt
         )
+    if (${LIBMUONPI_IS_RELEASE})
     install_with_directory(
         FILES ${MQTT_HEADER_FILES}
         DESTINATION include
         BASEDIR ${PROJECT_HEADER_DIR}
         COMPONENT libmuonpimqttdev)
+    endif ()
 endif ()
 
 if (LIBMUONPI_BUILD_REST)
@@ -81,12 +90,14 @@ if (LIBMUONPI_BUILD_REST)
         DESTINATION "${CMAKE_INSTALL_DOCDIR}"
         COMPONENT libmuonpirest
     )
+    if (${LIBMUONPI_IS_RELEASE})
     install_with_directory(
         FILES ${REST_HEADER_FILES}
         DESTINATION include
         BASEDIR ${PROJECT_HEADER_DIR}
         COMPONENT libmuonpirestdev
     )
+    endif ()
 endif ()
 
 if (LIBMUONPI_BUILD_DETECTOR)
@@ -100,12 +111,14 @@ if (LIBMUONPI_BUILD_DETECTOR)
         DESTINATION "${CMAKE_INSTALL_DOCDIR}"
         COMPONENT libmuonpidetector
     )
+    if (${LIBMUONPI_IS_RELEASE})
     install_with_directory(
         FILES ${DETECTOR_HEADER_FILES}
         DESTINATION include
         BASEDIR ${PROJECT_HEADER_DIR}
         COMPONENT libmuonpidetectordev
     )
+    endif ()
 endif ()
 
 
@@ -128,47 +141,55 @@ set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 
 set(CPACK_DEBIAN_LIBMUONPICORE_DESCRIPTION "Libraries for MuonPi")
 set(CPACK_COMPONENT_LIBMUONPICORE_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPICORE_DESCRIPTION}")
-set(CPACK_DEBIAN_LIBMUONPICORE_PACKAGE_NAME "libmuonpi-core")
+set(CPACK_DEBIAN_LIBMUONPICORE_PACKAGE_NAME "libmuonpi-core${LIBMUONPI_PACKAGE_ADDITION}")
 
+if (${LIBMUONPI_IS_RELEASE})
 set(CPACK_DEBIAN_LIBMUONPICOREDEV_DESCRIPTION "Libraries for MuonPi")
 set(CPACK_COMPONENT_LIBMUONPICOREDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPICOREDEV_DESCRIPTION}")
 set(CPACK_DEBIAN_LIBMUONPICOREDEV_PACKAGE_NAME "libmuonpi-core-dev")
 set(CPACK_DEBIAN_LIBMUONPICOREDEV_PACKAGE_DEPENDS "libmuonpi-core libboost-dev")
+endif ()
 
 if (LIBMUONPI_BUILD_MQTT)
     set(CPACK_DEBIAN_LIBMUONPIMQTT_DESCRIPTION "Libraries for MuonPi")
     set(CPACK_COMPONENT_LIBMUONPIMQTT_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIMQTT_DESCRIPTION}")
-    set(CPACK_DEBIAN_LIBMUONPIMQTT_PACKAGE_NAME "libmuonpi-mqtt")
+    set(CPACK_DEBIAN_LIBMUONPIMQTT_PACKAGE_NAME "libmuonpi-mqtt${LIBMUONPI_PACKAGE_ADDITION}")
     set(CPACK_DEBIAN_LIBMUONPIMQTT_PACKAGE_DEPENDS "libmuonpi-core")
 
+    if (${LIBMUONPI_IS_RELEASE})
     set(CPACK_DEBIAN_LIBMUONPIMQTTDEV_DESCRIPTION "Libraries for MuonPi")
     set(CPACK_COMPONENT_LIBMUONPIMQTTDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIMQTTDEV_DESCRIPTION}")
     set(CPACK_DEBIAN_LIBMUONPIMQTTDEV_PACKAGE_NAME "libmuonpi-mqtt-dev")
     set(CPACK_DEBIAN_LIBMUONPIMQTTDEV_PACKAGE_DEPENDS "libmuonpi-mqtt libmosquitto-dev")
+    endif ()
 endif ()
 
 if (LIBMUONPI_BUILD_REST)
     set(CPACK_DEBIAN_LIBMUONPIREST_DESCRIPTION "Libraries for MuonPi")
     set(CPACK_COMPONENT_LIBMUONPIREST_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIREST_DESCRIPTION}")
-    set(CPACK_DEBIAN_LIBMUONPIREST_PACKAGE_NAME "libmuonpi-rest")
+    set(CPACK_DEBIAN_LIBMUONPIREST_PACKAGE_NAME "libmuonpi-rest${LIBMUONPI_PACKAGE_ADDITION}")
     set(CPACK_DEBIAN_LIBMUONPIREST_PACKAGE_DEPENDS "libmuonpi-core")
 
+    if (${LIBMUONPI_IS_RELEASE})
     set(CPACK_DEBIAN_LIBMUONPIRESTDEV_DESCRIPTION "Libraries for MuonPi")
     set(CPACK_COMPONENT_LIBMUONPIRESTDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIRESTDEV_DESCRIPTION}")
     set(CPACK_DEBIAN_LIBMUONPIRESTDEV_PACKAGE_NAME "libmuonpi-rest-dev")
     set(CPACK_DEBIAN_LIBMUONPIRESTDEV_PACKAGE_DEPENDS "libmuonpi-rest libmuonpi-core-dev")
+    endif ()
 endif ()
 
 if (LIBMUONPI_BUILD_DETECTOR)
     set(CPACK_DEBIAN_LIBMUONPIDETECTOR_DESCRIPTION "Libraries for MuonPi")
     set(CPACK_COMPONENT_LIBMUONPIDETECTOR_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIDETECTOR_DESCRIPTION}")
-    set(CPACK_DEBIAN_LIBMUONPIDETECTOR_PACKAGE_NAME "libmuonpi-detector")
+    set(CPACK_DEBIAN_LIBMUONPIDETECTOR_PACKAGE_NAME "libmuonpi-detector${LIBMUONPI_PACKAGE_ADDITION}")
     set(CPACK_DEBIAN_LIBMUONPIDETECTOR_PACKAGE_DEPENDS "libmuonpi-core")
 
+    if (${LIBMUONPI_IS_RELEASE})
     set(CPACK_DEBIAN_LIBMUONPIDETECTORDEV_DESCRIPTION "Libraries for MuonPi")
     set(CPACK_COMPONENT_LIBMUONPIDETECTORDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIDETECTORDEV_DESCRIPTION}")
     set(CPACK_DEBIAN_LIBMUONPIDETECTORDEV_PACKAGE_NAME "libmuonpi-rest-dev")
     set(CPACK_DEBIAN_LIBMUONPIDETECTORDEV_PACKAGE_DEPENDS "libmuonpi-detector libmuonpi-core-dev")
+    endif ()
 endif ()
 
 set(CPACK_DEB_COMPONENT_INSTALL ON)
