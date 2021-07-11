@@ -110,13 +110,5 @@ private:
     std::uint64_t m_second { 0 };
 };
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-[[nodiscard]] static inline auto LIBMUONPI_PUBLIC int_to_hex(T val, std::size_t width = sizeof(T) * 2) -> std::string
-{
-    std::stringstream ss;
-    ss << std::setfill('0') << std::setw(width) << std::hex << (val | 0);
-    return ss.str();
-}
-
 }
 #endif // UTILITY_H

@@ -13,6 +13,7 @@
     //  GCC
     #define EXPORT __attribute__((visibility("default")))
     #define IMPORT
+    #define HIDDEN  __attribute__((visibility("hidden")))
 #else
     //  do nothing and hope for the best?
     #define EXPORT

@@ -81,7 +81,7 @@ if (${LIBMUONPI_IS_RELEASE})
   add_custom_command(
     TARGET muonpi-core
     POST_BUILD
-    COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-core.so")
+    COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-core.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 endif ()
 install_with_directory(
     FILES ${CORE_HEADER_FILES}
@@ -115,7 +115,7 @@ if (LIBMUONPI_BUILD_MQTT)
       add_custom_command(
         TARGET muonpi-mqtt
         POST_BUILD
-        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-mqtt.so")
+        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-mqtt.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
     endif ()
     install_with_directory(
         FILES ${MQTT_HEADER_FILES}
@@ -150,7 +150,7 @@ if (LIBMUONPI_BUILD_REST)
       add_custom_command(
         TARGET muonpi-rest
         POST_BUILD
-        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-rest.so")
+        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-rest.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
     endif ()
     install_with_directory(
         FILES ${REST_HEADER_FILES}
@@ -186,7 +186,7 @@ if (LIBMUONPI_BUILD_DETECTOR)
       add_custom_command(
         TARGET muonpi-detector
         POST_BUILD
-        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-detector.so")
+        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-detector.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
     endif ()
     install_with_directory(
         FILES ${DETECTOR_HEADER_FILES}
