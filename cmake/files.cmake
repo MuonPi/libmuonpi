@@ -48,6 +48,7 @@ set(CORE_HEADER_FILES
     "${PROJECT_HEADER_DIR}/muonpi/analysis/uppermatrix.h"
     "${PROJECT_HEADER_DIR}/muonpi/supervision/resource.h"
     "${PROJECT_HEADER_DIR}/muonpi/global.h"
+    "${PROJECT_HEADER_DIR}/muonpi/types.h"
     )
 
 set(PROJECT_SOURCE_FILES
