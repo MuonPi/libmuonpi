@@ -5,9 +5,11 @@
 
 namespace muonpi {
 
-template <typename T, typename OutputIt,
-    std::enable_if_t<std::is_trivially_copyable<T>::value, bool> = true>
-void to_bytes(const T& value, OutputIt bytes)
+template <typename T, typename OutputV, template<typename V = OutputV> class OutputIt,
+    std::enable_if_t<std::is_trivially_copyable<T>::value, bool> = true,
+    std::enable_if_t<std::is_base_of<std::insert_iterator<OutputV>, OutputIt<OutputV>>::value, bool> = true
+    >
+void to_bytes(const T& value, OutputIt<OutputV> bytes)
 {
     const auto* begin = reinterpret_cast<const std::byte*>(std::addressof(value));
     const auto* end = begin + sizeof(T);
