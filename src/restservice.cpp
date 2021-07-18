@@ -144,11 +144,14 @@ void session<Stream>::on_read(beast::error_code errorcode, std::size_t bytes_tra
 
     auto sp { std::make_shared<http::message<false, http::string_body>>(m_handler(std::move(m_req))) };
 
+    bool close { sp->need_eof() };
     m_res = sp;
     http::async_write(
         m_stream,
         *sp,
-        [&](beast::error_code ec, std::size_t bytes) { on_write(sp->need_eof(), ec, bytes); });
+        [&](beast::error_code ec, std::size_t bytes) {
+            on_write(close, ec, bytes);
+    });
     guard.dismiss();
 }
 
