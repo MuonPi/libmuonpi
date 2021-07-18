@@ -40,33 +40,13 @@ template <http::status status>
     return res;
 }
 
-struct LIBMUONPI_PUBLIC request {
-    request_type& req;
-
-    template <http::status status>
-    [[nodiscard]] inline auto response(std::string why) -> response_type
-    {
-        return http_response<status>(req, why);
-    }
-};
-
 struct LIBMUONPI_PUBLIC handler {
     std::function<bool(std::string_view path)> matches {};
-    std::function<bool(request req, std::string_view username, std::string_view password)> authenticate {};
-    std::function<response_type(request req, const std::queue<std::string>& path)> handle {};
-    std::vector<handler> children {};
+    std::function<response_type(request_type& req, const std::queue<std::string>& path)> handle {};
+    std::string name {};
     bool requires_auth { false };
-};
-
-class LIBMUONPI_PUBLIC service_handler {
-public:
-    [[nodiscard]] auto get_handler() -> handler;
-
-protected:
-    void set_handler(handler h);
-
-private:
-    handler m_handler {};
+    std::function<bool(request_type& req, std::string_view username, std::string_view password)> authenticate {};
+    std::vector<handler> children {};
 };
 
 class LIBMUONPI_PUBLIC service : public thread_runner {
@@ -83,9 +63,11 @@ public:
 
     service(configuration rest_config);
 
-    void add_handler(service_handler& han);
+    void add_handler(handler han);
+
 
 protected:
+
     [[nodiscard]] auto custom_run() -> int override;
 
     void do_accept();
@@ -96,6 +78,7 @@ private:
     [[nodiscard]] auto handle(request_type req) const -> response_type;
 
     [[nodiscard]] auto handle(request_type req, std::queue<std::string> path, const std::vector<handler>& handlers) const -> response_type;
+    [[nodiscard]] auto handle(request_type req, std::queue<std::string> path, const handler& hand) const -> response_type;
 
     std::vector<handler> m_handler {};
 

@@ -1,4 +1,4 @@
-﻿#include "muonpi/restservice.h"
+#include "muonpi/restservice.h"
 #include "muonpi/base64.h"
 #include "muonpi/log.h"
 #include "muonpi/scopeguard.h"
@@ -180,16 +180,6 @@ void session<Stream>::notify()
     m_done.notify_all();
 }
 
-auto service_handler::get_handler() -> handler
-{
-    return m_handler;
-}
-
-void service_handler::set_handler(handler h)
-{
-    m_handler = std::move(h);
-}
-
 service::service(configuration rest_config)
     : thread_runner("REST", true)
     , m_endpoint { net::ip::make_address(rest_config.address), static_cast<std::uint16_t>(rest_config.port) }
@@ -233,9 +223,9 @@ service::service(configuration rest_config)
     start();
 }
 
-void service::add_handler(service_handler& han)
+void service::add_handler(handler han)
 {
-    m_handler.emplace_back(han.get_handler());
+    m_handler.emplace_back(std::move(han));
 }
 
 auto service::custom_run() -> int
@@ -301,18 +291,16 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
         return http_response<http::status::bad_request>(req, "Request-target empty");
     }
 
-    auto it = handlers.begin();
-    for (; it != handlers.end(); it++) {
-        if ((*it).matches(path.front())) {
-            break;
+    for (const auto& hand: handlers) {
+        if (hand.matches(path.front())) {
+            return handle(req, path, hand);
         }
     }
-    if (it == handlers.end()) {
-        return http_response<http::status::bad_request>(req, "Illegal request-target");
-    }
+    return http_response<http::status::bad_request>(req, "Illegal request-target");
+}
 
-    const handler& hand { *it };
-
+auto service::handle(request_type req, std::queue<std::string> path, const handler& hand) const -> response_type
+{
     path.pop();
 
     if (hand.requires_auth) {
@@ -329,13 +317,13 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
         auto username = auth.substr(0, delimiter);
         auto password = auth.substr(delimiter + 1);
 
-        if (!hand.authenticate(request { req }, username, password)) {
+        if (!hand.authenticate(req, username, password)) {
             return http_response<http::status::unauthorized>(req, "Authorisation failed for user: '" + username + "'");
         }
     }
 
     if (hand.children.empty() || path.empty()) {
-        return hand.handle(request { req }, path);
+        return hand.handle(req, path);
     }
 
     return handle(std::move(req), std::move(path), hand.children);
