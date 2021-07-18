@@ -267,10 +267,10 @@ void service::on_stop()
 auto service::handle(request_type req) const -> response_type
 {
     if (req.target().empty() || req.target()[0] != '/' || (req.target().find("..") != beast::string_view::npos)) {
-        return http_response<http::status::bad_request>(req, "Malformed request-target");
+        return http_response<http::status::bad_request>(req)("Malformed request-target");
     }
     if (m_handler.empty()) {
-        return http_response<http::status::service_unavailable>(req, "No handler installed");
+        return http_response<http::status::service_unavailable>(req)("No handler installed");
     }
 
     std::queue<std::string> path {};
@@ -291,7 +291,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
     }
 
     if (path.empty()) {
-        return http_response<http::status::bad_request>(req, "Request-target empty");
+        return http_response<http::status::bad_request>(req)("Request-target empty");
     }
 
     for (const auto& hand: handlers) {
@@ -299,7 +299,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
             return handle(req, path, hand);
         }
     }
-    return http_response<http::status::bad_request>(req, "Illegal request-target");
+    return http_response<http::status::bad_request>(req)("Illegal request-target");
 }
 
 auto service::handle(request_type req, std::queue<std::string> path, const handler& hand) const -> response_type
@@ -310,7 +310,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const handl
         std::string auth { req[http::field::authorization] };
 
         if (auth.empty()) {
-            return http_response<http::status::unauthorized>(req, "Need authorisation");
+            return http_response<http::status::unauthorized>(req)("Need authorisation");
         }
         constexpr std::size_t header_length { 6 };
 
@@ -321,7 +321,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const handl
         auto password = auth.substr(delimiter + 1);
 
         if (!hand.authenticate(req, username, password)) {
-            return http_response<http::status::unauthorized>(req, "Authorisation failed for user: '" + username + "'");
+            return http_response<http::status::unauthorized>(req)("Authorisation failed for user: '" + username + "'");
         }
     }
 

@@ -28,17 +28,51 @@ using request_type = http::request<http::string_body>;
 using response_type = http::response<http::string_body>;
 using tcp = net::ip::tcp;
 
-template <http::status status>
-[[nodiscard]] inline auto LIBMUONPI_PUBLIC http_response(request_type& req, std::string why) -> response_type
-{
-    response_type res { status, req.version() };
-    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(http::field::content_type, "text/html");
-    res.keep_alive(req.keep_alive());
-    res.body() = std::move(why);
-    res.prepare_payload();
-    return res;
-}
+template <http::status Status>
+class LIBMUONPI_PUBLIC http_response {
+public:
+    enum class content_type {
+        html,
+        json
+    };
+
+    http_response(request_type& req, content_type content, std::string application_name = "libmuonpi-" + Version::string())
+        : m_response { Status, req.version() }
+    {
+        m_response.set(http::field::server, application_name);
+        std::string content_type_string {};
+        switch (content) {
+        case content_type::html:
+            content_type_string = "text/html";
+            break;
+        case content_type::json:
+            content_type_string = "text/json";
+            break;
+        }
+        m_response.set(http::field::content_type, content_type_string);
+        m_response.keep_alive(req.keep_alive());
+    }
+
+    http_response(request_type& req)
+        : http_response<Status> {req, content_type::html}
+    {
+    }
+
+    [[nodiscard]] auto commit(std::string body) -> response_type
+    {
+        m_response.body() = std::move(body);
+        m_response.prepare_payload();
+        return std::move(m_response);
+    }
+
+    [[nodiscard]] auto operator()(std::string body) -> response_type
+    {
+        return std::move(commit(std::move(body)));
+    }
+
+private:
+    response_type m_response;
+};
 
 struct LIBMUONPI_PUBLIC handler {
     std::function<bool(std::string_view path)> matches {};
