@@ -44,8 +44,6 @@ if (LIBMUONPI_BUILD_MQTT) # libraries specific to the MQTT library
 endif ()
 
 if (LIBMUONPI_BUILD_REST) # libraries specific to the REST libraries
-    find_library(SASL2 sasl2 REQUIRED)
-    find_library(LDAP ldap REQUIRED)
     find_library(DL dl REQUIRED)
 endif ()
 
@@ -84,7 +82,7 @@ if (LIBMUONPI_BUILD_REST)
     add_library(muonpi-rest SHARED ${REST_SOURCE_FILES} ${REST_HEADER_FILES})
     add_dependencies(muonpi-rest muonpi-core)
     target_include_directories(muonpi-rest PUBLIC ${PROJECT_HEADER_DIR})
-    target_link_libraries(muonpi-rest ${PROJECT_INCLUDE_LIBS} muonpi-core sasl2 ldap ssl crypto dl)
+    target_link_libraries(muonpi-rest ${PROJECT_INCLUDE_LIBS} muonpi-core ssl crypto dl)
 endif ()
 
 if (LIBMUONPI_BUILD_DETECTOR)
