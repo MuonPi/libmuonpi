@@ -75,6 +75,7 @@ public:
     struct configuration {
         int port {};
         std::string address {};
+        bool ssl {};
         std::string cert {};
         std::string privkey {};
         std::string fullchain {};
@@ -99,9 +100,7 @@ private:
     std::vector<handler> m_handler {};
 
     net::io_context m_ioc { 1 };
-#ifndef PROCESSOR_DISABLE_SSL
     ssl::context m_ctx { ssl::context::tlsv12 };
-#endif
     tcp::acceptor m_acceptor { m_ioc };
     tcp::endpoint m_endpoint;
     configuration m_rest_conf;

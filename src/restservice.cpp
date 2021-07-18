@@ -10,13 +10,11 @@ namespace muonpi::rest {
 
 void fail(beast::error_code ec, const std::string& what);
 
+template <typename Stream>
 class session {
 public:
-#ifndef PROCESSOR_DISABLE_SSL
     explicit session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type(request_type)> handler);
-#else
     explicit session(tcp::socket&& socket, std::function<response_type(request_type)> handler);
-#endif
 
     void run();
 
@@ -31,11 +29,7 @@ public:
 private:
     void notify();
 
-#ifndef PROCESSOR_DISABLE_SSL
-    beast::ssl_stream<beast::tcp_stream> m_stream;
-#else
-    beast::tcp_stream m_stream;
-#endif
+    Stream m_stream;
 
     beast::flat_buffer m_buffer;
     http::request<http::string_body> m_req;
@@ -49,25 +43,25 @@ private:
     constexpr static std::chrono::duration s_timeout { std::chrono::seconds { 30 } };
 };
 
-#ifndef PROCESSOR_DISABLE_SSL
-session::session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type(request_type)> handler)
+template <>
+session<beast::ssl_stream<beast::tcp_stream>>::session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type(request_type)> handler)
     : m_stream { std::move(socket), ctx }
     , m_handler { std::move(handler) }
 {
 }
-#else
-session::session(tcp::socket&& socket, std::function<response_type(request_type)> handler)
+
+template <>
+session<beast::tcp_stream>::session(tcp::socket&& socket, std::function<response_type(request_type)> handler)
     : m_stream { std::move(socket) }
     , m_handler { std::move(handler) }
 {
 }
-#endif
 
-void session::run()
+template <>
+void session<beast::ssl_stream<beast::tcp_stream>>::run()
 {
     beast::get_lowest_layer(m_stream).expires_after(s_timeout);
 
-#ifndef PROCESSOR_DISABLE_SSL
     m_stream.async_handshake(ssl::stream_base::server, [&](beast::error_code ec) {
         scope_guard guard { [&] { notify(); } };
         if (ec) {
@@ -77,15 +71,51 @@ void session::run()
         guard.dismiss();
         do_read();
     });
-#else
-    net::dispatch(m_stream.get_executor(), [&] { do_read(); });
-#endif
 
     std::unique_lock<std::mutex> lock { m_mutex };
     m_done.wait(lock);
 }
 
-void session::do_read()
+template <>
+void session<beast::tcp_stream>::run()
+{
+    beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+
+    net::dispatch(m_stream.get_executor(), [&] { do_read(); });
+
+    std::unique_lock<std::mutex> lock { m_mutex };
+    m_done.wait(lock);
+}
+
+template <>
+void session<beast::ssl_stream<beast::tcp_stream>>::do_close()
+{
+    scope_guard guard { [&] { notify(); } };
+    beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+    m_stream.async_shutdown([&](beast::error_code ec) {
+        if (ec) {
+            fail(ec, "shutdown");
+        }
+        notify();
+    });
+    guard.dismiss();
+}
+
+template <>
+void session<beast::tcp_stream>::do_close()
+{
+    scope_guard guard { [&] { notify(); } };
+    beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+    beast::error_code ec;
+    m_stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+    if (ec) {
+        fail(ec, "shutdown");
+    }
+    guard.dismiss();
+}
+
+template <typename Stream>
+void session<Stream>::do_read()
 {
     scope_guard guard { [&] { notify(); } };
     m_req = {};
@@ -96,28 +126,8 @@ void session::do_read()
     guard.dismiss();
 }
 
-void session::do_close()
-{
-    scope_guard guard { [&] { notify(); } };
-    beast::get_lowest_layer(m_stream).expires_after(s_timeout);
-#ifndef PROCESSOR_DISABLE_SSL
-    m_stream.async_shutdown([&](beast::error_code ec) {
-        if (ec) {
-            fail(ec, "shutdown");
-        }
-        notify();
-    });
-#else
-    beast::error_code ec;
-    m_stream.socket().shutdown(tcp::socket::shutdown_send, ec);
-    if (ec) {
-        fail(ec, "shutdown");
-    }
-#endif
-    guard.dismiss();
-}
-
-void session::on_read(beast::error_code errorcode, std::size_t bytes_transferred)
+template <typename Stream>
+void session<Stream>::on_read(beast::error_code errorcode, std::size_t bytes_transferred)
 {
     scope_guard guard { [&] { notify(); } };
     boost::ignore_unused(bytes_transferred);
@@ -142,7 +152,8 @@ void session::on_read(beast::error_code errorcode, std::size_t bytes_transferred
     guard.dismiss();
 }
 
-void session::on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
+template <typename Stream>
+void session<Stream>::on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
 {
     scope_guard guard { [&] { notify(); } };
     boost::ignore_unused(bytes_transferred);
@@ -163,7 +174,8 @@ void session::on_write(bool close, beast::error_code ec, std::size_t bytes_trans
     guard.dismiss();
 }
 
-void session::notify()
+template <typename Stream>
+void session<Stream>::notify()
 {
     m_done.notify_all();
 }
@@ -183,14 +195,14 @@ service::service(configuration rest_config)
     , m_endpoint { net::ip::make_address(rest_config.address), static_cast<std::uint16_t>(rest_config.port) }
     , m_rest_conf { std::move(rest_config) }
 {
-#ifndef PROCESSOR_DISABLE_SSL
-    m_ctx.set_options(
-        boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2);
+    if (m_rest_conf.ssl) {
+        m_ctx.set_options(
+            boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2);
 
-    m_ctx.use_private_key_file(m_rest_conf.privkey, ssl::context::file_format::pem);
-    m_ctx.use_certificate_file(m_rest_conf.cert, ssl::context::file_format::pem);
-    m_ctx.use_certificate_chain_file(m_rest_conf.fullchain);
-#endif // PROCESSOR_DISABLE_SSL
+        m_ctx.use_private_key_file(m_rest_conf.privkey, ssl::context::file_format::pem);
+        m_ctx.use_certificate_file(m_rest_conf.cert, ssl::context::file_format::pem);
+        m_ctx.use_certificate_chain_file(m_rest_conf.fullchain);
+    }
 
     beast::error_code ec;
 
@@ -240,12 +252,13 @@ void service::do_accept()
             fail(ec, "on accept");
         } else {
             std::thread([&] {
-#ifndef PROCESSOR_DISABLE_SSL
-                session sess { std::move(socket), m_ctx, [&](request_type req) { return handle(std::move(req)); } };
-#else
-                session sess { std::move(socket), [&](request_type req) { return handle(std::move(req)); } };
-#endif
-                sess.run();
+                if (m_rest_conf.ssl) {
+                    session<beast::ssl_stream<beast::tcp_stream>> sess { std::move(socket), m_ctx, [&](request_type req) { return handle(std::move(req)); } };
+                    sess.run();
+                } else {
+                    session<beast::tcp_stream> sess { std::move(socket), [&](request_type req) { return handle(std::move(req)); } };
+                    sess.run();
+                }
             }).detach();
             std::this_thread::sleep_for(std::chrono::milliseconds { 2 });
         }
@@ -330,11 +343,9 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
 
 void fail(beast::error_code ec, const std::string& what)
 {
-#ifndef PROCESSOR_DISABLE_SSL
     if (ec == net::ssl::error::stream_truncated) {
         return;
     }
-#endif
 
     log::warning() << what << ": " << ec.message();
 }
