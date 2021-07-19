@@ -69,6 +69,11 @@ public:
      */
     [[nodiscard]] auto data() -> std::vector<T>&;
 
+    /**
+     * @brief iterate Iterate over one index and execute the lambda with each step
+     * @param index the item to iterate over
+     * @param function the lambda to execute
+     */
     [[nodiscard]] auto iterate(std::size_t index, std::function<void(T&)> function);
 
 private:

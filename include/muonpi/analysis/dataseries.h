@@ -30,7 +30,12 @@ public:
         harmonic
     };
 
+    /**
+     * @brief data_series
+     * @param n the maximum buffer size to use
+     */
     explicit data_series(std::size_t n) noexcept;
+
     /**
      * @brief add Adds a value to the data series
      * @param value The value to add
@@ -74,6 +79,10 @@ public:
      */
     [[nodiscard]] auto n() const -> std::size_t;
 
+    /**
+     * @brief data Get the data
+     * @return const ref to the data vector
+     */
     [[nodiscard]] auto data() const -> const std::vector<T>&;
 
 private:

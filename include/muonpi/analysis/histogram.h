@@ -29,6 +29,10 @@ public:
         std::size_t count { 0 };
     };
 
+    /**
+     * @brief histogram
+     * @param n The number of bins to use
+     */
     explicit histogram(std::size_t n) noexcept;
 
     /**
