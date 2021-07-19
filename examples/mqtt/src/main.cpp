@@ -10,7 +10,7 @@ auto main() -> int
     muonpi::link::mqtt::configuration config {};
 
     config.host = "muonpi.org";
-    config.port = 1885;
+    config.port = 1883;
     config.login.username = "username";
     config.login.password = "password";
 
@@ -37,6 +37,7 @@ auto main() -> int
         muonpi::log::warning()<<"Could not publish messge.";
     }
 
+    std::this_thread::sleep_for(std::chrono::seconds{1});
     mqtt.stop();
     return mqtt.wait();
 }
