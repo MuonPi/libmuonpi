@@ -10,7 +10,6 @@ auto main() -> int
     muonpi::link::mqtt::configuration config {};
 
     config.host = "muonpi.org";
-    config.port = 1883;
     config.login.username = "username";
     config.login.password = "password";
 
@@ -23,7 +22,7 @@ auto main() -> int
     auto& subscriber = mqtt.subscribe("muonpi/example/#");
     auto& publisher = mqtt.publish("muonpi/example");
 
-    subscriber.set_callback([](const muonpi::link::mqtt::message_t& message){
+    subscriber.emplace_callback([](const muonpi::link::mqtt::message_t& message){
         muonpi::log::info()<<"Received message: "<<message.topic<<" -> "<<message.content;
     });
 

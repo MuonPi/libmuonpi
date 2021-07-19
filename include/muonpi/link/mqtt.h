@@ -140,7 +140,7 @@ public:
 
         subscriber() = default;
 
-        void set_callback(std::function<void(const message_t&)> callback);
+        void emplace_callback(std::function<void(const message_t&)> callback);
 
         /**
          * @brief get_subscribe_topic Gets the topic the subscriber subscribes to

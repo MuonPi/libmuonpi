@@ -349,7 +349,7 @@ auto mqtt::publisher::get_publish_topic() const -> const std::string&
     return m_topic;
 }
 
-void mqtt::subscriber::set_callback(std::function<void(const message_t&)> callback)
+void mqtt::subscriber::emplace_callback(std::function<void(const message_t&)> callback)
 {
     m_callback.emplace_back(std::move(callback));
 }
