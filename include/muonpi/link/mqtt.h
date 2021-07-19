@@ -60,11 +60,14 @@ public:
 
     struct configuration {
         std::string host {};
-        int port {};
+        int port {1883};
         struct login_t {
             std::string username {};
             std::string password {};
         } login;
+        std::size_t max_retries { 10 };
+        std::chrono::seconds timeout { 3 };
+        int keepalive { 60 };
     };
 
     struct message_t {
@@ -262,7 +265,6 @@ private:
     std::condition_variable m_connect_condition {};
 
     std::size_t m_tries { 0 };
-    static constexpr std::size_t s_max_tries { 10 };
 
     /**
      * @brief callback_connected Gets called by mosquitto client
