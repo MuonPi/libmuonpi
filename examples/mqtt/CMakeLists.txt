@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(muonpi-example-rest LANGUAGES CXX C)
+project(muonpi-example-mqtt LANGUAGES CXX C)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -18,14 +18,11 @@ find_package(
   COMPONENTS system program_options
   REQUIRED)
 
-add_executable(muonpi-example-rest src/main.cpp)
+add_executable(muonpi-example-mqtt src/main.cpp)
 
-target_link_libraries(muonpi-example-rest
+target_link_libraries(muonpi-example-mqtt
     pthread
-    ${Boost_LIBRARIES}
-    ssl
-    crypto
     muonpi-core
-    muonpi-rest
+    muonpi-mqtt
     dl
     )

@@ -8,6 +8,7 @@ option(LIBMUONPI_BUILD_MQTT "Build the mqtt code" ON )
 option(LIBMUONPI_BUILD_REST "Build the REST service code" ON)
 option(LIBMUONPI_BUILD_DETECTOR "Build the detector code" ON)
 option(LIBMUONPI_BUILD_SANITIZERS "Build sanitizers into the libraries" OFF)
+option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" OFF)
 
 set(LIBMUONPI_COMPILING ON)
 
@@ -32,6 +33,10 @@ if(${LIBMUONPI_BUILD_SANITIZERS})
     add_link_options(-fsanitize=address,undefined)
 endif()
 
+
+if(${LIBMUONPI_BUILD_EXAMPLES})
+    add_subdirectory(examples)
+endif()
 
 
 find_package(

@@ -1,9 +1,12 @@
 #include <muonpi/restservice.h>
+#include <muonpi/log.h>
 
 #include <iostream>
 
 auto main() -> int
 {
+    muonpi::log::system::setup(muonpi::log::Level::Info);
+
     muonpi::rest::service::configuration config {};
     config.address = "127.0.0.1";
     config.port = 8000;

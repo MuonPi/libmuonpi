@@ -23,7 +23,7 @@ enum Level : int {
 
 class LIBMUONPI_PUBLIC system {
 public:
-    static void setup(Level l, std::function<void(int)> callback, std::ostream& str = std::cerr);
+    static void setup(Level l, std::function<void(int)> callback = [](int c){exit(c);}, std::ostream& str = std::cerr);
 
     system(Level l, std::function<void(int)> cb, std::ostream& str);
 
