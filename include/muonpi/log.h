@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <functional>
 
 namespace muonpi::log {
 
@@ -18,6 +19,24 @@ enum Level : int {
     Warning,
     Notice,
     Debug
+};
+
+class LIBMUONPI_PUBLIC system {
+public:
+    static void setup(Level l, std::function<void(int)> callback, std::ostream& str = std::cerr);
+
+    system(Level l, std::function<void(int)> cb, std::ostream& str);
+
+    [[nodiscard]] static auto level() -> Level;
+    [[nodiscard]] static auto stream() -> std::ostream&;
+    static void callback(int exit_code);
+
+private:
+    static std::unique_ptr<system> s_singleton;
+
+    Level m_level {};
+    std::function<void(int)> m_callback {};
+    std::ostream& m_stream;
 };
 
 template <Level L>
@@ -39,15 +58,20 @@ public:
 
     ~logger()
     {
-        std::cerr << to_string() << m_stream.str() + "\n"
-                  << std::flush;
+        if (L <= (Level::Info + system::level())) {
+           system::stream() << to_string() << m_stream.str() + "\n"
+                     << std::flush;
+        }
+        if (L <= Level::Critical) {
+           system::callback(std::move(m_exit_code));
+        }
     }
 
 private:
     std::ostringstream m_stream {};
     int m_exit_code { 0 };
 
-    [[nodiscard]] auto to_string() -> std::string
+    [[nodiscard]] constexpr static auto to_string() -> const char*
     {
         switch (L) {
         case Level::Debug:
@@ -67,7 +91,7 @@ private:
         case Level::Emergency:
             return "Emergency: ";
         }
-        return {};
+        return "";
     }
 };
 

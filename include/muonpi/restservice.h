@@ -36,7 +36,7 @@ public:
         json
     };
 
-    http_response(request_type& req, content_type content, std::string application_name = "libmuonpi-" + Version::string())
+    http_response(request_type& req, content_type content, std::string application_name = "libmuonpi-" + Version::libmuonpi::string())
         : m_response { Status, req.version() }
     {
         m_response.set(http::field::server, application_name);
