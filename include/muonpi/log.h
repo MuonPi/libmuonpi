@@ -21,8 +21,16 @@ enum Level : int {
     Debug
 };
 
+/**
+ * @brief The system class
+ * Initialisation and logging system configuration
+ */
 class LIBMUONPI_PUBLIC system {
 public:
+      /**
+        * @brief
+        * @param l Maximum Log level to show
+        */
     static void setup(Level l, std::function<void(int)> callback = [](int c){exit(c);}, std::ostream& str = std::cerr);
 
     system(Level l, std::function<void(int)> cb, std::ostream& str);
