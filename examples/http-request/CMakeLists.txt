@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(example-mqtt LANGUAGES CXX C)
+project(example-http-request LANGUAGES CXX C)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -18,11 +18,14 @@ find_package(
   COMPONENTS system program_options
   REQUIRED)
 
-add_executable(example-mqtt src/main.cpp)
+add_executable(example-http-request src/main.cpp)
 
-target_link_libraries(example-mqtt
+target_link_libraries(example-http-request
     pthread
+    ${Boost_LIBRARIES}
+    ssl
+    crypto
     muonpi-core
-    muonpi-mqtt
+    muonpi-http
     dl
     )

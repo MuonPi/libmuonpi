@@ -3,32 +3,18 @@
 
 #include "muonpi/global.h"
 #include "muonpi/threadrunner.h"
-
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/config.hpp>
+#include "muonpi/log.h"
+#include "muonpi/http_tools.h"
 
 #include <queue>
 #include <string>
 #include <string_view>
 #include <vector>
 
-namespace muonpi::rest {
+namespace muonpi::http {
 
-namespace beast = boost::beast;
-namespace http = beast::http;
-namespace net = boost::asio;
-namespace ssl = boost::asio::ssl;
 
-using request_type = http::request<http::string_body>;
-using response_type = http::response<http::string_body>;
-using tcp = net::ip::tcp;
-
-template <http::status Status>
+template <beast::http::status Status>
 class LIBMUONPI_PUBLIC http_response {
 public:
     enum class content_type {
@@ -39,7 +25,7 @@ public:
     http_response(request_type& req, content_type content, std::string application_name = "libmuonpi-" + Version::libmuonpi::string())
         : m_response { Status, req.version() }
     {
-        m_response.set(http::field::server, application_name);
+        m_response.set(beast::http::field::server, application_name);
         std::string content_type_string {};
         switch (content) {
         case content_type::html:
@@ -49,7 +35,7 @@ public:
             content_type_string = "text/json";
             break;
         }
-        m_response.set(http::field::content_type, content_type_string);
+        m_response.set(beast::http::field::content_type, content_type_string);
         m_response.keep_alive(req.keep_alive());
     }
 
@@ -74,16 +60,16 @@ private:
     response_type m_response;
 };
 
-struct LIBMUONPI_PUBLIC handler {
+struct LIBMUONPI_PUBLIC path_handler {
     std::function<bool(std::string_view path)> matches {};
     std::function<response_type(request_type& req, const std::queue<std::string>& path)> handle {};
     std::string name {};
     bool requires_auth { false };
     std::function<bool(request_type& req, std::string_view username, std::string_view password)> authenticate {};
-    std::vector<handler> children {};
+    std::vector<path_handler> children {};
 };
 
-class LIBMUONPI_PUBLIC service : public thread_runner {
+class LIBMUONPI_PUBLIC http_server : public thread_runner {
 public:
 
     struct configuration {
@@ -95,9 +81,9 @@ public:
         std::string fullchain {};
     };
 
-    service(configuration rest_config);
+    http_server(configuration config);
 
-    void add_handler(handler han);
+    void add_handler(path_handler han);
 
 
 protected:
@@ -111,16 +97,16 @@ protected:
 private:
     [[nodiscard]] auto handle(request_type req) const -> response_type;
 
-    [[nodiscard]] auto handle(request_type req, std::queue<std::string> path, const std::vector<handler>& handlers) const -> response_type;
-    [[nodiscard]] auto handle(request_type req, std::queue<std::string> path, const handler& hand) const -> response_type;
+    [[nodiscard]] auto handle(request_type req, std::queue<std::string> path, const std::vector<path_handler>& handlers) const -> response_type;
+    [[nodiscard]] auto handle(request_type req, std::queue<std::string> path, const path_handler& hand) const -> response_type;
 
-    std::vector<handler> m_handler {};
+    std::vector<path_handler> m_handler {};
 
     net::io_context m_ioc { 1 };
     ssl::context m_ctx { ssl::context::tlsv12 };
     tcp::acceptor m_acceptor { m_ioc };
     tcp::endpoint m_endpoint;
-    configuration m_rest_conf;
+    configuration m_conf;
 };
 
 }

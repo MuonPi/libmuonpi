@@ -42,14 +42,14 @@ if (LIBMUONPI_BUILD_MQTT)
     configure_file("${PROJECT_CONFIG_DIR}/changelog-mqtt" "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog")
     add_custom_target(changelog-libmuonpi-mqtt ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz")
 endif ()
-if (LIBMUONPI_BUILD_REST)
-    set_target_properties(muonpi-rest PROPERTIES
+if (LIBMUONPI_BUILD_HTTP)
+    set_target_properties(muonpi-http PROPERTIES
         SUFFIX ".so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"
         INSTALL_REMOVE_ENVIRONMENT_RPATH ON
         SKIP_BUILD_RPATH ON
         )
     configure_file("${PROJECT_CONFIG_DIR}/changelog-rest" "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog")
-    add_custom_target(changelog-libmuonpi-rest ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog.gz")
+    add_custom_target(changelog-libmuonpi-http ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog.gz")
 endif ()
 if (LIBMUONPI_BUILD_DETECTOR)
     set_target_properties(muonpi-detector PROPERTIES
@@ -138,39 +138,39 @@ if (LIBMUONPI_BUILD_MQTT)
         )
 endif ()
 
-if (LIBMUONPI_BUILD_REST)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest" COMPONENT libmuonpirest)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest" COMPONENT libmuonpirest)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest-dev" COMPONENT libmuonpirestdev)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest-dev" COMPONENT libmuonpirestdev)
+if (LIBMUONPI_BUILD_HTTP)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest" COMPONENT libmuonpihttp)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest" COMPONENT libmuonpihttp)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest-dev" COMPONENT libmuonpihttpdev)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest-dev" COMPONENT libmuonpihttpdev)
     if (${LIBMUONPI_IS_RELEASE})
       add_custom_command(
-        TARGET muonpi-rest
+        TARGET muonpi-http
         POST_BUILD
-        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-rest.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-http.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
     endif ()
     install_with_directory(
-        FILES ${REST_HEADER_FILES}
+        FILES ${HTTP_HEADER_FILES}
         DESTINATION include
         BASEDIR ${PROJECT_HEADER_DIR}
-        COMPONENT libmuonpirestdev
+        COMPONENT libmuonpihttpdev
     )
     add_custom_command(
-        TARGET muonpi-rest
+        TARGET muonpi-http
         POST_BUILD
         COMMAND cd "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/" &&
-        ln -sf "libmuonpi-rest.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "libmuonpi-rest.so.${PROJECT_VERSION_MAJOR}" &&
-        ln -sf "libmuonpi-rest.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" libmuonpi-rest.so
+        ln -sf "libmuonpi-http.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "libmuonpi-http.so.${PROJECT_VERSION_MAJOR}" &&
+        ln -sf "libmuonpi-http.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" libmuonpi-http.so
         )
     install(
-        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-rest.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-rest.so.${PROJECT_VERSION_MAJOR}"
+        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-http.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-http.so.${PROJECT_VERSION_MAJOR}"
         DESTINATION lib
-        COMPONENT libmuonpirest
+        COMPONENT libmuonpihttp
         )
     install(
-        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-rest.so"
+        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-http.so"
         DESTINATION lib
-        COMPONENT libmuonpirestdev
+        COMPONENT libmuonpihttpdev
         )
 endif ()
 
@@ -256,19 +256,19 @@ if (LIBMUONPI_BUILD_MQTT)
     set(CPACK_DEBIAN_LIBMUONPIMQTTDEV_PACKAGE_DEPENDS "libmuonpi-mqtt (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmuonpi-core-dev (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmosquitto-dev")
 endif ()
 
-if (LIBMUONPI_BUILD_REST)
-    set(CPACK_DEBIAN_LIBMUONPIREST_DESCRIPTION "Libraries for MuonPi
- REST package")
-    set(CPACK_COMPONENT_LIBMUONPIREST_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIREST_DESCRIPTION}")
-    set(CPACK_DEBIAN_LIBMUONPIREST_PACKAGE_NAME "libmuonpi-rest")
-    set(CPACK_DEBIAN_LIBMUONPIREST_PACKAGE_DEPENDS "libmuonpi-core (= ${CPACK_PACKAGE_VERSION})")
-    set(CPACK_DEBIAN_LIBMUONPIREST_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/triggers")
+if (LIBMUONPI_BUILD_HTTP)
+    set(CPACK_DEBIAN_LIBMUONPIHTTP_DESCRIPTION "Libraries for MuonPi
+ HTTP package")
+    set(CPACK_COMPONENT_LIBMUONPIHTTP_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIHTTP_DESCRIPTION}")
+    set(CPACK_DEBIAN_LIBMUONPIHTTP_PACKAGE_NAME "libmuonpi-http")
+    set(CPACK_DEBIAN_LIBMUONPIHTTP_PACKAGE_DEPENDS "libmuonpi-core (= ${CPACK_PACKAGE_VERSION})")
+    set(CPACK_DEBIAN_LIBMUONPIHTTP_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/triggers")
 
-    set(CPACK_DEBIAN_LIBMUONPIRESTDEV_DESCRIPTION "Libraries for MuonPi
- REST dev package")
-    set(CPACK_COMPONENT_LIBMUONPIRESTDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIRESTDEV_DESCRIPTION}")
-    set(CPACK_DEBIAN_LIBMUONPIRESTDEV_PACKAGE_NAME "libmuonpi-rest-dev")
-    set(CPACK_DEBIAN_LIBMUONPIRESTDEV_PACKAGE_DEPENDS "libmuonpi-rest (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmuonpi-core-dev (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})")
+    set(CPACK_DEBIAN_LIBMUONPIHTTPDEV_DESCRIPTION "Libraries for MuonPi
+ HTTP dev package")
+    set(CPACK_COMPONENT_LIBMUONPIHTTPDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIHTTPDEV_DESCRIPTION}")
+    set(CPACK_DEBIAN_LIBMUONPIHTTPDEV_PACKAGE_NAME "libmuonpi-http-dev")
+    set(CPACK_DEBIAN_LIBMUONPIHTTPDEV_PACKAGE_DEPENDS "libmuonpi-http (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmuonpi-core-dev (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})")
 endif ()
 
 if (LIBMUONPI_BUILD_DETECTOR)

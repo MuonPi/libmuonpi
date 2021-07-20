@@ -1,4 +1,4 @@
-#include "muonpi/restservice.h"
+#include "muonpi/http_server.h"
 #include "muonpi/base64.h"
 #include "muonpi/log.h"
 #include "muonpi/scopeguard.h"
@@ -6,9 +6,7 @@
 #include <sstream>
 #include <utility>
 
-namespace muonpi::rest {
-
-void fail(beast::error_code ec, const std::string& what);
+namespace muonpi::http {
 
 template <typename Stream>
 class session {
@@ -32,7 +30,7 @@ private:
     Stream m_stream;
 
     beast::flat_buffer m_buffer;
-    http::request<http::string_body> m_req;
+    request_type m_req;
     std::shared_ptr<void> m_res;
 
     std::function<response_type(request_type)> m_handler;
@@ -122,7 +120,7 @@ void session<Stream>::do_read()
 
     beast::get_lowest_layer(m_stream).expires_after(s_timeout);
 
-    http::async_read(m_stream, m_buffer, m_req, [&](beast::error_code ec, std::size_t bytes_transferred) { on_read(ec, bytes_transferred); });
+    beast::http::async_read(m_stream, m_buffer, m_req, [&](beast::error_code ec, std::size_t bytes_transferred) { on_read(ec, bytes_transferred); });
     guard.dismiss();
 }
 
@@ -132,7 +130,7 @@ void session<Stream>::on_read(beast::error_code errorcode, std::size_t bytes_tra
     scope_guard guard { [&] { notify(); } };
     boost::ignore_unused(bytes_transferred);
 
-    if (errorcode == http::error::end_of_stream) {
+    if (errorcode == beast::http::error::end_of_stream) {
         do_close();
         return;
     }
@@ -142,11 +140,11 @@ void session<Stream>::on_read(beast::error_code errorcode, std::size_t bytes_tra
         return;
     }
 
-    auto sp { std::make_shared<http::message<false, http::string_body>>(m_handler(std::move(m_req))) };
+    auto sp { std::make_shared<beast::http::message<false, beast::http::string_body>>(m_handler(std::move(m_req))) };
 
     bool close { sp->need_eof() };
     m_res = sp;
-    http::async_write(
+    beast::http::async_write(
         m_stream,
         *sp,
         [&](beast::error_code ec, std::size_t bytes) {
@@ -183,18 +181,18 @@ void session<Stream>::notify()
     m_done.notify_all();
 }
 
-service::service(configuration rest_config)
+http_server::http_server(configuration config)
     : thread_runner("REST", true)
-    , m_endpoint { net::ip::make_address(rest_config.address), static_cast<std::uint16_t>(rest_config.port) }
-    , m_rest_conf { std::move(rest_config) }
+    , m_endpoint { net::ip::make_address(config.address), static_cast<std::uint16_t>(config.port) }
+    , m_conf { std::move(config) }
 {
-    if (m_rest_conf.ssl) {
+    if (m_conf.ssl) {
         m_ctx.set_options(
             boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2);
 
-        m_ctx.use_private_key_file(m_rest_conf.privkey, ssl::context::file_format::pem);
-        m_ctx.use_certificate_file(m_rest_conf.cert, ssl::context::file_format::pem);
-        m_ctx.use_certificate_chain_file(m_rest_conf.fullchain);
+        m_ctx.use_private_key_file(m_conf.privkey, ssl::context::file_format::pem);
+        m_ctx.use_certificate_file(m_conf.cert, ssl::context::file_format::pem);
+        m_ctx.use_certificate_chain_file(m_conf.fullchain);
     }
 
     beast::error_code ec;
@@ -226,26 +224,26 @@ service::service(configuration rest_config)
     start();
 }
 
-void service::add_handler(handler han)
+void http_server::add_handler(path_handler han)
 {
     m_handler.emplace_back(std::move(han));
 }
 
-auto service::custom_run() -> int
+auto http_server::custom_run() -> int
 {
     do_accept();
     m_ioc.run();
     return 0;
 }
 
-void service::do_accept()
+void http_server::do_accept()
 {
     m_acceptor.async_accept([&](const beast::error_code& ec, tcp::socket socket) {
         if (ec) {
             fail(ec, "on accept");
         } else {
             std::thread([&] {
-                if (m_rest_conf.ssl) {
+                if (m_conf.ssl) {
                     session<beast::ssl_stream<beast::tcp_stream>> sess { std::move(socket), m_ctx, [&](request_type req) { return handle(std::move(req)); } };
                     sess.run();
                 } else {
@@ -259,18 +257,18 @@ void service::do_accept()
     });
 }
 
-void service::on_stop()
+void http_server::on_stop()
 {
     m_ioc.stop();
 }
 
-auto service::handle(request_type req) const -> response_type
+auto http_server::handle(request_type req) const -> response_type
 {
     if (req.target().empty() || req.target()[0] != '/' || (req.target().find("..") != beast::string_view::npos)) {
-        return http_response<http::status::bad_request>(req)("Malformed request-target");
+        return http_response<beast::http::status::bad_request>(req)("Malformed request-target");
     }
     if (m_handler.empty()) {
-        return http_response<http::status::service_unavailable>(req)("No handler installed");
+        return http_response<beast::http::status::service_unavailable>(req)("No handler installed");
     }
 
     std::queue<std::string> path {};
@@ -284,14 +282,14 @@ auto service::handle(request_type req) const -> response_type
     return handle(std::move(req), std::move(path), m_handler);
 }
 
-auto service::handle(request_type req, std::queue<std::string> path, const std::vector<handler>& handlers) const -> response_type
+auto http_server::handle(request_type req, std::queue<std::string> path, const std::vector<path_handler>& handlers) const -> response_type
 {
     while (!path.empty() && path.front().empty()) {
         path.pop();
     }
 
     if (path.empty()) {
-        return http_response<http::status::bad_request>(req)("Request-target empty");
+        return http_response<beast::http::status::bad_request>(req)("Request-target empty");
     }
 
     for (const auto& hand: handlers) {
@@ -299,18 +297,18 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
             return handle(req, path, hand);
         }
     }
-    return http_response<http::status::bad_request>(req)("Illegal request-target");
+    return http_response<beast::http::status::bad_request>(req)("Illegal request-target");
 }
 
-auto service::handle(request_type req, std::queue<std::string> path, const handler& hand) const -> response_type
+auto http_server::handle(request_type req, std::queue<std::string> path, const path_handler& hand) const -> response_type
 {
     path.pop();
 
     if (hand.requires_auth) {
-        std::string auth { req[http::field::authorization] };
+        std::string auth { req[beast::http::field::authorization] };
 
         if (auth.empty()) {
-            return http_response<http::status::unauthorized>(req)("Need authorisation");
+            return http_response<beast::http::status::unauthorized>(req)("Need authorisation");
         }
         constexpr std::size_t header_length { 6 };
 
@@ -321,7 +319,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const handl
         auto password = auth.substr(delimiter + 1);
 
         if (!hand.authenticate(req, username, password)) {
-            return http_response<http::status::unauthorized>(req)("Authorisation failed for user: '" + username + "'");
+            return http_response<beast::http::status::unauthorized>(req)("Authorisation failed for user: '" + username + "'");
         }
     }
 
@@ -332,13 +330,4 @@ auto service::handle(request_type req, std::queue<std::string> path, const handl
     return handle(std::move(req), std::move(path), hand.children);
 }
 
-void fail(beast::error_code ec, const std::string& what)
-{
-    if (ec == net::ssl::error::stream_truncated) {
-        return;
-    }
-
-    log::warning() << what << ": " << ec.message();
-}
-
-} // namespace muonpi::rest
+} // namespace muonpi::http

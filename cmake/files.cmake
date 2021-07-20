@@ -5,11 +5,15 @@ set(MQTT_HEADER_FILES
     "${PROJECT_HEADER_DIR}/muonpi/link/mqtt.h"
     )
 
-set(REST_SOURCE_FILES
-    "${PROJECT_SRC_DIR}/restservice.cpp"
+set(HTTP_SOURCE_FILES
+    "${PROJECT_SRC_DIR}/http_server.cpp"
+    "${PROJECT_SRC_DIR}/http_request.cpp"
+    "${PROJECT_SRC_DIR}/http_tools.cpp"
     )
-set(REST_HEADER_FILES
-    "${PROJECT_HEADER_DIR}/muonpi/restservice.h"
+set(HTTP_HEADER_FILES
+    "${PROJECT_HEADER_DIR}/muonpi/http_request.h"
+    "${PROJECT_HEADER_DIR}/muonpi/http_server.h"
+    "${PROJECT_HEADER_DIR}/muonpi/http_tools.h"
     )
 
 
@@ -54,11 +58,11 @@ set(CORE_HEADER_FILES
 set(PROJECT_SOURCE_FILES
     ${CORE_SOURCE_FILES}
     ${MQTT_SOURCE_FILES}
-    ${REST_SOURCE_FILES}
+    ${HTTP_SOURCE_FILES}
     )
 
 set(PROJECT_HEADER_FILES
     ${CORE_HEADER_FILES}
     ${MQTT_HEADER_FILES}
-    ${REST_HEADER_FILES}
+    ${HTTP_HEADER_FILES}
     )
