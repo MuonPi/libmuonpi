@@ -1,8 +1,10 @@
 set(LINK_SOURCE_FILES
     "${PROJECT_SRC_DIR}/link/mqtt.cpp"
+    "${PROJECT_SRC_DIR}/link/influx.cpp"
     )
 set(LINK_HEADER_FILES
     "${PROJECT_HEADER_DIR}/muonpi/link/mqtt.h"
+    "${PROJECT_HEADER_DIR}/muonpi/link/influx.h"
     )
 
 set(HTTP_SOURCE_FILES
