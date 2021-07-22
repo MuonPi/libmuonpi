@@ -4,7 +4,7 @@ project(libmuonpi LANGUAGES CXX C)
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
 
-option(LIBMUONPI_BUILD_MQTT "Build the mqtt code" ON )
+option(LIBMUONPI_BUILD_LINK "Build the link code" ON )
 option(LIBMUONPI_BUILD_HTTP "Build the HTTP service code" ON)
 option(LIBMUONPI_BUILD_DETECTOR "Build the detector code" ON)
 option(LIBMUONPI_BUILD_SANITIZERS "Build sanitizers into the libraries" OFF)
@@ -44,7 +44,7 @@ find_package(
   COMPONENTS system program_options
   REQUIRED)
 
-if (LIBMUONPI_BUILD_MQTT) # libraries specific to the MQTT library
+if (LIBMUONPI_BUILD_LINK) # libraries specific to the link library
     find_library(MOSQUITTO mosquitto REQUIRED)
 endif ()
 
@@ -76,11 +76,11 @@ add_library(muonpi-core SHARED ${CORE_SOURCE_FILES} ${CORE_HEADER_FILES})
 target_include_directories(muonpi-core PUBLIC ${PROJECT_HEADER_DIR})
 target_link_libraries(muonpi-core ${PROJECT_INCLUDE_LIBS})
 
-if (LIBMUONPI_BUILD_MQTT)
-    add_library(muonpi-mqtt SHARED ${MQTT_SOURCE_FILES} ${MQTT_HEADER_FILES})
-    add_dependencies(muonpi-mqtt muonpi-core)
-    target_include_directories(muonpi-mqtt PUBLIC ${PROJECT_HEADER_DIR})
-    target_link_libraries(muonpi-mqtt ${PROJECT_INCLUDE_LIBS} mosquitto)
+if (LIBMUONPI_BUILD_LINK)
+    add_library(muonpi-link SHARED ${LINK_SOURCE_FILES} ${LINK_HEADER_FILES})
+    add_dependencies(muonpi-link muonpi-core)
+    target_include_directories(muonpi-link PUBLIC ${PROJECT_HEADER_DIR})
+    target_link_libraries(muonpi-link ${PROJECT_INCLUDE_LIBS} mosquitto muonpi-http)
 endif ()
 
 if (LIBMUONPI_BUILD_HTTP)

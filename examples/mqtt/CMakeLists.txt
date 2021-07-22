@@ -23,6 +23,7 @@ add_executable(example-mqtt src/main.cpp)
 target_link_libraries(example-mqtt
     pthread
     muonpi-core
-    muonpi-mqtt
+    muonpi-http
+    muonpi-link
     dl
     )

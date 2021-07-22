@@ -121,4 +121,5 @@ auto http_request(destination_t destination, std::string body, bool ssl, std::ve
     }
     return http_request(std::move(destination), std::move(body), std::move(fields));
 }
-}
+
+} // namespace muonpi::http

@@ -33,14 +33,14 @@ configure_file("${PROJECT_CONFIG_DIR}/changelog-core" "${CMAKE_CURRENT_BINARY_DI
 add_custom_target(changelog-libmuonpi-core ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/core/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/core/changelog.gz")
 
 
-if (LIBMUONPI_BUILD_MQTT)
-    set_target_properties(muonpi-mqtt PROPERTIES
+if (LIBMUONPI_BUILD_LINK)
+    set_target_properties(muonpi-link PROPERTIES
         SUFFIX ".so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"
         INSTALL_REMOVE_ENVIRONMENT_RPATH ON
         SKIP_BUILD_RPATH ON
         )
-    configure_file("${PROJECT_CONFIG_DIR}/changelog-mqtt" "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog")
-    add_custom_target(changelog-libmuonpi-mqtt ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz")
+    configure_file("${PROJECT_CONFIG_DIR}/changelog-link" "${CMAKE_CURRENT_BINARY_DIR}/link/changelog")
+    add_custom_target(changelog-libmuonpi-link ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/link/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/link/changelog.gz")
 endif ()
 if (LIBMUONPI_BUILD_HTTP)
     set_target_properties(muonpi-http PROPERTIES
@@ -103,46 +103,46 @@ install(
     COMPONENT libmuonpicoredev
     )
 
-if (LIBMUONPI_BUILD_MQTT)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-mqtt" COMPONENT libmuonpimqtt)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-mqtt" COMPONENT libmuonpimqtt)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-mqtt-dev" COMPONENT libmuonpimqttdev)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-mqtt-dev" COMPONENT libmuonpimqttdev)
+if (LIBMUONPI_BUILD_LINK)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-link" COMPONENT libmuonpilink)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/link/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-link" COMPONENT libmuonpilink)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-link-dev" COMPONENT libmuonpilinkdev)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/link/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-link-dev" COMPONENT libmuonpilinkdev)
     if (${LIBMUONPI_IS_RELEASE})
       add_custom_command(
-        TARGET muonpi-mqtt
+        TARGET muonpi-link
         POST_BUILD
-        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-mqtt.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-link.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
     endif ()
     install_with_directory(
-        FILES ${MQTT_HEADER_FILES}
+        FILES ${LINK_HEADER_FILES}
         DESTINATION include
         BASEDIR ${PROJECT_HEADER_DIR}
-        COMPONENT libmuonpimqttdev)
+        COMPONENT libmuonpilinkdev)
     add_custom_command(
-        TARGET muonpi-mqtt
+        TARGET muonpi-link
         POST_BUILD
         COMMAND cd "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/" &&
-        ln -sf "libmuonpi-mqtt.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "libmuonpi-mqtt.so.${PROJECT_VERSION_MAJOR}" &&
-        ln -sf "libmuonpi-mqtt.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" libmuonpi-mqtt.so
+        ln -sf "libmuonpi-link.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "libmuonpi-link.so.${PROJECT_VERSION_MAJOR}" &&
+        ln -sf "libmuonpi-link.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" libmuonpi-link.so
         )
     install(
-        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-mqtt.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-mqtt.so.${PROJECT_VERSION_MAJOR}"
+        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-link.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-link.so.${PROJECT_VERSION_MAJOR}"
         DESTINATION lib
-        COMPONENT libmuonpimqtt
+        COMPONENT libmuonpilink
         )
     install(
-        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-mqtt.so"
+        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-link.so"
         DESTINATION lib
-        COMPONENT libmuonpimqttdev
+        COMPONENT libmuonpilinkdev
         )
 endif ()
 
 if (LIBMUONPI_BUILD_HTTP)
       install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest" COMPONENT libmuonpihttp)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest" COMPONENT libmuonpihttp)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/link/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest" COMPONENT libmuonpihttp)
       install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest-dev" COMPONENT libmuonpihttpdev)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest-dev" COMPONENT libmuonpihttpdev)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/link/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-rest-dev" COMPONENT libmuonpihttpdev)
     if (${LIBMUONPI_IS_RELEASE})
       add_custom_command(
         TARGET muonpi-http
@@ -176,9 +176,9 @@ endif ()
 
 if (LIBMUONPI_BUILD_DETECTOR)
       install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector" COMPONENT libmuonpidetector)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector" COMPONENT libmuonpidetector)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/link/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector" COMPONENT libmuonpidetector)
       install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector-dev" COMPONENT libmuonpidetectordev)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mqtt/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector-dev" COMPONENT libmuonpidetectordev)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/link/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector-dev" COMPONENT libmuonpidetectordev)
     if (${LIBMUONPI_IS_RELEASE})
       add_custom_command(
         TARGET muonpi-detector
@@ -241,19 +241,19 @@ set(CPACK_COMPONENT_LIBMUONPICOREDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPICOREDE
 set(CPACK_DEBIAN_LIBMUONPICOREDEV_PACKAGE_NAME "libmuonpi-core-dev")
 set(CPACK_DEBIAN_LIBMUONPICOREDEV_PACKAGE_DEPENDS "libmuonpi-core (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libboost-dev (>= 1.69)")
 
-if (LIBMUONPI_BUILD_MQTT)
-    set(CPACK_DEBIAN_LIBMUONPIMQTT_DESCRIPTION "Libraries for MuonPi
- MQTT package")
-    set(CPACK_COMPONENT_LIBMUONPIMQTT_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIMQTT_DESCRIPTION}")
-    set(CPACK_DEBIAN_LIBMUONPIMQTT_PACKAGE_NAME "libmuonpi-mqtt")
-    set(CPACK_DEBIAN_LIBMUONPIMQTT_PACKAGE_DEPENDS "libmuonpi-core (= ${CPACK_PACKAGE_VERSION})")
-    set(CPACK_DEBIAN_LIBMUONPIMQTT_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/triggers")
+if (LIBMUONPI_BUILD_LINK)
+    set(CPACK_DEBIAN_LIBMUONPILINK_DESCRIPTION "Libraries for MuonPi
+ LINK package")
+    set(CPACK_COMPONENT_LIBMUONPILINK_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPILINK_DESCRIPTION}")
+    set(CPACK_DEBIAN_LIBMUONPILINK_PACKAGE_NAME "libmuonpi-link")
+    set(CPACK_DEBIAN_LIBMUONPILINK_PACKAGE_DEPENDS "libmuonpi-core (= ${CPACK_PACKAGE_VERSION})")
+    set(CPACK_DEBIAN_LIBMUONPILINK_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/triggers")
 
-    set(CPACK_DEBIAN_LIBMUONPIMQTTDEV_DESCRIPTION "Libraries for MuonPi
- MQTT dev package")
-    set(CPACK_COMPONENT_LIBMUONPIMQTTDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIMQTTDEV_DESCRIPTION}")
-    set(CPACK_DEBIAN_LIBMUONPIMQTTDEV_PACKAGE_NAME "libmuonpi-mqtt-dev")
-    set(CPACK_DEBIAN_LIBMUONPIMQTTDEV_PACKAGE_DEPENDS "libmuonpi-mqtt (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmuonpi-core-dev (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmosquitto-dev")
+    set(CPACK_DEBIAN_LIBMUONPILINKDEV_DESCRIPTION "Libraries for MuonPi
+ LINK dev package")
+    set(CPACK_COMPONENT_LIBMUONPILINKDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPILINKDEV_DESCRIPTION}")
+    set(CPACK_DEBIAN_LIBMUONPILINKDEV_PACKAGE_NAME "libmuonpi-link-dev")
+    set(CPACK_DEBIAN_LIBMUONPILINKDEV_PACKAGE_DEPENDS "libmuonpi-link (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmuonpi-core-dev (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmosquitto-dev")
 endif ()
 
 if (LIBMUONPI_BUILD_HTTP)
