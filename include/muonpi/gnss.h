@@ -207,8 +207,6 @@ auto transformation<T, Model>::straight_distance(const geodetic<T>& first, const
     return std::sqrt(std::pow(second_enu.x, 2.0) + std::pow(second_enu.y, 2.0) + std::pow(second_enu.z, 2.0));
 }
 
-
-
 template <typename T>
 [[nodiscard]] auto hash<T>::from_geodetic(const geodetic<T>& coords, std::size_t precision) -> std::string
 {
@@ -217,7 +215,6 @@ template <typename T>
     double latMax = 90.;
     double lonMin = -180.;
     double lonMax = 180.;
-
 
     if ((coords.lon < lonMin) || (coords.lon > lonMax)) {
         return {};

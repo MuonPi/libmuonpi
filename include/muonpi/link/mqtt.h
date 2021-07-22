@@ -60,7 +60,7 @@ public:
 
     struct configuration {
         std::string host {};
-        int port {1883};
+        int port { 1883 };
         struct login_t {
             std::string username {};
             std::string password {};

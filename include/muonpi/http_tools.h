@@ -25,7 +25,6 @@ using http_verb = beast::http::verb;
 using http_field = beast::http::field;
 using http_status = beast::http::status;
 
-
 void fail(beast::error_code ec, const std::string& what);
 
 }

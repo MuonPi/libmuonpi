@@ -149,7 +149,7 @@ void session<Stream>::on_read(beast::error_code errorcode, std::size_t bytes_tra
         *sp,
         [&](beast::error_code ec, std::size_t bytes) {
             on_write(close, ec, bytes);
-    });
+        });
     guard.dismiss();
 }
 
@@ -292,7 +292,7 @@ auto http_server::handle(request_type req, std::queue<std::string> path, const s
         return http_response<beast::http::status::bad_request>(req)("Request-target empty");
     }
 
-    for (const auto& hand: handlers) {
+    for (const auto& hand : handlers) {
         if (hand.matches(path.front())) {
             return handle(req, path, hand);
         }

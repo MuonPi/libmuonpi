@@ -2,8 +2,8 @@
 #define HTTP_REQUEST_H
 
 #include "muonpi/global.h"
-#include "muonpi/log.h"
 #include "muonpi/http_tools.h"
+#include "muonpi/log.h"
 
 #include <future>
 
@@ -21,9 +21,7 @@ struct field_t {
     std::string value {};
 };
 
-
 [[nodiscard]] LIBMUONPI_PUBLIC auto http_request(destination_t destination, std::string body, bool ssl = false, std::vector<field_t> fields = {}) -> response_type;
-
 
 }
 

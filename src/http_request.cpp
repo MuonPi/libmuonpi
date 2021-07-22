@@ -7,14 +7,15 @@
 namespace muonpi::http {
 
 template <typename Stream>
-[[nodiscard]] auto create_request(Stream& stream, destination_t destination, std::string body, std::vector<field_t> fields) -> response_type {
+[[nodiscard]] auto create_request(Stream& stream, destination_t destination, std::string body, std::vector<field_t> fields) -> response_type
+{
 
     // Set up an HTTP GET request message
-    request_type req{http_verb::get, destination.target, destination.version};
+    request_type req { http_verb::get, destination.target, destination.version };
     req.set(http_field::host, destination.host);
     req.set(http_field::user_agent, BOOST_BEAST_VERSION_STRING);
     req.set(http_field::content_length, std::to_string(body.size()));
-    for (const auto& [field, value]: fields) {
+    for (const auto& [field, value] : fields) {
         req.set(field, value);
     }
     req.body() = body;
@@ -44,15 +45,14 @@ template <typename Stream>
     // Verify the remote server's certificate
     ctx.set_verify_mode(ssl::verify_peer);
 
-        // These objects perform our I/O
+    // These objects perform our I/O
     tcp::resolver resolver(ioc);
     beast::ssl_stream<beast::tcp_stream> stream(ioc, ctx);
 
     // Set SNI Hostname (many hosts need this to handshake successfully)
-    if(! SSL_set_tlsext_host_name(stream.native_handle(), destination.host.c_str()))
-    {
-        beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
-        throw beast::system_error{ec};
+    if (!SSL_set_tlsext_host_name(stream.native_handle(), destination.host.c_str())) {
+        beast::error_code ec { static_cast<int>(::ERR_get_error()), net::error::get_ssl_category() };
+        throw beast::system_error { ec };
     }
 
     // Look up the domain name
@@ -69,14 +69,17 @@ template <typename Stream>
     // Gracefully close the stream
     beast::error_code ec;
     stream.shutdown(ec);
-    if(ec == net::error::eof)
-    {
+
+    if (ec == net::error::eof) {
         // Rationale:
         // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
         ec = {};
     }
-    if(ec)
-        throw beast::system_error{ec};
+
+    if (ec) {
+        throw beast::system_error { ec };
+    }
+
     return res;
 }
 
@@ -104,8 +107,8 @@ auto http_request(destination_t destination, std::string body, std::vector<field
 
     // not_connected happens sometimes
     // so don't bother reporting it.
-    if(ec && ec != beast::errc::not_connected) {
-        throw beast::system_error{ec};
+    if (ec && ec != beast::errc::not_connected) {
+        throw beast::system_error { ec };
     }
 
     return res;

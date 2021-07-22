@@ -2,9 +2,9 @@
 #define REST_SERVICE_H
 
 #include "muonpi/global.h"
-#include "muonpi/threadrunner.h"
-#include "muonpi/log.h"
 #include "muonpi/http_tools.h"
+#include "muonpi/log.h"
+#include "muonpi/threadrunner.h"
 
 #include <queue>
 #include <string>
@@ -12,7 +12,6 @@
 #include <vector>
 
 namespace muonpi::http {
-
 
 template <beast::http::status Status>
 class LIBMUONPI_PUBLIC http_response {
@@ -40,7 +39,7 @@ public:
     }
 
     http_response(request_type& req)
-        : http_response<Status> {req, content_type::html}
+        : http_response<Status> { req, content_type::html }
     {
     }
 
@@ -71,7 +70,6 @@ struct LIBMUONPI_PUBLIC path_handler {
 
 class LIBMUONPI_PUBLIC http_server : public thread_runner {
 public:
-
     struct configuration {
         int port {};
         std::string address {};
@@ -85,9 +83,7 @@ public:
 
     void add_handler(path_handler han);
 
-
 protected:
-
     [[nodiscard]] auto custom_run() -> int override;
 
     void do_accept();

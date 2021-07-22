@@ -7,8 +7,8 @@ namespace muonpi::log {
 std::unique_ptr<system> system::s_singleton { nullptr };
 
 system::system(Level l, std::function<void(int)> cb, std::ostream& str)
-    : m_level { l}
-    , m_callback {std::move( cb )}
+    : m_level { l }
+    , m_callback { std::move(cb) }
     , m_stream { str }
 {
 }

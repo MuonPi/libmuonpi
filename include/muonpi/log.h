@@ -3,10 +3,10 @@
 
 #include "muonpi/global.h"
 
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <functional>
 
 namespace muonpi::log {
 
@@ -27,11 +27,12 @@ enum Level : int {
  */
 class LIBMUONPI_PUBLIC system {
 public:
-      /**
+    /**
         * @brief
         * @param l Maximum Log level to show
         */
-    static void setup(Level l, std::function<void(int)> callback = [](int c){exit(c);}, std::ostream& str = std::cerr);
+    static void setup(
+        Level l, std::function<void(int)> callback = [](int c) { exit(c); }, std::ostream& str = std::cerr);
 
     system(Level l, std::function<void(int)> cb, std::ostream& str);
 
@@ -67,11 +68,11 @@ public:
     ~logger()
     {
         if (L <= (Level::Info + system::level())) {
-           system::stream() << to_string() << m_stream.str() + "\n"
-                     << std::flush;
+            system::stream() << to_string() << m_stream.str() + "\n"
+                             << std::flush;
         }
         if (L <= Level::Critical) {
-           system::callback(std::move(m_exit_code));
+            system::callback(std::move(m_exit_code));
         }
     }
 
