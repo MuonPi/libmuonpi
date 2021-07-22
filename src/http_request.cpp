@@ -6,6 +6,34 @@
 
 namespace muonpi::http {
 
+template <typename Stream>
+[[nodiscard]] auto create_request(Stream& stream, destination_t destination, std::string body, std::vector<field_t> fields) -> response_type {
+
+    // Set up an HTTP GET request message
+    request_type req{http_verb::get, destination.target, destination.version};
+    req.set(http_field::host, destination.host);
+    req.set(http_field::user_agent, BOOST_BEAST_VERSION_STRING);
+    req.set(http_field::content_length, std::to_string(body.size()));
+    for (const auto& [field, value]: fields) {
+        req.set(field, value);
+    }
+    req.body() = body;
+
+    // Send the HTTP request to the remote host
+    beast::http::write(stream, req);
+
+    // This buffer is used for reading and must be persisted
+    beast::flat_buffer buffer;
+
+    // Declare a container to hold the response
+    response_type res;
+
+    // Receive the HTTP response
+    beast::http::read(stream, buffer, res);
+
+    return res;
+}
+
 [[nodiscard]] auto https_request(destination_t destination, std::string body, std::vector<field_t> fields) -> response_type
 {
     net::io_context ioc;
@@ -36,26 +64,7 @@ namespace muonpi::http {
     // Perform the SSL handshake
     stream.handshake(ssl::stream_base::client);
 
-    // Set up an HTTP GET request message
-    request_type req{http_verb::get, destination.target, destination.version};
-    req.set(http_field::host, destination.host);
-    req.set(http_field::user_agent, BOOST_BEAST_VERSION_STRING);
-    for (const auto& [field, value]: fields) {
-        req.set(field, value);
-    }
-    req.body() = body;
-
-    // Send the HTTP request to the remote host
-    beast::http::write(stream, req);
-
-    // This buffer is used for reading and must be persisted
-    beast::flat_buffer buffer;
-
-    // Declare a container to hold the response
-    response_type res;
-
-    // Receive the HTTP response
-    beast::http::read(stream, buffer, res);
+    response_type res { create_request(stream, destination, body, fields) };
 
     // Gracefully close the stream
     beast::error_code ec;
@@ -86,26 +95,7 @@ auto http_request(destination_t destination, std::string body, std::vector<field
     // Make the connection on the IP address we get from a lookup
     stream.connect(results);
 
-    // Set up an HTTP GET request message
-    request_type req{http_verb::get, destination.target, destination.version};
-    req.set(http_field::host, destination.host);
-    req.set(http_field::user_agent, BOOST_BEAST_VERSION_STRING);
-    for (const auto& [field, value]: fields) {
-        req.set(field, value);
-    }
-    req.body() = body;
-
-    // Send the HTTP request to the remote host
-    beast::http::write(stream, req);
-
-    // This buffer is used for reading and must be persisted
-    beast::flat_buffer buffer;
-
-    // Declare a container to hold the response
-    response_type res;
-
-    // Receive the HTTP response
-    beast::http::read(stream, buffer, res);
+    response_type res { create_request(stream, destination, body, fields) };
 
     // Write the message to standard out
     // Gracefully close the socket
@@ -114,9 +104,9 @@ auto http_request(destination_t destination, std::string body, std::vector<field
 
     // not_connected happens sometimes
     // so don't bother reporting it.
-    //
-    if(ec && ec != beast::errc::not_connected)
+    if(ec && ec != beast::errc::not_connected) {
         throw beast::system_error{ec};
+    }
 
     return res;
 }
