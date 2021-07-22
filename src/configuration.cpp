@@ -2,25 +2,17 @@
 
 namespace muonpi {
 
-const std::unique_ptr<config> config::s_singleton { std::make_unique<config>() };
 std::size_t config::initialisation::s_instances { 0 };
 
 
-auto config::setup(std::string description) -> initialisation
+auto config::setup(const std::string& description) -> initialisation
 {
-    return initialisation{std::move(description), s_singleton->m_options};
+    return initialisation{description, m_options};
 }
 
 auto config::is_set(const std::string& name) -> bool
 {
-    return s_singleton->m_options.find(name) != s_singleton->m_options.end();
-}
-
-void config::print_help()
-{
-    for (auto& desc: s_singleton->m_descriptions) {
-        std::cout<<desc<<'\n';
-    }
+    return m_options.find(name) != m_options.end();
 }
 
 
@@ -60,13 +52,12 @@ void config::initialisation::print(std::ostream &ostream) const
     ostream<<m_desc<<'\n';
 }
 
-config::initialisation::initialisation(std::string name, boost::program_options::variables_map& options)
+config::initialisation::initialisation(const std::string& name, boost::program_options::variables_map& options)
     : m_options { options }
-    , m_desc { std::move(name) }
+    , m_desc { name }
     , m_init { m_desc.add_options() }
 {
     s_instances++;
-    config::s_singleton->m_descriptions.emplace_back(m_desc);
 }
 
 } // namespace muonpi

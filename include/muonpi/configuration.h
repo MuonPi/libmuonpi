@@ -14,7 +14,6 @@ class config {
 public:
     class initialisation {
     public:
-
         template <typename T>
         auto add_option(const std::string& name, T value) -> initialisation&;
 
@@ -30,7 +29,7 @@ public:
         void print(std::ostream& ostream = std::cout) const;
 
     private:
-        initialisation(std::string name, boost::program_options::variables_map& options);
+        initialisation(const std::string& name, boost::program_options::variables_map& options);
 
         friend class config;
 
@@ -40,18 +39,14 @@ public:
         static std::size_t s_instances;
     };
 
-    [[nodiscard]] static auto setup(std::string description) -> initialisation;
+    [[nodiscard]] auto setup(const std::string& description) -> initialisation;
 
     template <typename T>
-    [[nodiscard]] static auto get(std::string name) -> T;
+    [[nodiscard]] auto get(std::string name) -> T;
 
-    [[nodiscard]] static auto is_set(const std::string& name) -> bool;
+    [[nodiscard]] auto is_set(const std::string& name) -> bool;
 
-    static void print_help();
 private:
-    static const std::unique_ptr<config> s_singleton;
-
-    std::vector<boost::program_options::options_description> m_descriptions {};
     boost::program_options::variables_map m_options {};
 };
 
@@ -63,7 +58,7 @@ auto config::get(std::string name) -> T
         log::error()<<"Option '" << name << "' not set.";
         throw std::runtime_error("Option '" + name + "' not set.");
     }
-    return s_singleton->m_options[std::move(name)].as<T>();
+    return m_options[std::move(name)].as<T>();
 }
 
 template <typename T>
