@@ -41,7 +41,7 @@ endif()
 
 find_package(
   Boost 1.71
-  COMPONENTS system
+  COMPONENTS system program_options
   REQUIRED)
 
 if (LIBMUONPI_BUILD_MQTT) # libraries specific to the MQTT library
@@ -57,7 +57,7 @@ endif ()
 
 set(PROJECT_INCLUDE_LIBS
     pthread
-    boost_system
+    ${Boost_LIBRARIES}
     )
 
 # +++ necessary for compatability with older compilers
