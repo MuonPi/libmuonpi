@@ -64,7 +64,7 @@ template <typename Stream>
     // Perform the SSL handshake
     stream.handshake(ssl::stream_base::client);
 
-    response_type res { create_request(stream, destination, body, fields) };
+    response_type res { create_request(stream, std::move(destination), std::move(body), std::move(fields)) };
 
     // Gracefully close the stream
     beast::error_code ec;
@@ -95,7 +95,7 @@ auto http_request(destination_t destination, std::string body, std::vector<field
     // Make the connection on the IP address we get from a lookup
     stream.connect(results);
 
-    response_type res { create_request(stream, destination, body, fields) };
+    response_type res { create_request(stream, std::move(destination), std::move(body), std::move(fields)) };
 
     // Write the message to standard out
     // Gracefully close the socket
