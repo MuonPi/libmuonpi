@@ -50,12 +50,11 @@ private:
     boost::program_options::variables_map m_options {};
 };
 
-
 template <typename T>
 auto config::get(std::string name) -> T
 {
     if (!is_set(name)) {
-        log::error()<<"Option '" << name << "' not set.";
+        log::error() << "Option '" << name << "' not set.";
         throw std::runtime_error("Option '" + name + "' not set.");
     }
     return m_options[std::move(name)].as<T>();
@@ -75,11 +74,7 @@ auto config::initialisation::add_option(const std::string& name, T value, const 
     return *this;
 }
 
-auto operator<<(std::ostream& ostream, const config::initialisation& initialisation) -> std::ostream&
-{
-    initialisation.print(ostream);
-    return ostream;
-}
+auto operator<<(std::ostream& ostream, const config::initialisation& initialisation) -> std::ostream&;
 
 }
 

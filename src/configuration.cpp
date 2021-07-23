@@ -4,18 +4,15 @@ namespace muonpi {
 
 std::size_t config::initialisation::s_instances { 0 };
 
-
 auto config::setup(const std::string& description) -> initialisation
 {
-    return initialisation{description, m_options};
+    return initialisation { description, m_options };
 }
 
 auto config::is_set(const std::string& name) -> bool
 {
     return m_options.find(name) != m_options.end();
 }
-
-
 
 auto config::initialisation::add_option(const std::string& name, const std::string& description) -> initialisation&
 {
@@ -47,9 +44,9 @@ void config::initialisation::commit(const std::string& filename)
     }
 }
 
-void config::initialisation::print(std::ostream &ostream) const
+void config::initialisation::print(std::ostream& ostream) const
 {
-    ostream<<m_desc<<'\n';
+    ostream << m_desc << '\n';
 }
 
 config::initialisation::initialisation(const std::string& name, boost::program_options::variables_map& options)
@@ -58,6 +55,12 @@ config::initialisation::initialisation(const std::string& name, boost::program_o
     , m_init { m_desc.add_options() }
 {
     s_instances++;
+}
+
+auto operator<<(std::ostream& ostream, const config::initialisation& initialisation) -> std::ostream&
+{
+    initialisation.print(ostream);
+    return ostream;
 }
 
 } // namespace muonpi

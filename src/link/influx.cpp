@@ -85,8 +85,8 @@ auto influx::send_string(const std::string& query) const -> bool
     destination.target = target.str();
 
     std::vector<http::field_t> fields {
-        {http::http_field::content_type, "application/x-www-form-urlencoded"},
-        {http::http_field::accept, "*/*"}
+        { http::http_field::content_type, "application/x-www-form-urlencoded" },
+        { http::http_field::accept, "*/*" }
     };
 
     auto res = http::http_request(destination, query, false, fields);
