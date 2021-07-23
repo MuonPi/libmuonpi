@@ -11,11 +11,15 @@ set(HTTP_SOURCE_FILES
     "${PROJECT_SRC_DIR}/http_server.cpp"
     "${PROJECT_SRC_DIR}/http_request.cpp"
     "${PROJECT_SRC_DIR}/http_tools.cpp"
+
+    "${PROJECT_SRC_DIR}/websocket_server.cpp"
     )
 set(HTTP_HEADER_FILES
-    "${PROJECT_HEADER_DIR}/muonpi/http_request.h"
     "${PROJECT_HEADER_DIR}/muonpi/http_server.h"
+    "${PROJECT_HEADER_DIR}/muonpi/http_request.h"
     "${PROJECT_HEADER_DIR}/muonpi/http_tools.h"
+
+    "${PROJECT_HEADER_DIR}/muonpi/websocket_server.h"
     )
 
 

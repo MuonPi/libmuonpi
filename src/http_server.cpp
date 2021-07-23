@@ -182,7 +182,7 @@ void session<Stream>::notify()
 }
 
 http_server::http_server(configuration config)
-    : thread_runner("REST", true)
+    : thread_runner("http", true)
     , m_endpoint { net::ip::make_address(config.address), static_cast<std::uint16_t>(config.port) }
     , m_conf { std::move(config) }
 {

@@ -3,6 +3,7 @@
 
 #include "muonpi/log.h"
 
+#include <boost/beast/websocket.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
@@ -20,6 +21,7 @@ namespace ssl = boost::asio::ssl;
 using request_type = beast::http::request<beast::http::string_body>;
 using response_type = beast::http::response<beast::http::string_body>;
 using tcp = net::ip::tcp;
+namespace websocket = beast::websocket;
 
 using http_verb = beast::http::verb;
 using http_field = beast::http::field;
