@@ -11,7 +11,7 @@ template <typename Stream>
 {
 
     // Set up an HTTP GET request message
-    request_type req { http_verb::get, destination.target, destination.version };
+    request_type req { destination.method, destination.target, destination.version };
     req.set(http_field::host, destination.host);
     req.set(http_field::user_agent, BOOST_BEAST_VERSION_STRING);
     req.set(http_field::content_length, std::to_string(body.size()));
