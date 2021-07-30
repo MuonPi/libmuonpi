@@ -195,7 +195,7 @@ auto gpio_handler::step() -> int
     std::unique_lock<std::mutex> lock { m_mutex };
 
 
-    const struct timespec timeout { 0, 100'000'000UL };
+    const timespec timeout { 0, 100'000'000UL };
     gpiod_line_bulk event_bulk { };
     const int ret { gpiod_line_event_wait_bulk(&m_bulk_interrupt, &timeout, &event_bulk) };
     if ( ret < 0 ) {
