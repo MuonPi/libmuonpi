@@ -15,6 +15,7 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
         log::error() << "error opening gpio chip '" << device <<"'";
         throw std::runtime_error{"error opening gpio chip"};
     }
+    read_chip_info();
     start();
     m_callback_thread = std::thread{ [&](){
         while (m_run_callbacks) {
@@ -46,7 +47,6 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
         }
     } };
 
-    read_chip_info();
 }
 
 gpio_handler::~gpio_handler()
