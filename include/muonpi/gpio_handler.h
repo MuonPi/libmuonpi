@@ -20,9 +20,30 @@
 
 namespace muonpi {
 
+/**
+ * @brief The gpio_chip struct.
+ * Information about a gpio chip.
+ */
+struct gpio_chip {
+    std::string name; ///<! The name of the chip as present in the kernel
+    std::string label; ///<! The label of the chip as present in the kernel
+    std::size_t num_lines; ///<! The number of lines present in the chip
+    std::vector<std::string> lines; ///<! The names of all lines reported in the chip
+};
+
+/**
+ * @brief The gpio_handler class.
+ * Starts two threads: One to handle the actual gpio interface and
+ * one to handle the callback invokation as well as rate limiting through timeout inhibition.
+ * The callbacks do not delay the gpio reading thread, though they should still not take too long to excute.
+ */
 class LIBMUONPI_PUBLIC gpio_handler : public thread_runner
 {
 public:
+    /**
+     * @brief The bias_t enum.
+     * bias settings for gpio pins.
+     */
     enum bias_t : std::uint8_t {
         Disabled = 0x00,
         PullDown = 0x01,
@@ -32,86 +53,174 @@ public:
         OpenSource = 0x10
     };
 
+    /**
+     * @brief The edge_t enum.
+     * The type of edge detection for interrupts
+     */
     enum edge_t {
         Rising = 0x01,
         Falling = 0x02,
         Both = Rising | Falling
     };
 
+    /**
+     * @brief The state_t enum.
+     * The state of an output pin.
+     */
     enum state_t : int {
         Low = 0,
         High = 1
     };
 
+
+    // +++ convencience definitions
     using pin_t = unsigned int;
     using time_t = std::chrono::system_clock::time_point;
     using callback_t = std::function<void(pin_t, edge_t, time_t)>;
+    // --- convencience definitions
 
+    /**
+     * @brief gpio_handler
+     * @param device The device file to use
+     * @param consumer_name The name of the consumer which should be given to the kernel
+     */
     gpio_handler(const std::string& device, std::string consumer_name);
+
     ~gpio_handler();
 
+    /**
+     * @brief set_pin_interrupt Enable a callback for one specific pin.
+     * @param pin The pin number to use
+     * @param edge Configure which edge the callback should be called on
+     * @param bias Configure the bias settings for the pin
+     * @param callback The callback to invoke when the event is detected
+     * @return True when the event has been registered
+     */
     [[nodiscard]] auto set_pin_interrupt(pin_t pin, edge_t edge, bias_t bias, const callback_t& callback) -> bool;
+
+    /**
+     * @brief set_pin_interrupt Add a callback to a number of pin definitions
+     * @param pins A vector containing all pin settings.
+     * @param callback The callback to invoke on each event
+     * @return True when all events have been registered
+     */
     [[nodiscard]] auto set_pin_interrupt(const std::vector<std::tuple<pin_t, edge_t, bias_t>>& pins, const callback_t& callback) -> bool;
 
+    /**
+     * @brief set_pin_output Configure a pin to function as an output pin
+     * @param pin The pin number to configure
+     * @param initial_state The initial state of the pin
+     * @param bias The bias settings for the pin
+     * @return A lambda which can be used to set the state of the pin.
+     */
     [[nodiscard]] auto set_pin_output(pin_t pin, state_t initial_state, bias_t bias) -> std::function<bool(state_t)>;
 
-
+    /**
+     * @brief start_inhibit Stop all event processing.
+     */
     void start_inhibit();
+
+    /**
+     * @brief end_inhibit Resume event processing
+     */
     void end_inhibit();
 
+    /**
+     * @brief get_chip_info Get information about the currently selected chip
+     * @return
+     */
+    [[nodiscard]] auto get_chip_info() -> gpio_chip;
 protected:
+    /**
+     * @brief step Reimplemented from thread_runner. Executed continuously
+     * @return 0 for success, if nonzero the thread stops
+     */
     [[nodiscard]] auto step() -> int override;
+
+    /**
+     * @brief post_run Reimplemented from thread_runner. Executed after the thread loop is stopped.
+     * @return
+     */
     [[nodiscard]] auto post_run() -> int override;
 
 private:
+    /**
+     * @brief read_chip_info Read the chip information
+     * @return
+     */
+    void read_chip_info();
+
+    /**
+     * @brief allocate_output_line Allocates a line for output, or returns the line if already allocated
+     * @param pin the pin number to use
+     */
     [[nodiscard]] auto allocate_output_line(pin_t pin) -> gpiod_line*;
+
+    /**
+     * @brief allocate_interrupt_line Allocates a line for interrupt, or returns the line if already allocated
+     * @param pin the pin number to use
+     */
     [[nodiscard]] auto allocate_interrupt_line(pin_t pin) -> gpiod_line*;
 
+    /**
+     * @brief get_flags get setting flags from the bias settings
+     * @param bias The bias setting to use
+     * @return The flag from libgpiod associated with the bias setting
+     */
     [[nodiscard]] static auto get_flags(bias_t bias) -> int;
 
+    /**
+     * @brief reload_bulk_interrupt Combine all interrupt lanes to one bulk interrupt object
+     */
     void reload_bulk_interrupt();
 
-    std::map<pin_t, std::map<edge_t, std::vector<callback_t>>> m_callback{};
+    bool m_autoreload { true }; ///<! Autoreload the bulk object.
 
-    std::chrono::system_clock::time_point m_startup { std::chrono::system_clock::now() };
+    std::map<pin_t, std::map<edge_t, std::vector<callback_t>>> m_callback{}; ///<! All registered callbacks
 
-    std::atomic<bool> m_inhibit { false };
-    std::condition_variable m_continue_inhibit {};
+    std::atomic<bool> m_inhibit { false }; ///<! Inhibit the event processing execution
+    std::condition_variable m_continue_inhibit {}; ///<! Continue to inhibit. Notify to stop inhibition
 
-    std::string m_consumer;
+    std::string m_consumer; ///<! The consumer identifier to use
 
-    gpiod_chip* m_device { nullptr };
+    gpiod_chip* m_device { nullptr }; ///<! The device pointer
 
-    std::map<pin_t, gpiod_line*> m_interrupt_lines { };
-    gpiod_line_bulk m_bulk_interrupt{};
-    std::map<pin_t, gpiod_line*> m_output_lines { };
+    std::map<pin_t, gpiod_line*> m_interrupt_lines { }; ///<! Registered interrupt lines
+    gpiod_line_bulk m_bulk_interrupt{}; ///<! The bulk interrupt object
+    std::map<pin_t, gpiod_line*> m_output_lines { }; ///<! Registered output lines
 
-    std::condition_variable m_events_available {};
+    std::condition_variable m_events_available {}; ///<! Condition variable for thread synchronisation
 
-    std::thread m_callback_thread {};
+    std::thread m_callback_thread {}; ///<! The thread which handles all callbacks
 
-    std::atomic<bool> m_run_callbacks { true };
+    std::atomic<bool> m_run_callbacks { true }; ///<! Run the callback handle thread
 
-    rate_measurement<float> m_event_rate {100, std::chrono::seconds{6} };
+    rate_measurement<float> m_event_rate {100, std::chrono::seconds{6} }; ///<! Rate measurement object for the incoming event rate
 
-    std::atomic<std::chrono::system_clock::duration> m_inhibit_timeout { std::chrono::microseconds{1} };
+    std::atomic<std::chrono::system_clock::duration> m_inhibit_timeout { std::chrono::microseconds{1} }; ///<! dynamic timeout for the inhibition time
 
+    /**
+     * @brief The event_t struct.
+     * Convenience struct for the event queue
+     */
     struct event_t {
-        pin_t pin;
-        edge_t edge;
-        time_t timestamp;
+        pin_t pin; ///<! The pin offset of the event
+        edge_t edge; ///<! The type of detected edge
+        time_t timestamp; ///<! The timestamp of the event
     };
 
-    std::queue<event_t> m_events {};
+    std::queue<event_t> m_events {}; ///<! queue with all current events
 
-    std::mutex m_mutex;
+    std::mutex m_mutex; ///<! Mutex for thread synchronisation, used only for the reload_bulk_interrupt method
 
-    constexpr static float s_min_rate { 10.0F }; //<! Minimum rate in Hz
-    constexpr static float s_max_rate { 100.0F }; //<! Maximum rate in Hz
-    constexpr static float s_max_timeout { 100'000.0F }; //<! Maximum timeout in us
+    gpio_chip m_chip {};
 
-    constexpr static float s_b { s_max_timeout * s_min_rate / (s_min_rate - s_max_rate) }; //<! m*x+b
-    constexpr static float s_m { - s_max_timeout / (s_min_rate - s_max_rate) }; //<! m*x+b
+    constexpr static float s_min_rate { 10.0F }; ///<! Minimum rate in Hz
+    constexpr static float s_max_rate { 100.0F }; ///<! Maximum rate in Hz
+    constexpr static float s_max_timeout { 100'000.0F }; ///<! Maximum timeout in us
+
+    constexpr static float s_b { s_max_timeout * s_min_rate / (s_min_rate - s_max_rate) }; ///<! m*x+b
+    constexpr static float s_m { - s_max_timeout / (s_min_rate - s_max_rate) }; ///<! m*x+b
 };
 }
 

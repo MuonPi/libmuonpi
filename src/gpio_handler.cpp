@@ -45,6 +45,8 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
             m_inhibit_timeout = std::chrono::microseconds(static_cast<int>(timeout_us));
         }
     } };
+
+    read_chip_info();
 }
 
 gpio_handler::~gpio_handler()
@@ -109,7 +111,9 @@ auto gpio_handler::set_pin_interrupt(pin_t pin, edge_t edge, bias_t bias, const 
 
         m_callback.emplace(pin, pin_callbacks);
 
-        reload_bulk_interrupt();
+        if (m_autoreload) {
+            reload_bulk_interrupt();
+        }
 
         return true;
     }
@@ -132,9 +136,12 @@ auto gpio_handler::set_pin_interrupt(pin_t pin, edge_t edge, bias_t bias, const 
 
 auto gpio_handler::set_pin_interrupt(const std::vector<std::tuple<pin_t, edge_t, bias_t>>& pins, const callback_t& callback) -> bool
 {
+    m_autoreload = false;
     return std::all_of(pins.begin(), pins.end(), [this, callback](const auto& it){
                             const auto& [pin, edge, bias] = it; return set_pin_interrupt(pin, edge, bias, callback);
     });
+    m_autoreload = true;
+    reload_bulk_interrupt();
 }
 
 
@@ -179,6 +186,30 @@ void gpio_handler::end_inhibit()
 {
     m_inhibit = false;
     m_continue_inhibit.notify_all();
+}
+
+
+auto gpio_handler::get_chip_info() -> gpio_chip
+{
+    return m_chip;
+}
+
+void gpio_handler::read_chip_info()
+{
+    gpio_chip chip {};
+    chip.name = gpiod_chip_name(m_device);
+    chip.label = gpiod_chip_label(m_device);
+    chip.num_lines = gpiod_chip_num_lines(m_device);
+
+    for (std::size_t i { 0 }; i < chip.num_lines; i++) {
+        auto* line = gpiod_chip_get_line(m_device, i);
+
+        chip.lines.emplace_back(gpiod_line_name(line));
+
+        gpiod_line_release(line);
+    }
+
+    m_chip = chip;
 }
 
 auto gpio_handler::step() -> int
