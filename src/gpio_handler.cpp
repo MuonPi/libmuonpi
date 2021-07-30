@@ -9,7 +9,14 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
     : thread_runner { "gpiod" }
     , m_consumer { std::move(consumer_name) }
     , m_device { gpiod_chip_open(device.c_str())}
-    , m_callback_thread { [&](){
+
+{
+    if ( m_device == nullptr ) {
+        log::error() << "error opening gpio chip '" << device <<"'";
+        throw std::runtime_error{"error opening gpio chip"};
+    }
+    start();
+    m_callback_thread = std::thread{ [&](){
         while (m_run_callbacks) {
             std::mutex mx;
             std::unique_lock<std::mutex> lock{mx};
@@ -37,13 +44,7 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
 
             m_inhibit_timeout = std::chrono::microseconds(static_cast<int>(timeout_us));
         }
-    } }
-{
-    if ( m_device == nullptr ) {
-        log::error() << "error opening gpio chip '" << device <<"'";
-        throw std::runtime_error{"error opening gpio chip"};
-    }
-    start();
+    } };
 }
 
 gpio_handler::~gpio_handler()
@@ -225,8 +226,8 @@ auto gpio_handler::step() -> int
             evt.timestamp = time_t{std::chrono::seconds{line_event.ts.tv_sec} + std::chrono::nanoseconds{line_event.ts.tv_nsec}};
 
             m_events.emplace(evt);
-            m_events_available.notify_all();
         }
+        m_events_available.notify_all();
     }
     return 0;
 }
