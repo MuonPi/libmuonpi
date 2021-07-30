@@ -274,17 +274,21 @@ auto gpio_handler::allocate_interrupt_line(pin_t pin) -> gpiod_line*
     return line;
 }
 
-auto gpio_handler::get_flags(bias_t bias) const -> int
+auto gpio_handler::get_flags(bias_t bias) -> int
 {
-    if ( bias & bias_t::OpenDrain ) {
+    if ((bias & bias_t::OpenDrain) > 0) {
         return GPIOD_LINE_REQUEST_FLAG_OPEN_DRAIN;
-    } else if ( bias & bias_t::OpenSource ) {
+    }
+    if ((bias & bias_t::OpenSource) > 0) {
         return GPIOD_LINE_REQUEST_FLAG_OPEN_SOURCE;
-    } else if ( bias & bias_t::ActiveLow ) {
+    }
+    if ((bias & bias_t::ActiveLow) > 0) {
         return GPIOD_LINE_REQUEST_FLAG_ACTIVE_LOW;
-    } else if ( bias & bias_t::PullDown ) {
+    }
+    if ((bias & bias_t::PullDown) > 0) {
         return GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN;
-    } else if ( bias & bias_t::PullUp ) {
+    }
+    if ((bias & bias_t::PullUp) > 0) {
         return GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_UP;
     }
     return GPIOD_LINE_REQUEST_FLAG_BIAS_DISABLE;

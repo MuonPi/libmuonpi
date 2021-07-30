@@ -67,7 +67,7 @@ private:
     [[nodiscard]] auto allocate_output_line(pin_t pin) -> gpiod_line*;
     [[nodiscard]] auto allocate_interrupt_line(pin_t pin) -> gpiod_line*;
 
-    [[nodiscard]] auto get_flags(bias_t bias) const -> int;
+    [[nodiscard]] static auto get_flags(bias_t bias) -> int;
 
     void reload_bulk_interrupt();
 
