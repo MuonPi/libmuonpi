@@ -161,5 +161,5 @@ namespace Version::libmuonpi {
     {
         return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + "-" + std::string { additional };
     }
-} // namespace Version
+} // namespace Version::libmuonpi
 } // namespace muonpi

@@ -305,4 +305,4 @@ void gpio_handler::reload_bulk_interrupt()
     }
 }
 
-}
+} // namespace muonpi

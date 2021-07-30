@@ -4,4 +4,4 @@ namespace muonpi {
 
 detector::detector() = default;
 
-}
+} // namespace muonpi

@@ -83,7 +83,7 @@ private:
     gpiod_chip* m_device { nullptr };
 
     std::map<pin_t, gpiod_line*> m_interrupt_lines { };
-    gpiod_line_bulk m_bulk_interrupt;
+    gpiod_line_bulk m_bulk_interrupt{};
     std::map<pin_t, gpiod_line*> m_output_lines { };
 
     std::condition_variable m_events_available {};
