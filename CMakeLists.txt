@@ -53,6 +53,7 @@ if (LIBMUONPI_BUILD_REST) # libraries specific to the REST libraries
 endif ()
 
 if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the REST libraries
+    find_library(LIBGPIOD gpiod REQUIRED)
 endif ()
 
 set(PROJECT_INCLUDE_LIBS
@@ -94,7 +95,7 @@ if (LIBMUONPI_BUILD_DETECTOR)
     add_library(muonpi-detector SHARED ${DETECTOR_SOURCE_FILES} ${DETECTOR_HEADER_FILES})
     add_dependencies(muonpi-detector muonpi-core)
     target_include_directories(muonpi-detector PUBLIC ${PROJECT_HEADER_DIR})
-    target_link_libraries(muonpi-detector ${PROJECT_INCLUDE_LIBS})
+    target_link_libraries(muonpi-detector ${PROJECT_INCLUDE_LIBS} gpiod)
 endif ()
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")
