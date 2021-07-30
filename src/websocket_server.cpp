@@ -10,8 +10,7 @@
 namespace muonpi::http::ws {
 
 template <typename Stream = beast::tcp_stream>
-class session
-{
+class session {
 public:
     // Take ownership of the socket
     explicit session(tcp::socket&& socket);
@@ -69,7 +68,7 @@ void session<Stream>::set_handler(client_handler handler)
 template <typename Stream>
 void session<Stream>::run()
 {
-    net::dispatch(m_stream.get_executor(), [&](){on_run();});
+    net::dispatch(m_stream.get_executor(), [&]() { on_run(); });
 
     std::unique_lock<std::mutex> lock { m_mutex };
     m_done.wait(lock);
@@ -87,14 +86,12 @@ void session<beast::tcp_stream>::on_run()
 
     // Set a decorator to change the Server of the handshake
     m_stream.set_option(websocket::stream_base::decorator(
-        [](websocket::response_type& res)
-        {
+        [](websocket::response_type& res) {
             res.set(http_field::server,
-                std::string(BOOST_BEAST_VERSION_STRING) +
-                    " websocket-server-async");
+                std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
         }));
     // Accept the websocket handshake
-    m_stream.async_accept([&](beast::error_code ec){on_accept(ec);});
+    m_stream.async_accept([&](beast::error_code ec) { on_accept(ec); });
     guard.dismiss();
 }
 
@@ -102,7 +99,7 @@ template <>
 void session<beast::ssl_stream<beast::tcp_stream>>::on_handshake(beast::error_code ec)
 {
     scope_guard guard { [&] { notify(); } };
-    if(ec) {
+    if (ec) {
         return fail(ec, "handshake");
     }
 
@@ -117,14 +114,12 @@ void session<beast::ssl_stream<beast::tcp_stream>>::on_handshake(beast::error_co
 
     // Set a decorator to change the Server of the handshake
     m_stream.set_option(websocket::stream_base::decorator(
-        [](websocket::response_type& res)
-        {
+        [](websocket::response_type& res) {
             res.set(http_field::server,
-                std::string(BOOST_BEAST_VERSION_STRING) +
-                    " websocket-server-async-ssl");
+                std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async-ssl");
         }));
 
-    m_stream.async_accept([&](beast::error_code ec){on_accept(ec);});
+    m_stream.async_accept([&](beast::error_code ec) { on_accept(ec); });
     guard.dismiss();
 }
 
@@ -135,12 +130,12 @@ void session<beast::ssl_stream<beast::tcp_stream>>::on_run()
     // Set the timeout.
     beast::get_lowest_layer(m_stream).expires_after(std::chrono::seconds(30));
 
-     // Perform the SSL handshake
+    // Perform the SSL handshake
     m_stream.next_layer().async_handshake(
         ssl::stream_base::server,
-        [&](beast::error_code ec){
+        [&](beast::error_code ec) {
             session<beast::ssl_stream<beast::tcp_stream>>::on_handshake(ec);
-    });
+        });
     guard.dismiss();
 }
 
@@ -148,7 +143,7 @@ template <typename Stream>
 void session<Stream>::on_accept(beast::error_code ec)
 {
     scope_guard guard { [&] { notify(); } };
-    if(ec) {
+    if (ec) {
         return fail(ec, "accept");
     }
 
@@ -164,9 +159,9 @@ void session<Stream>::do_read()
     // Read a message into our buffer
     m_stream.async_read(
         m_buffer,
-        [&](beast::error_code ec, std::size_t bytes_transferred){
-            on_read(ec,bytes_transferred);
-    });
+        [&](beast::error_code ec, std::size_t bytes_transferred) {
+            on_read(ec, bytes_transferred);
+        });
     guard.dismiss();
 }
 
@@ -177,11 +172,11 @@ void session<Stream>::on_read(beast::error_code ec, std::size_t bytes_transferre
     boost::ignore_unused(bytes_transferred);
 
     // This indicates that the session was closed
-    if(ec == websocket::error::closed) {
+    if (ec == websocket::error::closed) {
         return;
     }
 
-    if(ec) {
+    if (ec) {
         fail(ec, "read");
     }
 
@@ -199,7 +194,7 @@ void session<Stream>::on_write(beast::error_code ec, std::size_t bytes_transferr
     scope_guard guard { [&] { notify(); } };
     boost::ignore_unused(bytes_transferred);
 
-    if(ec) {
+    if (ec) {
         return fail(ec, "write");
     }
 
@@ -223,15 +218,10 @@ void session<Stream>::do_write(std::string message)
     // Send the message
     m_stream.async_write(
         net::buffer(message),
-        [&](beast::error_code ec, std::size_t bytes_transferred){
+        [&](beast::error_code ec, std::size_t bytes_transferred) {
             on_write(ec, bytes_transferred);
-    });
-
+        });
 }
-
-
-
-
 
 websocket_server::websocket_server(configuration config, connect_handler handler)
     : thread_runner("websocket", true)
@@ -252,39 +242,34 @@ websocket_server::websocket_server(configuration config, connect_handler handler
 
     // Open the acceptor
     m_acceptor.open(m_endpoint.protocol(), ec);
-    if(ec)
-    {
+    if (ec) {
         fail(ec, "open");
         return;
     }
 
     // Allow address reuse
     m_acceptor.set_option(net::socket_base::reuse_address(true), ec);
-    if(ec)
-    {
+    if (ec) {
         fail(ec, "set_option");
         return;
     }
 
     // Bind to the server address
     m_acceptor.bind(m_endpoint, ec);
-    if(ec)
-    {
+    if (ec) {
         fail(ec, "bind");
         return;
     }
 
     // Start listening for connections
     m_acceptor.listen(net::socket_base::max_listen_connections, ec);
-    if(ec)
-    {
+    if (ec) {
         fail(ec, "listen");
         return;
     }
 
     start();
 }
-
 
 auto websocket_server::custom_run() -> int
 {
@@ -295,18 +280,18 @@ auto websocket_server::custom_run() -> int
 
 void websocket_server::do_accept()
 {
-    m_acceptor.async_accept(net::make_strand(m_ioc),[&](const beast::error_code& ec, tcp::socket socket) {
+    m_acceptor.async_accept(net::make_strand(m_ioc), [&](const beast::error_code& ec, tcp::socket socket) {
         if (ec) {
             fail(ec, "on accept");
         } else {
             std::thread([&] {
                 if (m_conf.ssl) {
                     session<beast::ssl_stream<beast::tcp_stream>> sess { std::move(socket), m_ctx };
-                    sess.set_handler( m_handler.on_connect([&](std::string message){sess.do_write(std::move(message));}) );
+                    sess.set_handler(m_handler.on_connect([&](std::string message) { sess.do_write(std::move(message)); }));
                     sess.run();
                 } else {
                     session<beast::tcp_stream> sess { std::move(socket) };
-                    sess.set_handler( m_handler.on_connect([&](std::string message){sess.do_write(std::move(message));}) );
+                    sess.set_handler(m_handler.on_connect([&](std::string message) { sess.do_write(std::move(message)); }));
                     sess.run();
                 }
             }).detach();
@@ -320,6 +305,5 @@ void websocket_server::on_stop()
 {
     m_ioc.stop();
 }
-
 
 } // namespace muonpi::http::ws

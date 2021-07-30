@@ -115,7 +115,7 @@ private:
 template <typename T>
 upper_matrix<T>::upper_matrix(std::size_t n)
     : m_columns { n }
-    , m_elements { std::vector<T>((n*n - n)/2) }
+    , m_elements { std::vector<T>((n * n - n) / 2) }
 {
 }
 
@@ -165,7 +165,7 @@ template <typename T>
 auto upper_matrix<T>::increase() -> std::size_t
 {
     m_columns++;
-    m_elements.resize((m_columns * m_columns - m_columns)/2);
+    m_elements.resize((m_columns * m_columns - m_columns) / 2);
     return m_columns - 1;
 }
 

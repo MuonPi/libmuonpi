@@ -6,11 +6,9 @@
 #include "muonpi/log.h"
 #include "muonpi/threadrunner.h"
 
-
+#include <functional>
 #include <queue>
 #include <string>
-#include <functional>
-
 
 namespace muonpi::http::ws {
 
