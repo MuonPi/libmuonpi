@@ -23,13 +23,20 @@ auto main() -> int
     std::cout<<'\n';
 
 
-    if (gpio.set_pin_interrupt(5, muonpi::gpio::edge_t::Both, muonpi::gpio::bias_t::Disabled, [](muonpi::gpio::event_t evt){
+    muonpi::gpio::pins_t pins {
+        muonpi::gpio::settings_t{5, muonpi::gpio::edge_t::Both, muonpi::gpio::bias_t::Disabled},
+        muonpi::gpio::settings_t{6, muonpi::gpio::edge_t::Falling, muonpi::gpio::bias_t::Disabled},
+    };
+
+    auto callback { [](muonpi::gpio::event_t evt){
         std::cout
             <<evt.pin
             <<": "<<((evt.edge==muonpi::gpio::edge_t::Rising)?"Rising":"Falling")
             <<": "<<std::chrono::duration_cast<std::chrono::microseconds>(evt.time.time_since_epoch()).count()<<"\n";
-	
-	}))
+
+    } };
+
+    if (gpio.set_pin_interrupt(pins, callback))
     {
          std::cout<<"success.\n";
     } else {

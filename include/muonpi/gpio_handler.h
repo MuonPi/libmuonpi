@@ -69,6 +69,13 @@ enum state_t : int {
 // +++ convencience definitions
 using pin_t = unsigned int;
 using time_t = std::chrono::system_clock::time_point;
+struct settings_t {
+    gpio::pin_t pin;
+    gpio::edge_t edge;
+    gpio::bias_t bias;
+};
+
+using pins_t = std::vector<settings_t>;
 // --- convencience definitions
 
 /**
@@ -105,21 +112,19 @@ public:
 
     /**
      * @brief set_pin_interrupt Enable a callback for one specific pin.
-     * @param pin The pin number to use
-     * @param edge Configure which edge the callback should be called on
-     * @param bias Configure the bias settings for the pin
+     * @param settings The pin settings.
      * @param callback The callback to invoke when the event is detected
      * @return True when the event has been registered
      */
-    [[nodiscard]] auto set_pin_interrupt(gpio::pin_t pin, gpio::edge_t edge, gpio::bias_t bias, const gpio::callback_t& callback) -> bool;
+    [[nodiscard]] auto set_pin_interrupt(const gpio::settings_t& settings, const gpio::callback_t& callback) -> bool;
 
     /**
      * @brief set_pin_interrupt Add a callback to a number of pin definitions
-     * @param pins A vector containing all pin settings.
+     * @param settings A vector containing all pin settings.
      * @param callback The callback to invoke on each event
      * @return True when all events have been registered
      */
-    [[nodiscard]] auto set_pin_interrupt(const std::vector<std::tuple<gpio::pin_t, gpio::edge_t, gpio::bias_t>>& pins, const gpio::callback_t& callback) -> bool;
+    [[nodiscard]] auto set_pin_interrupt(const gpio::pins_t& settings, const gpio::callback_t& callback) -> bool;
 
     /**
      * @brief set_pin_output Configure a pin to function as an output pin

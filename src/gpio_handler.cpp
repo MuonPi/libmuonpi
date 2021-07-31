@@ -86,22 +86,22 @@ gpio_handler::~gpio_handler()
     }
 }
 
-auto gpio_handler::set_pin_interrupt(gpio::pin_t pin, gpio::edge_t edge, gpio::bias_t bias, const gpio::callback_t& callback) -> bool
+auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpio::callback_t& callback) -> bool
 {
-    auto it = m_callback.find(pin);
+    auto it = m_callback.find(settings.pin);
     if (it == m_callback.end()) {
 
-        auto* line = allocate_interrupt_line(pin);
+        auto* line = allocate_interrupt_line(settings.pin);
 
         if (gpiod_line_is_used(line)) {
-            log::error()<<"Line "<<pin<<" is in use";
+            log::error()<<"Line "<<settings.pin<<" is in use";
             throw std::runtime_error{"Line in use"};
         }
 
-        auto flags { get_flags(bias) };
+        auto flags { get_flags(settings.bias) };
 
         int ret = -1;
-        switch (edge) {
+        switch (settings.edge) {
         case gpio::edge_t::Rising:
             ret = gpiod_line_request_rising_edge_events_flags( line, m_consumer.c_str(),flags );
             break;
@@ -112,39 +112,39 @@ auto gpio_handler::set_pin_interrupt(gpio::pin_t pin, gpio::edge_t edge, gpio::b
             ret = gpiod_line_request_both_edges_events_flags( line, m_consumer.c_str(), flags );
             break;
         default:
-            log::error()<<"Gpio input line " << pin << ": no valid edge defined";
+            log::error()<<"Gpio input line " << settings.pin << ": no valid edge defined";
             return false;
             break;
         }
         if ( ret < 0 ) {
-            log::error()<<"Request gpio line " << pin << " for events failed";
+            log::error()<<"Request gpio line " << settings.pin << " for events failed";
             return false;
         }
 
         std::map<gpio::edge_t, std::vector<gpio::callback_t>> pin_callbacks {};
-        if ((edge & gpio::edge_t::Falling) > 0) {
+        if ((settings.edge & gpio::edge_t::Falling) > 0) {
             pin_callbacks.emplace(gpio::edge_t::Falling, std::vector<gpio::callback_t>{callback});
         }
-        if ((edge & gpio::edge_t::Rising) > 0) {
+        if ((settings.edge & gpio::edge_t::Rising) > 0) {
             pin_callbacks.emplace(gpio::edge_t::Rising, std::vector<gpio::callback_t>{callback});
         }
 
-        m_callback.emplace(pin, pin_callbacks);
+        m_callback.emplace(settings.pin, pin_callbacks);
 	
 	m_bulk_dirty = true;	
 
-	log::debug()<<"Registered event callback for pin "<<pin<<" '"<<m_chip.lines.at(pin)<<"'";
+    log::debug()<<"Registered event callback for pin "<<settings.pin<<" '"<<m_chip.lines.at(settings.pin)<<"'";
         return true;
     }
     auto& [def_pin, callbacks] = *it;
 
-    if ((edge & gpio::edge_t::Falling) > 0) {
+    if ((settings.edge & gpio::edge_t::Falling) > 0) {
         if (callbacks.find(gpio::edge_t::Falling) == callbacks.end()) {
             callbacks.emplace(gpio::edge_t::Falling, std::vector<gpio::callback_t>{callback});
         }
     }
 
-    if ((edge & gpio::edge_t::Rising) > 0) {
+    if ((settings.edge & gpio::edge_t::Rising) > 0) {
         if (callbacks.find(gpio::edge_t::Rising) == callbacks.end()) {
             callbacks.emplace(gpio::edge_t::Rising, std::vector<gpio::callback_t>{callback});
         }
@@ -153,14 +153,12 @@ auto gpio_handler::set_pin_interrupt(gpio::pin_t pin, gpio::edge_t edge, gpio::b
     return true;
 }
 
-auto gpio_handler::set_pin_interrupt(const std::vector<std::tuple<gpio::pin_t, gpio::edge_t, gpio::bias_t>>& pins, const gpio::callback_t& callback) -> bool
+auto gpio_handler::set_pin_interrupt(const gpio::pins_t& pins, const gpio::callback_t& callback) -> bool
 {
     return std::all_of(pins.begin(), pins.end(), [this, callback](const auto& it){
-                            const auto& [pin, edge, bias] = it; return set_pin_interrupt(pin, edge, bias, callback);
+                            return set_pin_interrupt(*it, callback);
     });
 }
-
-
 
 auto gpio_handler::set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, gpio::bias_t bias) -> std::function<bool(gpio::state_t)>
 {
