@@ -20,16 +20,69 @@
 
 namespace muonpi {
 
+
+namespace gpio {
 /**
  * @brief The gpio_chip struct.
  * Information about a gpio chip.
  */
-struct gpio_chip {
+struct chip_info {
     std::string name; ///<! The name of the chip as present in the kernel
     std::string label; ///<! The label of the chip as present in the kernel
     std::size_t num_lines; ///<! The number of lines present in the chip
     std::vector<std::string> lines; ///<! The names of all lines reported in the chip
 };
+
+/**
+ * @brief The bias_t enum.
+ * bias settings for gpio pins.
+ */
+enum bias_t : std::uint8_t {
+    Disabled = 0x00,
+    PullDown = 0x01,
+    PullUp = 0x02,
+    ActiveLow = 0x04,
+    OpenDrain = 0x08,
+    OpenSource = 0x10
+};
+
+/**
+ * @brief The edge_t enum.
+ * The type of edge detection for interrupts
+ */
+enum edge_t {
+    Rising = 0x01,
+    Falling = 0x02,
+    Both = Rising | Falling
+};
+
+/**
+ * @brief The state_t enum.
+ * The state of an output pin.
+ */
+enum state_t : int {
+    Low = 0,
+    High = 1
+};
+
+
+// +++ convencience definitions
+using pin_t = unsigned int;
+using time_t = std::chrono::system_clock::time_point;
+// --- convencience definitions
+
+/**
+ * @brief The event_t struct.
+ * Convenience struct for the event queue
+ */
+struct event_t {
+    gpio::pin_t pin; ///<! The pin offset of the event
+    gpio::edge_t edge; ///<! The type of detected edge
+    time_t time; ///<! The timestamp of the event
+};
+
+using callback_t = std::function<void(event_t)>;
+}
 
 /**
  * @brief The gpio_handler class.
@@ -40,44 +93,6 @@ struct gpio_chip {
 class LIBMUONPI_PUBLIC gpio_handler : public thread_runner
 {
 public:
-    /**
-     * @brief The bias_t enum.
-     * bias settings for gpio pins.
-     */
-    enum bias_t : std::uint8_t {
-        Disabled = 0x00,
-        PullDown = 0x01,
-        PullUp = 0x02,
-        ActiveLow = 0x04,
-        OpenDrain = 0x08,
-        OpenSource = 0x10
-    };
-
-    /**
-     * @brief The edge_t enum.
-     * The type of edge detection for interrupts
-     */
-    enum edge_t {
-        Rising = 0x01,
-        Falling = 0x02,
-        Both = Rising | Falling
-    };
-
-    /**
-     * @brief The state_t enum.
-     * The state of an output pin.
-     */
-    enum state_t : int {
-        Low = 0,
-        High = 1
-    };
-
-
-    // +++ convencience definitions
-    using pin_t = unsigned int;
-    using time_t = std::chrono::system_clock::time_point;
-    using callback_t = std::function<void(pin_t, edge_t, time_t)>;
-    // --- convencience definitions
 
     /**
      * @brief gpio_handler
@@ -96,7 +111,7 @@ public:
      * @param callback The callback to invoke when the event is detected
      * @return True when the event has been registered
      */
-    [[nodiscard]] auto set_pin_interrupt(pin_t pin, edge_t edge, bias_t bias, const callback_t& callback) -> bool;
+    [[nodiscard]] auto set_pin_interrupt(gpio::pin_t pin, gpio::edge_t edge, gpio::bias_t bias, const gpio::callback_t& callback) -> bool;
 
     /**
      * @brief set_pin_interrupt Add a callback to a number of pin definitions
@@ -104,7 +119,7 @@ public:
      * @param callback The callback to invoke on each event
      * @return True when all events have been registered
      */
-    [[nodiscard]] auto set_pin_interrupt(const std::vector<std::tuple<pin_t, edge_t, bias_t>>& pins, const callback_t& callback) -> bool;
+    [[nodiscard]] auto set_pin_interrupt(const std::vector<std::tuple<gpio::pin_t, gpio::edge_t, gpio::bias_t>>& pins, const gpio::callback_t& callback) -> bool;
 
     /**
      * @brief set_pin_output Configure a pin to function as an output pin
@@ -113,7 +128,7 @@ public:
      * @param bias The bias settings for the pin
      * @return A lambda which can be used to set the state of the pin.
      */
-    [[nodiscard]] auto set_pin_output(pin_t pin, state_t initial_state, bias_t bias) -> std::function<bool(state_t)>;
+    [[nodiscard]] auto set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, gpio::bias_t bias) -> std::function<bool(gpio::state_t)>;
 
     /**
      * @brief start_inhibit Stop all event processing.
@@ -129,7 +144,7 @@ public:
      * @brief get_chip_info Get information about the currently selected chip
      * @return
      */
-    [[nodiscard]] auto get_chip_info() -> gpio_chip;
+    [[nodiscard]] auto get_chip_info() -> gpio::chip_info;
 protected:
     /**
      * @brief step Reimplemented from thread_runner. Executed continuously
@@ -142,6 +157,7 @@ protected:
      * @return
      */
     [[nodiscard]] auto post_run() -> int override;
+    [[nodiscard]] auto pre_run() -> int override;
 
 private:
     /**
@@ -154,20 +170,20 @@ private:
      * @brief allocate_output_line Allocates a line for output, or returns the line if already allocated
      * @param pin the pin number to use
      */
-    [[nodiscard]] auto allocate_output_line(pin_t pin) -> gpiod_line*;
+    [[nodiscard]] auto allocate_output_line(gpio::pin_t pin) -> gpiod_line*;
 
     /**
      * @brief allocate_interrupt_line Allocates a line for interrupt, or returns the line if already allocated
      * @param pin the pin number to use
      */
-    [[nodiscard]] auto allocate_interrupt_line(pin_t pin) -> gpiod_line*;
+    [[nodiscard]] auto allocate_interrupt_line(gpio::pin_t pin) -> gpiod_line*;
 
     /**
      * @brief get_flags get setting flags from the bias settings
      * @param bias The bias setting to use
      * @return The flag from libgpiod associated with the bias setting
      */
-    [[nodiscard]] static auto get_flags(bias_t bias) -> int;
+    [[nodiscard]] static auto get_flags(gpio::bias_t bias) -> int;
 
     /**
      * @brief reload_bulk_interrupt Combine all interrupt lanes to one bulk interrupt object
@@ -176,18 +192,22 @@ private:
 
     bool m_autoreload { true }; ///<! Autoreload the bulk object.
 
-    std::map<pin_t, std::map<edge_t, std::vector<callback_t>>> m_callback{}; ///<! All registered callbacks
+    std::atomic<bool> m_started { false }; ///<! Indicates whether there is at least one event interrupt registered
+
+    std::map<gpio::pin_t, std::map<gpio::edge_t, std::vector<gpio::callback_t>>> m_callback{}; ///<! All registered callbacks
 
     std::atomic<bool> m_inhibit { false }; ///<! Inhibit the event processing execution
+    std::atomic<bool> m_pause { false }; ///<! Inhibit the event processing execution
+    std::atomic<bool> m_paused { false };
     std::condition_variable m_continue_inhibit {}; ///<! Continue to inhibit. Notify to stop inhibition
 
     std::string m_consumer; ///<! The consumer identifier to use
 
     gpiod_chip* m_device { nullptr }; ///<! The device pointer
 
-    std::map<pin_t, gpiod_line*> m_interrupt_lines { }; ///<! Registered interrupt lines
-    gpiod_line_bulk m_bulk_interrupt{}; ///<! The bulk interrupt object
-    std::map<pin_t, gpiod_line*> m_output_lines { }; ///<! Registered output lines
+    std::map<gpio::pin_t, gpiod_line*> m_interrupt_lines { }; ///<! Registered interrupt lines
+    gpiod_line_bulk m_bulk_interrupt; ///<! The bulk interrupt object
+    std::map<gpio::pin_t, gpiod_line*> m_output_lines { }; ///<! Registered output lines
 
     std::condition_variable m_events_available {}; ///<! Condition variable for thread synchronisation
 
@@ -197,23 +217,11 @@ private:
 
     rate_measurement<float> m_event_rate {100, std::chrono::seconds{6} }; ///<! Rate measurement object for the incoming event rate
 
-    std::atomic<std::chrono::system_clock::duration> m_inhibit_timeout { std::chrono::microseconds{1} }; ///<! dynamic timeout for the inhibition time
+    std::atomic<std::chrono::system_clock::duration> m_inhibit_timeout { std::chrono::microseconds{0} }; ///<! dynamic timeout for the inhibition time
 
-    /**
-     * @brief The event_t struct.
-     * Convenience struct for the event queue
-     */
-    struct event_t {
-        pin_t pin; ///<! The pin offset of the event
-        edge_t edge; ///<! The type of detected edge
-        time_t timestamp; ///<! The timestamp of the event
-    };
+    std::queue<gpiod_line_bulk> m_events {}; ///<! queue with all current events
 
-    std::queue<event_t> m_events {}; ///<! queue with all current events
-
-    std::mutex m_mutex; ///<! Mutex for thread synchronisation, used only for the reload_bulk_interrupt method
-
-    gpio_chip m_chip {};
+    gpio::chip_info m_chip {};
 
     constexpr static float s_min_rate { 10.0F }; ///<! Minimum rate in Hz
     constexpr static float s_max_rate { 100.0F }; ///<! Maximum rate in Hz

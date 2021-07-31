@@ -25,4 +25,5 @@ target_link_libraries(example-gpiod
     muonpi-core
     muonpi-detector
     dl
+    atomic
     )
