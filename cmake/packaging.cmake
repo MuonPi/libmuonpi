@@ -51,15 +51,6 @@ if (LIBMUONPI_BUILD_HTTP)
     configure_file("${PROJECT_CONFIG_DIR}/changelog-rest" "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog")
     add_custom_target(changelog-libmuonpi-http ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/rest/changelog.gz")
 endif ()
-if (LIBMUONPI_BUILD_DETECTOR)
-    set_target_properties(muonpi-detector PROPERTIES
-        SUFFIX ".so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"
-        INSTALL_REMOVE_ENVIRONMENT_RPATH ON
-        SKIP_BUILD_RPATH ON
-        )
-    configure_file("${PROJECT_CONFIG_DIR}/changelog-detector" "${CMAKE_CURRENT_BINARY_DIR}/detector/changelog")
-    add_custom_target(changelog-libmuonpi-detector ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/detector/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/detector/changelog.gz")
-endif ()
 
 if (CMAKE_BUILD_TYPE STREQUAL Release)
     set(LIBMUONPI_IS_RELEASE ON)
@@ -174,42 +165,6 @@ if (LIBMUONPI_BUILD_HTTP)
         )
 endif ()
 
-if (LIBMUONPI_BUILD_DETECTOR)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector" COMPONENT libmuonpidetector)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/link/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector" COMPONENT libmuonpidetector)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector-dev" COMPONENT libmuonpidetectordev)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/link/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}-detector-dev" COMPONENT libmuonpidetectordev)
-    if (${LIBMUONPI_IS_RELEASE})
-      add_custom_command(
-        TARGET muonpi-detector
-        POST_BUILD
-        COMMAND ${CMAKE_STRIP} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-detector.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
-    endif ()
-    install_with_directory(
-        FILES ${DETECTOR_HEADER_FILES}
-        DESTINATION include
-        BASEDIR ${PROJECT_HEADER_DIR}
-        COMPONENT libmuonpidetectordev
-    )
-    add_custom_command(
-        TARGET muonpi-detector
-        POST_BUILD
-        COMMAND cd "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/" &&
-        ln -sf "libmuonpi-detector.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "libmuonpi-detector.so.${PROJECT_VERSION_MAJOR}" &&
-        ln -sf "libmuonpi-detector.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" libmuonpi-detector.so
-        )
-    install(
-        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-detector.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-detector.so.${PROJECT_VERSION_MAJOR}"
-        DESTINATION lib
-        COMPONENT libmuonpidetector
-        )
-    install(
-        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmuonpi-detector.so"
-        DESTINATION lib
-        COMPONENT libmuonpidetectordev
-        )
-endif ()
-
 
 
 set(CPACK_GENERATOR "DEB")
@@ -269,21 +224,6 @@ if (LIBMUONPI_BUILD_HTTP)
     set(CPACK_COMPONENT_LIBMUONPIHTTPDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIHTTPDEV_DESCRIPTION}")
     set(CPACK_DEBIAN_LIBMUONPIHTTPDEV_PACKAGE_NAME "libmuonpi-http-dev")
     set(CPACK_DEBIAN_LIBMUONPIHTTPDEV_PACKAGE_DEPENDS "libmuonpi-http (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmuonpi-core-dev (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})")
-endif ()
-
-if (LIBMUONPI_BUILD_DETECTOR)
-    set(CPACK_DEBIAN_LIBMUONPIDETECTOR_DESCRIPTION "Libraries for MuonPi
- detector package")
-    set(CPACK_COMPONENT_LIBMUONPIDETECTOR_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIDETECTOR_DESCRIPTION}")
-    set(CPACK_DEBIAN_LIBMUONPIDETECTOR_PACKAGE_NAME "libmuonpi-detector")
-    set(CPACK_DEBIAN_LIBMUONPIDETECTOR_PACKAGE_DEPENDS "libmuonpi-core (= ${CPACK_PACKAGE_VERSION})")
-    set(CPACK_DEBIAN_LIBMUONPIDETECTOR_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/triggers")
-
-    set(CPACK_DEBIAN_LIBMUONPIDETECTORDEV_DESCRIPTION "Libraries for MuonPi
- detector dev package")
-    set(CPACK_COMPONENT_LIBMUONPIDETECTORDEV_DESCRIPTION "${CPACK_DEBIAN_LIBMUONPIDETECTORDEV_DESCRIPTION}")
-    set(CPACK_DEBIAN_LIBMUONPIDETECTORDEV_PACKAGE_NAME "libmuonpi-detector-dev")
-    set(CPACK_DEBIAN_LIBMUONPIDETECTORDEV_PACKAGE_DEPENDS "libmuonpi-detector (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}), libmuonpi-core-dev (= ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})")
 endif ()
 
 set(CPACK_DEB_COMPONENT_INSTALL ON)

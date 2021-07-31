@@ -6,7 +6,6 @@ string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
 option(LIBMUONPI_BUILD_LINK "Build the link code" ON )
 option(LIBMUONPI_BUILD_HTTP "Build the HTTP service code" ON)
-option(LIBMUONPI_BUILD_DETECTOR "Build the detector code" ON)
 option(LIBMUONPI_BUILD_SANITIZERS "Build sanitizers into the libraries" OFF)
 option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" OFF)
 
@@ -89,13 +88,6 @@ if (LIBMUONPI_BUILD_HTTP)
     add_dependencies(muonpi-http muonpi-core)
     target_include_directories(muonpi-http PUBLIC ${PROJECT_HEADER_DIR})
     target_link_libraries(muonpi-http ${PROJECT_INCLUDE_LIBS} muonpi-core ssl crypto dl)
-endif ()
-
-if (LIBMUONPI_BUILD_DETECTOR)
-    add_library(muonpi-detector SHARED ${DETECTOR_SOURCE_FILES} ${DETECTOR_HEADER_FILES})
-    add_dependencies(muonpi-detector muonpi-core)
-    target_include_directories(muonpi-detector PUBLIC ${PROJECT_HEADER_DIR})
-    target_link_libraries(muonpi-detector ${PROJECT_INCLUDE_LIBS} gpiod)
 endif ()
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")
