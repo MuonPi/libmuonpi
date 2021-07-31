@@ -147,16 +147,21 @@ public:
     [[nodiscard]] auto get_chip_info() -> gpio::chip_info;
 protected:
     /**
-     * @brief step Reimplemented from thread_runner. Executed continuously
+     * @brief custom_run Reimplemented from thread_runner. Executed continuously
      * @return 0 for success, if nonzero the thread stops
      */
-    [[nodiscard]] auto step() -> int override;
+    [[nodiscard]] auto custom_run() -> int override;
 
     /**
      * @brief post_run Reimplemented from thread_runner. Executed after the thread loop is stopped.
      * @return
      */
     [[nodiscard]] auto post_run() -> int override;
+
+    /**
+     * @brief pre_run Reimplemented from thread_runner. Executed before the thread loop is started.
+     * @return
+     */
     [[nodiscard]] auto pre_run() -> int override;
 
 private:
@@ -192,13 +197,12 @@ private:
 
     bool m_autoreload { true }; ///<! Autoreload the bulk object.
 
-    std::atomic<bool> m_started { false }; ///<! Indicates whether there is at least one event interrupt registered
+    std::atomic<bool> m_bulk_dirty { true };
 
     std::map<gpio::pin_t, std::map<gpio::edge_t, std::vector<gpio::callback_t>>> m_callback{}; ///<! All registered callbacks
 
     std::atomic<bool> m_inhibit { false }; ///<! Inhibit the event processing execution
-    std::atomic<bool> m_pause { false }; ///<! Inhibit the event processing execution
-    std::atomic<bool> m_paused { false };
+
     std::condition_variable m_continue_inhibit {}; ///<! Continue to inhibit. Notify to stop inhibition
 
     std::string m_consumer; ///<! The consumer identifier to use
@@ -219,7 +223,12 @@ private:
 
     std::atomic<std::chrono::system_clock::duration> m_inhibit_timeout { std::chrono::microseconds{0} }; ///<! dynamic timeout for the inhibition time
 
-    std::queue<gpiod_line_bulk> m_events {}; ///<! queue with all current events
+    struct private_event {
+	    gpio::pin_t pin;
+	    gpiod_line_event evt;
+    };
+
+    std::queue<private_event> m_events {}; ///<! queue with all current events
 
     gpio::chip_info m_chip {};
 

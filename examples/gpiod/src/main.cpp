@@ -22,6 +22,7 @@ auto main() -> int
     }
     std::cout<<'\n';
 
+
     if (gpio.set_pin_interrupt(5, muonpi::gpio::edge_t::Both, muonpi::gpio::bias_t::Disabled, [](muonpi::gpio::event_t evt){
         std::cout
             <<evt.pin

@@ -75,7 +75,7 @@ auto thread_runner::state() -> State
 
 auto thread_runner::run() -> int
 {
-    m_state = State::Initialising;
+    set_state(State::Initialising);
     State& state { m_state };
     bool clean { false };
     const scope_guard state_guard { [&state, &clean] {
@@ -101,7 +101,7 @@ auto thread_runner::run() -> int
                 log::debug() << "couldn't set name of thread " << m_name << " (" << ((result == ERANGE) ? std::string { "ERANGE" } : std::to_string(result)) << ")";
             }
         }
-        m_state = State::Running;
+        set_state(State::Running);
         if (m_use_custom_run) {
             int result { custom_run() };
             if (result != 0) {
@@ -116,7 +116,7 @@ auto thread_runner::run() -> int
                 }
             }
         }
-        m_state = State::Finalising;
+        set_state(State::Finalising);
         log::debug() << "Stopping thread " << m_name;
         clean = true;
         return post_run() + m_exit_code;
@@ -183,6 +183,30 @@ void thread_runner::start_synchronuos()
         return;
     }
     exec();
+}
+
+void thread_runner::set_state(State state)
+{
+    m_state = state;
+    m_state_condition.notify_all();
+}
+
+auto thread_runner::wait_for(State state, std::chrono::milliseconds duration) -> bool
+{
+    std::chrono::steady_clock::time_point start { std::chrono::steady_clock::now() };
+    auto waited { std::chrono::steady_clock::now() - start };
+    while (waited < duration) {
+        if (m_state == state) {
+            return true;
+        }
+        std::mutex mx;
+        std::unique_lock<std::mutex> lock{mx};
+        if (m_state_condition.wait_for(lock, duration - waited) == std::cv_status::timeout) {
+            return false;
+        }
+        waited = std::chrono::steady_clock::now() - start;
+    }
+    return false;
 }
 
 } // namespace muonpi

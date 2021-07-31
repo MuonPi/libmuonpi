@@ -6,7 +6,7 @@
 namespace muonpi {
 
 gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
-    : thread_runner { "gpiod" }
+    : thread_runner { "gpiod",true }
     , m_consumer { std::move(consumer_name) }
     , m_device { gpiod_chip_open(device.c_str())}
 
@@ -17,6 +17,10 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
     }
     read_chip_info();
     start();
+    if (!wait_for(thread_runner::State::Running)) {
+        log::error() << "gpio_handler thread failed to start";
+        throw std::runtime_error{"error starting gpio thread"};
+    }
     m_callback_thread = std::thread{ [&](){
         while (m_run_callbacks) {
             std::mutex mx;
@@ -30,20 +34,13 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
 
 
             while (!m_events.empty()) {
-                auto event_bulk = m_events.front();
+                auto event = m_events.front();
                 m_events.pop();
+                
+		gpio::event_t evt {};
+                evt.pin = event.pin;
 
-                for (std::size_t i { 0 }; i < event_bulk.num_lines; i++) {
-                    gpiod_line_event line_event { };
-                    const int result { gpiod_line_event_read( event_bulk.lines[i], &line_event) };
-                    if ( result != 0 ) {
-                        continue;
-                    }
-
-                    gpio::event_t evt {};
-                    evt.pin = gpiod_line_offset( event_bulk.lines[i] );
-
-                    switch (line_event.event_type) {
+                    switch (event.evt.event_type) {
                     case GPIOD_LINE_EVENT_RISING_EDGE:
                         evt.edge = gpio::edge_t::Rising;
                         break;
@@ -52,7 +49,7 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
                         break;
                     }
 
-                    evt.time = gpio::time_t{std::chrono::seconds{line_event.ts.tv_sec} + std::chrono::nanoseconds{line_event.ts.tv_nsec}};
+                    evt.time = gpio::time_t{std::chrono::seconds{event.evt.ts.tv_sec} + std::chrono::nanoseconds{event.evt.ts.tv_nsec}};
 
                     m_event_rate.increase_counter();
 
@@ -62,7 +59,6 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
                     }
                 }
 
-            }
             if (m_event_rate.step()) {
                 const float timeout_us { std::clamp(s_m * m_event_rate.mean() + s_b, 0.0F, s_max_timeout) };
 
@@ -134,11 +130,9 @@ auto gpio_handler::set_pin_interrupt(gpio::pin_t pin, gpio::edge_t edge, gpio::b
         }
 
         m_callback.emplace(pin, pin_callbacks);
+	
+	m_bulk_dirty = true;	
 
-        if (m_autoreload) {
-            reload_bulk_interrupt();
-        }
-	m_started = true;
 	log::debug()<<"Registered event callback for pin "<<pin<<" '"<<m_chip.lines.at(pin)<<"'";
         return true;
     }
@@ -161,12 +155,9 @@ auto gpio_handler::set_pin_interrupt(gpio::pin_t pin, gpio::edge_t edge, gpio::b
 
 auto gpio_handler::set_pin_interrupt(const std::vector<std::tuple<gpio::pin_t, gpio::edge_t, gpio::bias_t>>& pins, const gpio::callback_t& callback) -> bool
 {
-    m_autoreload = false;
     return std::all_of(pins.begin(), pins.end(), [this, callback](const auto& it){
                             const auto& [pin, edge, bias] = it; return set_pin_interrupt(pin, edge, bias, callback);
     });
-    m_autoreload = true;
-    reload_bulk_interrupt();
 }
 
 
@@ -241,38 +232,47 @@ void gpio_handler::read_chip_info()
     m_chip = chip;
 }
 
-auto gpio_handler::step() -> int
+auto gpio_handler::custom_run() -> int
 {
-    if ( m_inhibit && m_pause ) {
-        m_paused = true;
-        std::mutex mx;
-        std::unique_lock<std::mutex> lock{mx};
-        if (m_continue_inhibit.wait_for(lock, std::chrono::seconds{10} ) == std::cv_status::timeout) {
-            return 0;
-        }
-        m_paused = false;
-    }
-    std::this_thread::sleep_for( m_inhibit_timeout.load() );
+    while (!m_quit) {
+	    if (m_bulk_dirty) {
+	        reload_bulk_interrupt();
+	    }
+	    if ( m_inhibit ) {
+		std::mutex mx;
+		std::unique_lock<std::mutex> lock{mx};
+		if (m_continue_inhibit.wait_for(lock, std::chrono::seconds{10} ) == std::cv_status::timeout) {
+		    return 0;
+		}
+	    }
+	    std::this_thread::sleep_for( m_inhibit_timeout.load() );
 
-    const timespec timeout { 1, 100'000'000UL };
-    gpiod_line_bulk event_bulk { };
-    const int ret { gpiod_line_event_wait_bulk(&m_bulk_interrupt, &timeout, &event_bulk) };
+	    const timespec timeout { 1, 0 };
+	    gpiod_line_bulk event_bulk { };
+	    const int ret { gpiod_line_event_wait_bulk(&m_bulk_interrupt, &timeout, &event_bulk) };
 
-    if ( ret > 0 ) {
+	    if ( ret > 0 ) {
 
-        m_events.emplace(event_bulk);
-        m_events_available.notify_all();
-    } else if ( ret < 0 ) {
-        log::error()<<"Wait for gpio line events failed: " << ret;
+                for (std::size_t i { 0 }; i < event_bulk.num_lines; i++) {
+                    gpiod_line_event line_event { };
+                    const int result { gpiod_line_event_read( event_bulk.lines[i], &line_event) };
+                    if ( result != 0 ) {
+                        continue;
+                    }
+
+		    m_events.emplace(private_event{gpiod_line_offset(event_bulk.lines[i]), line_event});
+		}
+		m_events_available.notify_all();
+	    } else if ( ret < 0 ) {
+		log::error()<<"Wait for gpio line events failed: " << ret;
+	    }
     }
     return 0;
 }
 
 auto gpio_handler::pre_run() -> int
 {
-    while (!m_started) {
-        std::this_thread::sleep_for(std::chrono::milliseconds{100});
-    }
+    reload_bulk_interrupt();
     return 0;
 }
 
@@ -336,13 +336,11 @@ auto gpio_handler::get_flags(gpio::bias_t bias) -> int
 
 void gpio_handler::reload_bulk_interrupt()
 {
-    m_pause = true;
-    while (!m_paused)
     gpiod_line_bulk_init( &m_bulk_interrupt );
-    // rerequest bulk events
     for (auto& [gpio,line] : m_interrupt_lines) {
         gpiod_line_bulk_add( &m_bulk_interrupt, line );
     }
+    m_bulk_dirty = false;
 }
 
 } // namespace muonpi
