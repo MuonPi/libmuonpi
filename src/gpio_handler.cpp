@@ -203,8 +203,12 @@ void gpio_handler::read_chip_info()
 
     for (std::size_t i { 0 }; i < chip.num_lines; i++) {
         auto* line = gpiod_chip_get_line(m_device, i);
-
-        chip.lines.emplace_back(gpiod_line_name(line));
+        auto name = gpiod_line_name(line);
+        if (name == nullptr) {
+            chip.lines.emplace_back("");
+        } else {
+            chip.lines.emplace_back(name);
+        }
 
         gpiod_line_release(line);
     }
