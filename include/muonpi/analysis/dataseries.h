@@ -121,7 +121,10 @@ private:
         if (m_data.empty()) {
             return {};
         }
-        std::list<T> sorted { m_data };
+        std::vector<T> sorted {};
+        sorted.resize(n());
+
+        std::copy(m_data.begin(), m_data.end(), sorted.begin());
 
         std::sort(sorted.begin(), sorted.end());
 
