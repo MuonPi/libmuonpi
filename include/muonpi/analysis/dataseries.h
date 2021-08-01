@@ -32,7 +32,7 @@ public:
 
     /**
      * @brief data_series
-     * @param n the maximum buffer size to use
+     * @param n the maximum number of entries to hold
      */
     explicit data_series(std::size_t n) noexcept;
 
@@ -55,13 +55,13 @@ public:
     [[nodiscard]] auto median() const -> T;
 
     /**
-     * @brief mean Calculates the standard deviation of all values. This value gets cached between data entries.
+     * @brief stddev Calculates the standard deviation of all values. This value gets cached between data entries.
      * @return The standard deviation
      */
     [[nodiscard]] auto stddev() const -> T;
 
     /**
-     * @brief mean Calculates the variance of all values. This value gets cached between data entries.
+     * @brief variance Calculates the variance of all values. This value gets cached between data entries.
      * Depending on the template parameter given with Sample, this calculates the variance of a sample
      * @return The variance
      */
@@ -90,6 +90,17 @@ public:
      * @return const ref to the data vector
      */
     [[nodiscard]] auto data() const -> const std::list<T>&;
+
+    /**
+     * @brief reset Clear the whole dataset and leave the size unchanged
+     */
+    void reset();
+
+    /**
+     * @brief reset Clear the whole dataset and resize the sample size
+     * @param n The new sample size
+     */
+    void reset(std::size_t n);
 
 private:
     [[nodiscard]] inline auto private_mean(const mean_t& type) const -> T
@@ -158,6 +169,16 @@ private:
     cached_value<T> m_stddev { [this] { return private_stddev(); } };
     cached_value<T> m_variance { [this] { return private_variance(); } };
     cached_value<T> m_rms { [this] { return private_rms(); } };
+
+    void mark_dirty() {
+        m_arithmetic_mean.mark_dirty();
+        m_geometric_mean.mark_dirty();
+        m_harmonic_mean.mark_dirty();
+        m_median.mark_dirty();
+        m_stddev.mark_dirty();
+        m_variance.mark_dirty();
+        m_rms.mark_dirty();
+    }
 };
 
 // +++++++++++++++++++++++++++++++
@@ -179,12 +200,7 @@ void data_series<T, Sample>::add(T value)
         m_data.erase(m_data.begin());
     }
 
-    m_arithmetic_mean.mark_dirty();
-    m_geometric_mean.mark_dirty();
-    m_harmonic_mean.mark_dirty();
-    m_median.mark_dirty();
-    m_stddev.mark_dirty();
-    m_variance.mark_dirty();
+    mark_dirty();
 }
 
 template <typename T, bool Sample>
@@ -229,10 +245,32 @@ auto data_series<T, Sample>::variance() const -> T
 }
 
 template <typename T, bool Sample>
+auto data_series<T, Sample>::rms() const -> T
+{
+    return m_rms.get();
+}
+
+template <typename T, bool Sample>
 auto data_series<T, Sample>::current() const -> T
 {
     return m_data.back();
 }
 
+template <typename T, bool Sample>
+void data_series<T, Sample>::reset()
+{
+    m_data.clear();
+
+    mark_dirty();
 }
+
+template <typename T, bool Sample>
+void data_series<T, Sample>::reset(std::size_t n)
+{
+    m_n = n;
+    reset();
+}
+
+}
+
 #endif // DATASERIES_H
