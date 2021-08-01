@@ -133,7 +133,7 @@ auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpi
 	
 	m_bulk_dirty = true;	
 
-    log::debug()<<"Registered event callback for pin "<<settings.pin<<" '"<<m_chip.lines.at(settings.pin)<<"'";
+    log::debug()<<"Registered event callback for pin "<<settings.pin<<" '"<<m_chip.lines.at(settings.pin).name<<"'";
         return true;
     }
     auto& [def_pin, callbacks] = *it;
@@ -218,11 +218,22 @@ void gpio_handler::read_chip_info()
     for (std::size_t i { 0 }; i < chip.num_lines; i++) {
         auto* line = gpiod_chip_get_line(m_device, i);
         auto name = gpiod_line_name(line);
+        auto consumer = gpiod_line_consumer(line);
+        gpio::chip_info::line_t l{};
+
         if (name == nullptr) {
-            chip.lines.emplace_back("");
+            l.name = "";
         } else {
-            chip.lines.emplace_back(name);
+            l.name = name;
         }
+
+        if (consumer == nullptr) {
+            l.consumer = "";
+        } else {
+            l.consumer = consumer;
+        }
+
+        chip.lines.emplace_back(l);
 
         gpiod_line_release(line);
     }

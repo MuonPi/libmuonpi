@@ -30,7 +30,11 @@ struct chip_info {
     std::string name; ///<! The name of the chip as present in the kernel
     std::string label; ///<! The label of the chip as present in the kernel
     std::size_t num_lines; ///<! The number of lines present in the chip
-    std::vector<std::string> lines; ///<! The names of all lines reported in the chip
+    struct line_t {
+        std::string name;
+        std::string consumer;
+    };
+    std::vector<line_t> lines; ///<! The names of all lines reported in the chip
 };
 
 /**
