@@ -10,7 +10,7 @@
 #include <cmath>
 #include <functional>
 #include <numeric>
-#include <vector>
+#include <list>
 
 namespace muonpi {
 
@@ -83,22 +83,28 @@ public:
      * @brief data Get the data
      * @return const ref to the data vector
      */
-    [[nodiscard]] auto data() const -> const std::vector<T>&;
+    [[nodiscard]] auto data() const -> const std::list<T>&;
 
 private:
     [[nodiscard]] inline auto private_mean(const mean_t& type) const -> T
     {
-        if (type == mean_t::geometric) {
-            return std::pow(std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
-        } else if (type == mean_t::harmonic) {
-            return static_cast<T>(n()) / std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
+        if (m_data.empty()) {
+            return {};
         }
-        return std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0) / static_cast<T>(n());
+        if (type == mean_t::geometric) {
+            return std::pow(std::accumulate(m_data.begin(), m_data.end(), 0.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
+        } else if (type == mean_t::harmonic) {
+            return static_cast<T>(n()) / std::accumulate(m_data.begin(), m_data.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
+        }
+        return std::accumulate(m_data.begin(), m_data.end(), 0.0) / static_cast<T>(n());
     }
 
     [[nodiscard]] inline auto private_median() const -> T
     {
-        std::vector<T> sorted { m_buffer };
+        if (m_data.empty()) {
+            return {};
+        }
+        std::list<T> sorted { m_data };
 
         std::sort(sorted.begin(), sorted.end());
 
@@ -110,19 +116,25 @@ private:
 
     [[nodiscard]] inline auto private_stddev() const -> T
     {
+        if (m_data.empty()) {
+            return {};
+        }
         return std::sqrt(variance());
     }
 
     [[nodiscard]] inline auto private_variance() const -> T
     {
+        if (m_data.empty()) {
+            return {};
+        }
         const auto denominator { Sample ? (n() - 1.0) : n() };
         const auto m { mean() };
 
         return 1.0 / (denominator)*std::inner_product(
-                   m_buffer.begin(), m_buffer.end(), m_buffer.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
+                   m_data.begin(), m_data.end(), m_data.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
     }
 
-    std::vector<T> m_buffer {};
+    std::list<T> m_data {};
     std::size_t m_n { 0 };
 
     cached_value<T> m_geometric_mean { [this] { return private_mean(mean_t::geometric); } };
@@ -146,10 +158,10 @@ data_series<T, Sample>::data_series(std::size_t n) noexcept
 template <typename T, bool Sample>
 void data_series<T, Sample>::add(T value)
 {
-    m_buffer.emplace_back(value);
+    m_data.emplace_back(value);
 
     if (n() > m_n) {
-        m_buffer.erase(m_buffer.begin());
+        m_data.erase(m_data.begin());
     }
 
     m_arithmetic_mean.mark_dirty();
@@ -161,15 +173,15 @@ void data_series<T, Sample>::add(T value)
 }
 
 template <typename T, bool Sample>
-auto data_series<T, Sample>::data() const -> const std::vector<T>&
+auto data_series<T, Sample>::data() const -> const std::list<T>&
 {
-    return m_buffer;
+    return m_data;
 }
 
 template <typename T, bool Sample>
 auto data_series<T, Sample>::n() const -> std::size_t
 {
-    return m_buffer.size();
+    return m_data.size();
 }
 
 template <typename T, bool Sample>
@@ -204,7 +216,7 @@ auto data_series<T, Sample>::variance() const -> T
 template <typename T, bool Sample>
 auto data_series<T, Sample>::current() const -> T
 {
-    return m_buffer.back();
+    return m_data.back();
 }
 
 }
