@@ -68,6 +68,12 @@ public:
     [[nodiscard]] auto variance() const -> T;
 
     /**
+     * @brief rms Calculates the rms (Root Mean Square) of all values. This value gets cached between data entries.
+     * @return The RMS
+     */
+    [[nodiscard]] auto rms() const -> T;
+
+    /**
      * @brief current Gets the most recent value
      * @return The most recent entry
      */
@@ -134,6 +140,14 @@ private:
                    m_data.begin(), m_data.end(), m_data.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
     }
 
+    [[nodiscard]] inline auto private_rms() const -> T
+    {
+        if (m_data.empty()) {
+            return {};
+        }
+        return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0)/static_cast<T>(n()));
+    }
+
     std::list<T> m_data {};
     std::size_t m_n { 0 };
 
@@ -143,6 +157,7 @@ private:
     cached_value<T> m_median { [this] { return private_median(); } };
     cached_value<T> m_stddev { [this] { return private_stddev(); } };
     cached_value<T> m_variance { [this] { return private_variance(); } };
+    cached_value<T> m_rms { [this] { return private_rms(); } };
 };
 
 // +++++++++++++++++++++++++++++++
