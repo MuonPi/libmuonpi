@@ -35,7 +35,7 @@ auto influx::entry::operator<<(const field& field) -> entry&
                    [this, field](std::uint8_t value) { m_fields << ',' << field.name << '=' << static_cast<std::uint16_t>(value) << 'i'; },
                    [this, field](std::uint16_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
                    [this, field](std::uint32_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
-                   [this, field](bool value) { m_fields << field.name << ',' << '=' << (value ? 't' : 'f'); },
+                   [this, field](bool value) { m_fields << ',' << field.name << '=' << (value ? 't' : 'f'); },
                    [this, field](double value) { m_fields << ',' << field.name << '=' << value; } },
         field.value);
     return *this;
