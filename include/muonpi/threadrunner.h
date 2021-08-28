@@ -73,8 +73,7 @@ public:
      */
     void start_synchronuos();
 
-
-    [[nodiscard]] auto wait_for(State state, std::chrono::milliseconds timeout = std::chrono::seconds{5}) -> bool;
+    [[nodiscard]] auto wait_for(State state, std::chrono::milliseconds timeout = std::chrono::seconds { 5 }) -> bool;
 
 protected:
     /**

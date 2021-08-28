@@ -105,20 +105,24 @@ auto thread_runner::run() -> int
         if (m_use_custom_run) {
             int result { custom_run() };
             if (result != 0) {
-                return result;
+                log::warning() << "Thread " << m_name << " Stopped.";
+                m_exit_code = result;
             }
         } else {
             while (m_run) {
                 int result { step() };
                 if (result != 0) {
                     log::warning() << "Thread " << m_name << " Stopped.";
-                    return result;
+                    m_exit_code = result;
+                    break;
                 }
             }
         }
         set_state(State::Finalising);
         log::debug() << "Stopping thread " << m_name;
-        clean = true;
+
+        clean = (m_exit_code == 0);
+
         return post_run() + m_exit_code;
     } catch (std::exception& e) {
         log::error() << "Thread " << m_name << "Got an uncaught exception: " << e.what();
@@ -200,7 +204,7 @@ auto thread_runner::wait_for(State state, std::chrono::milliseconds duration) ->
             return true;
         }
         std::mutex mx;
-        std::unique_lock<std::mutex> lock{mx};
+        std::unique_lock<std::mutex> lock { mx };
         if (m_state_condition.wait_for(lock, duration - waited) == std::cv_status::timeout) {
             return false;
         }
