@@ -226,7 +226,7 @@ private:
 
     std::thread m_callback_thread {}; ///<! The thread which handles all callbacks
 
-    std::atomic<bool> m_run_callbacks { true }; ///<! Run the callback handle thread
+    std::condition_variable m_interrupt_condition {};
 
     rate_measurement<float> m_event_rate {100, std::chrono::seconds{6} }; ///<! Rate measurement object for the incoming event rate
 

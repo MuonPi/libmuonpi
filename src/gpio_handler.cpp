@@ -17,56 +17,6 @@ gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
     }
     read_chip_info();
     start();
-    if (!wait_for(thread_runner::State::Running)) {
-        log::error() << "gpio_handler thread failed to start";
-        throw std::runtime_error{"error starting gpio thread"};
-    }
-    m_callback_thread = std::thread{ [&](){
-        while (m_run_callbacks) {
-            std::mutex mx;
-            std::unique_lock<std::mutex> lock{mx};
-
-            m_events_available.wait(lock);
-
-            if (!m_run_callbacks) {
-                return;
-            }
-
-
-            while (!m_events.empty()) {
-                auto event = m_events.front();
-                m_events.pop();
-                
-		gpio::event_t evt {};
-                evt.pin = event.pin;
-
-                    switch (event.evt.event_type) {
-                    case GPIOD_LINE_EVENT_RISING_EDGE:
-                        evt.edge = gpio::edge_t::Rising;
-                        break;
-                    case GPIOD_LINE_EVENT_FALLING_EDGE:
-                        evt.edge = gpio::edge_t::Falling;
-                        break;
-                    }
-
-                    evt.time = gpio::time_t{std::chrono::seconds{event.evt.ts.tv_sec} + std::chrono::nanoseconds{event.evt.ts.tv_nsec}};
-
-                    m_event_rate.increase_counter();
-
-                    // Since no interrupts are registerred without callback, we always know that there is an associated callback
-                    for (auto& callback : m_callback.at(evt.pin).at(evt.edge)) {
-                        callback(evt);
-                    }
-                }
-
-            if (m_event_rate.step()) {
-                const float timeout_us { std::clamp(s_m * m_event_rate.mean() + s_b, 0.0F, s_max_timeout) };
-
-                m_inhibit_timeout = std::chrono::microseconds(static_cast<int>(timeout_us));
-            }
-        }
-    } };
-
 }
 
 gpio_handler::~gpio_handler()
@@ -130,8 +80,7 @@ auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpi
         }
 
         m_callback.emplace(settings.pin, pin_callbacks);
-	
-	m_bulk_dirty = true;	
+        m_interrupt_condition.notify_all();
 
     log::debug()<<"Registered event callback for pin "<<settings.pin<<" '"<<m_chip.lines.at(settings.pin).name<<"'";
         return true;
@@ -201,7 +150,6 @@ void gpio_handler::end_inhibit()
     m_inhibit = false;
     m_continue_inhibit.notify_all();
 }
-
 
 auto gpio_handler::get_chip_info() -> gpio::chip_info
 {
@@ -281,6 +229,65 @@ auto gpio_handler::custom_run() -> int
 
 auto gpio_handler::pre_run() -> int
 {
+    std::mutex mx{};
+    std::unique_lock<std::mutex> lock{mx};
+
+    if (m_interrupt_condition.wait_for(lock, std::chrono::seconds{5}) == std::cv_status::timeout && m_interrupt_lines.empty()) {
+        return 1;
+    }
+
+    m_callback_thread = std::thread{ [&](){
+        while (!m_quit) {
+            std::mutex mx;
+            std::unique_lock<std::mutex> lock{mx};
+
+            m_events_available.wait(lock);
+
+            if (m_quit) {
+                return;
+            }
+
+            if (m_inhibit) {
+                while (!m_events.empty()) {
+                    m_events.pop();
+                }
+                continue;
+            }
+
+
+            while (!m_events.empty()) {
+                auto event = m_events.front();
+                m_events.pop();
+                gpio::event_t evt {};
+                evt.pin = event.pin;
+
+                    switch (event.evt.event_type) {
+                    case GPIOD_LINE_EVENT_RISING_EDGE:
+                        evt.edge = gpio::edge_t::Rising;
+                        break;
+                    case GPIOD_LINE_EVENT_FALLING_EDGE:
+                        evt.edge = gpio::edge_t::Falling;
+                        break;
+                    }
+
+                    evt.time = gpio::time_t{std::chrono::seconds{event.evt.ts.tv_sec} + std::chrono::nanoseconds{event.evt.ts.tv_nsec}};
+
+                    m_event_rate.increase_counter();
+
+                    // Since no interrupts are registerred without callback, we always know that there is an associated callback
+                    for (auto& callback : m_callback.at(evt.pin).at(evt.edge)) {
+                        callback(evt);
+                    }
+                }
+
+            if (m_event_rate.step()) {
+                const float timeout_us { std::clamp(s_m * m_event_rate.mean() + s_b, 0.0F, s_max_timeout) };
+
+                m_inhibit_timeout = std::chrono::microseconds(static_cast<int>(timeout_us));
+            }
+        }
+    } };
+
     reload_bulk_interrupt();
     return 0;
 }
