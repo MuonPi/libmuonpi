@@ -82,7 +82,9 @@ auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpi
         m_callback.emplace(settings.pin, pin_callbacks);
         m_interrupt_condition.notify_all();
 
-    log::debug()<<"Registered event callback for pin "<<settings.pin<<" '"<<m_chip.lines.at(settings.pin).name<<"'";
+        m_bulk_dirty = true;
+
+        log::debug()<<"Registered event callback for pin "<<settings.pin<<" '"<<m_chip.lines.at(settings.pin).name<<"'";
         return true;
     }
     auto& [def_pin, callbacks] = *it;
@@ -104,8 +106,8 @@ auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpi
 
 auto gpio_handler::set_pin_interrupt(const gpio::pins_t& pins, const gpio::callback_t& callback) -> bool
 {
-    return std::all_of(pins.begin(), pins.end(), [this, callback](const auto& it){
-                            return set_pin_interrupt(*it, callback);
+    return std::all_of(pins.begin(), pins.end(), [this, callback](const auto& settings){
+                            return set_pin_interrupt(settings, callback);
     });
 }
 
@@ -195,14 +197,6 @@ auto gpio_handler::custom_run() -> int
 	    if (m_bulk_dirty) {
 	        reload_bulk_interrupt();
 	    }
-	    if ( m_inhibit ) {
-		std::mutex mx;
-		std::unique_lock<std::mutex> lock{mx};
-		if (m_continue_inhibit.wait_for(lock, std::chrono::seconds{10} ) == std::cv_status::timeout) {
-		    return 0;
-		}
-	    }
-	    std::this_thread::sleep_for( m_inhibit_timeout.load() );
 
 	    const timespec timeout { 1, 0 };
 	    gpiod_line_bulk event_bulk { };
@@ -217,11 +211,11 @@ auto gpio_handler::custom_run() -> int
                         continue;
                     }
 
-		    m_events.emplace(private_event{gpiod_line_offset(event_bulk.lines[i]), line_event});
-		}
-		m_events_available.notify_all();
+                m_events.emplace(private_event{gpiod_line_offset(event_bulk.lines[i]), line_event});
+            }
+            m_events_available.notify_all();
 	    } else if ( ret < 0 ) {
-		log::error()<<"Wait for gpio line events failed: " << ret;
+            log::error()<<"Wait for gpio line events failed: " << ret;
 	    }
     }
     return 0;
@@ -294,7 +288,6 @@ auto gpio_handler::pre_run() -> int
 
 auto gpio_handler::post_run() -> int
 {
-    m_run_callbacks = false;
     m_events_available.notify_all();
 
     m_callback_thread.join();
