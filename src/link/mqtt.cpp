@@ -161,12 +161,12 @@ auto mqtt::post_run() -> int
     if (!disconnect()) {
         return -1;
     }
-    mosquitto_loop_stop(m_mqtt, true);
     if (m_mqtt != nullptr) {
+        mosquitto_loop_stop(m_mqtt, true);
         mosquitto_destroy(m_mqtt);
         m_mqtt = nullptr;
+        mosquitto_lib_cleanup();
     }
-    mosquitto_lib_cleanup();
     return 0;
 }
 
