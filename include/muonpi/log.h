@@ -58,9 +58,16 @@ public:
         return *this;
     }
 
-    logger(int exit_code)
+    logger(const std::string& component, int exit_code = 0)
         : m_exit_code { std::move(exit_code) }
     {
+        m_stream << to_string();
+        if (!component.empty()) {
+            m_stream << " (" << component << ')';
+        }
+        if (m_stream.tellp() > 0) {
+            m_stream << ": ";
+        }
     }
 
     logger() = default;
@@ -68,7 +75,7 @@ public:
     ~logger()
     {
         if (L <= (Level::Info + system::level())) {
-            system::stream() << to_string() << m_stream.str() + "\n"
+            system::stream() << m_stream.str() + "\n"
                              << std::flush;
         }
         if (L <= Level::Critical) {
@@ -84,34 +91,34 @@ private:
     {
         switch (L) {
         case Level::Debug:
-            return "Debug: ";
+            return "Debug";
         case Level::Info:
             return "";
         case Level::Notice:
-            return "Notice: ";
+            return "Notice";
         case Level::Warning:
-            return "Warning: ";
+            return "Warning";
         case Level::Error:
-            return "Error: ";
+            return "Error";
         case Level::Critical:
-            return "Critical: ";
+            return "Critical";
         case Level::Alert:
-            return "Alert: ";
+            return "Alert";
         case Level::Emergency:
-            return "Emergency: ";
+            return "Emergency";
         }
         return "";
     }
 };
 
-[[nodiscard]] auto LIBMUONPI_PUBLIC debug() -> logger<Level::Debug>;
-[[nodiscard]] auto LIBMUONPI_PUBLIC info() -> logger<Level::Info>;
-[[nodiscard]] auto LIBMUONPI_PUBLIC notice() -> logger<Level::Notice>;
-[[nodiscard]] auto LIBMUONPI_PUBLIC warning() -> logger<Level::Warning>;
-[[nodiscard]] auto LIBMUONPI_PUBLIC error() -> logger<Level::Error>;
-[[nodiscard]] auto LIBMUONPI_PUBLIC critical(int exit_code = 1) -> logger<Level::Critical>;
-[[nodiscard]] auto LIBMUONPI_PUBLIC alert(int exit_code = 1) -> logger<Level::Alert>;
-[[nodiscard]] auto LIBMUONPI_PUBLIC emergency(int exit_code = 1) -> logger<Level::Emergency>;
+[[nodiscard]] auto LIBMUONPI_PUBLIC debug(const std::string& component = {}) -> logger<Level::Debug>;
+[[nodiscard]] auto LIBMUONPI_PUBLIC info(const std::string& component = {}) -> logger<Level::Info>;
+[[nodiscard]] auto LIBMUONPI_PUBLIC notice(const std::string& component = {}) -> logger<Level::Notice>;
+[[nodiscard]] auto LIBMUONPI_PUBLIC warning(const std::string& component = {}) -> logger<Level::Warning>;
+[[nodiscard]] auto LIBMUONPI_PUBLIC error(const std::string& component = {}) -> logger<Level::Error>;
+[[nodiscard]] auto LIBMUONPI_PUBLIC critical(int exit_code = 1, const std::string& component = {}) -> logger<Level::Critical>;
+[[nodiscard]] auto LIBMUONPI_PUBLIC alert(int exit_code = 1, const std::string& component = {}) -> logger<Level::Alert>;
+[[nodiscard]] auto LIBMUONPI_PUBLIC emergency(int exit_code = 1, const std::string& component = {}) -> logger<Level::Emergency>;
 
 }
 

@@ -87,48 +87,46 @@ auto thread_runner::run() -> int
     } };
 
     try {
-        log::debug() << "Starting thread " << m_name;
+        log::debug("thread") << "Starting '" << m_name << '\'';
         int pre_result { pre_run() };
         if (pre_result != 0) {
             return pre_result;
         }
 
         if ((m_thread != nullptr)) {
-            log::debug() << "setting name for thread " << m_name;
             auto handle { m_thread->native_handle() };
             const auto result { pthread_setname_np(handle, m_name.c_str()) };
             if (result != 0) {
-                log::debug() << "couldn't set name of thread " << m_name << " (" << ((result == ERANGE) ? std::string { "ERANGE" } : std::to_string(result)) << ")";
             }
         }
         set_state(State::Running);
         if (m_use_custom_run) {
             int result { custom_run() };
             if (result != 0) {
-                log::warning() << "Thread " << m_name << " Stopped.";
+                log::warning("thread") << "'" << m_name << "' Stopped.";
                 m_exit_code = result;
             }
         } else {
             while (m_run) {
                 int result { step() };
                 if (result != 0) {
-                    log::warning() << "Thread " << m_name << " Stopped.";
+                    log::warning("thread") << "'" << m_name << "' Stopped.";
                     m_exit_code = result;
                     break;
                 }
             }
         }
         set_state(State::Finalising);
-        log::debug() << "Stopping thread " << m_name;
+        log::debug("thread") << "Stopping '" << m_name << '\'';
 
         clean = (m_exit_code == 0);
 
         return post_run() + m_exit_code;
     } catch (std::exception& e) {
-        log::error() << "Thread " << m_name << "Got an uncaught exception: " << e.what();
+        log::error("thread") << "'" << m_name << "' Got an uncaught exception: " << e.what();
         return -1;
     } catch (...) {
-        log::error() << "Thread " << m_name << "Got an uncaught exception.";
+        log::error("thread") << "'" << m_name << "' Got an uncaught exception.";
         return -1;
     }
 }
@@ -175,7 +173,7 @@ auto thread_runner::state_string() -> std::string
 void thread_runner::start()
 {
     if ((m_state > State::Initial) || (m_thread != nullptr)) {
-        log::info() << "Thread " << m_name << " already running, refusing to start.";
+        log::info("thread") << "'" << m_name << "' already running, refusing to start.";
         return;
     }
     m_thread = std::make_unique<std::thread>(&thread_runner::exec, this);
