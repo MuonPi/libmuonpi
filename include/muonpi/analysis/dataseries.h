@@ -11,6 +11,7 @@
 #include <functional>
 #include <numeric>
 #include <list>
+#include <shared_mutex>
 
 namespace muonpi {
 
@@ -105,6 +106,7 @@ public:
 private:
     [[nodiscard]] inline auto private_mean(const mean_t& type) const -> T
     {
+        std::shared_lock lock { m_mutex };
         if (m_data.empty()) {
             return {};
         }
@@ -118,6 +120,7 @@ private:
 
     [[nodiscard]] inline auto private_median() const -> T
     {
+        std::shared_lock lock { m_mutex };
         if (m_data.empty()) {
             return {};
         }
@@ -136,6 +139,7 @@ private:
 
     [[nodiscard]] inline auto private_stddev() const -> T
     {
+        std::shared_lock lock { m_mutex };
         if (m_data.empty()) {
             return {};
         }
@@ -144,6 +148,7 @@ private:
 
     [[nodiscard]] inline auto private_variance() const -> T
     {
+        std::shared_lock lock { m_mutex };
         if (m_data.empty()) {
             return {};
         }
@@ -156,6 +161,7 @@ private:
 
     [[nodiscard]] inline auto private_rms() const -> T
     {
+        std::shared_lock lock { m_mutex };
         if (m_data.empty()) {
             return {};
         }
@@ -172,6 +178,8 @@ private:
     cached_value<T> m_stddev { [this] { return private_stddev(); } };
     cached_value<T> m_variance { [this] { return private_variance(); } };
     cached_value<T> m_rms { [this] { return private_rms(); } };
+
+    mutable std::shared_mutex m_mutex {};
 
     void mark_dirty() {
         m_arithmetic_mean.mark_dirty();
@@ -197,6 +205,7 @@ data_series<T, Sample>::data_series(std::size_t n) noexcept
 template <typename T, bool Sample>
 void data_series<T, Sample>::add(T value)
 {
+    std::unique_lock lock { m_mutex };
     m_data.emplace_back(value);
 
     if (n() > m_n) {
@@ -209,6 +218,7 @@ void data_series<T, Sample>::add(T value)
 template <typename T, bool Sample>
 auto data_series<T, Sample>::data() const -> const std::list<T>&
 {
+    std::shared_lock lock { m_mutex };
     return m_data;
 }
 
@@ -262,6 +272,7 @@ auto data_series<T, Sample>::current() const -> T
 template <typename T, bool Sample>
 void data_series<T, Sample>::reset()
 {
+    std::unique_lock lock { m_mutex };
     m_data.clear();
 
     mark_dirty();
