@@ -197,7 +197,7 @@ auto mqtt::publish(const std::string& topic, const std::string& content) -> bool
     if (result == MOSQ_ERR_SUCCESS) {
         return true;
     }
-    log::warning("mqtt") << "Could not send message: " << result;
+    log::warning("mqtt") << "Could not publish message: " << result;
     return false;
 }
 
