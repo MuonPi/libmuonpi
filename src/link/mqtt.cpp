@@ -144,11 +144,24 @@ void mqtt::callback_disconnected(int result)
 void mqtt::callback_message(const mosquitto_message* message)
 {
     std::string message_topic { message->topic };
+    std::vector<std::string> messages {};
+    {
+        std::istringstream stream { std::string { static_cast<char*>(message->payload) } };
+        std::string line {};
+        while (std::getline(stream, line, '\n')) {
+            if (!line.empty()) {
+                messages.emplace_back(line);
+            }
+        }
+    }
     for (auto& [topic, sub] : m_subscribers) {
         bool result {};
         mosquitto_topic_matches_sub2(topic.c_str(), topic.length(), message_topic.c_str(), message_topic.length(), &result);
-        if (result) {
-            sub->push_message({ message_topic, std::string { static_cast<char*>(message->payload) } });
+        if (!result) {
+            continue;
+        }
+        for (const auto& content : messages) {
+            sub->push_message({ message_topic, content });
         }
     }
 }
@@ -340,6 +353,24 @@ auto mqtt::publisher::publish(const std::string& content) -> bool
 auto mqtt::publisher::publish(const std::string& subtopic, const std::string& content) -> bool
 {
     return m_link->publish(m_topic + '/' + subtopic, content);
+}
+
+auto mqtt::publisher::publish(const std::vector<std::string>& content) -> bool
+{
+    std::ostringstream stream {};
+    for (const auto& string : content) {
+        stream<<string<<'\n';
+    }
+    return m_link->publish(m_topic, stream.str());
+}
+
+auto mqtt::publisher::publish(const std::string& subtopic, const std::vector<std::string>& content) -> bool
+{
+    std::ostringstream stream {};
+    for (const auto& string : content) {
+        stream<<string<<'\n';
+    }
+    return m_link->publish(m_topic + '/' + subtopic, stream.str());
 }
 
 auto mqtt::publisher::get_publish_topic() const -> const std::string&

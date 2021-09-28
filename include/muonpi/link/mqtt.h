@@ -97,7 +97,7 @@ public:
          * @param content The content to send
          * @return true if the sending was successful
          */
-        [[nodiscard]] auto publish(const std::string& content) -> bool;
+        auto publish(const std::string& content) -> bool;
 
         /**
          * @brief publish Publish a message
@@ -105,7 +105,22 @@ public:
          * @param content The content to send
          * @return true if the sending was successful
          */
-        [[nodiscard]] auto publish(const std::string& subtopic, const std::string& content) -> bool;
+        auto publish(const std::string& subtopic, const std::string& content) -> bool;
+
+        /**
+         * @brief publish Publish a number of messages combined to one.
+         * @param content Vector with the content to send
+         * @return true if the sending was successful
+         */
+        auto publish(const std::vector<std::string>& content) -> bool;
+
+        /**
+         * @brief publish Publish a number of messages combined to one.
+         * @param subtopic Subtopic to add to the basetopic specified in the constructor
+         * @param content Vector with the content to send
+         * @return true if the sending was successful
+         */
+        auto publish(const std::string& subtopic, const std::vector<std::string>& content) -> bool;
 
         /**
          * @brief get_publish_topic Gets the topic under which the publisher publishes messages
