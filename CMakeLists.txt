@@ -74,20 +74,20 @@ configure_file("${PROJECT_CONFIG_DIR}/config.h" "${PROJECT_HEADER_DIR}/muonpi/gl
 add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})
 
 add_library(muonpi-core SHARED ${CORE_SOURCE_FILES} ${CORE_HEADER_FILES})
-target_include_directories(muonpi-core PUBLIC ${PROJECT_HEADER_DIR})
+target_include_directories(muonpi-core PUBLIC ${PROJECT_HEADER_DIR} ${PROJECT_SRC_DIR})
 target_link_libraries(muonpi-core ${PROJECT_INCLUDE_LIBS})
 
 if (LIBMUONPI_BUILD_LINK)
     add_library(muonpi-link SHARED ${LINK_SOURCE_FILES} ${LINK_HEADER_FILES})
     add_dependencies(muonpi-link muonpi-core)
-    target_include_directories(muonpi-link PUBLIC ${PROJECT_HEADER_DIR})
+    target_include_directories(muonpi-link PUBLIC ${PROJECT_HEADER_DIR} ${PROJECT_SRC_DIR})
     target_link_libraries(muonpi-link ${PROJECT_INCLUDE_LIBS} mosquitto muonpi-http)
 endif ()
 
 if (LIBMUONPI_BUILD_HTTP)
     add_library(muonpi-http SHARED ${HTTP_SOURCE_FILES} ${HTTP_HEADER_FILES})
     add_dependencies(muonpi-http muonpi-core)
-    target_include_directories(muonpi-http PUBLIC ${PROJECT_HEADER_DIR})
+    target_include_directories(muonpi-http PUBLIC ${PROJECT_HEADER_DIR} ${PROJECT_SRC_DIR})
     target_link_libraries(muonpi-http ${PROJECT_INCLUDE_LIBS} muonpi-core ssl crypto dl)
 endif ()
 
