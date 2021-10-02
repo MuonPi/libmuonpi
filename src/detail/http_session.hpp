@@ -7,6 +7,7 @@
 
 #include <sstream>
 #include <utility>
+#include <condition_variable>
 
 namespace muonpi::http::detail {
 

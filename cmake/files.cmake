@@ -18,6 +18,7 @@ set(HTTP_HEADER_FILES
     "${PROJECT_HEADER_DIR}/muonpi/http_request.h"
     "${PROJECT_HEADER_DIR}/muonpi/http_tools.h"
 
+    "${PROJECT_DETAIL_DIR}/http_session.hpp"
     )
 
 
