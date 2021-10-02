@@ -3,6 +3,10 @@
 
 #include <iostream>
 
+using tag = muonpi::link::influx::tag;
+template <typename T>
+using field = muonpi::link::influx::field<T>;
+
 auto main() -> int
 {
     muonpi::log::system::setup(muonpi::log::Level::Info);
@@ -17,13 +21,12 @@ auto main() -> int
 
     auto entry = database.measurement("test");
 
-    using tag = muonpi::link::influx::tag;
-    using field = muonpi::link::influx::field;
 
     entry
             <<tag{"tag-name", "value"}
             <<tag{"tag2", "value2"}
-            <<field{"field1", 5}
+            <<field<int>{"field1", 5}
+            <<field<double>{"field2", 5.53}
                ;
 
     const std::int_fast64_t timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
