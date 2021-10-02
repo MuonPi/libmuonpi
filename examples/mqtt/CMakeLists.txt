@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
 
 find_package(
-  Boost 1.71
+  Boost 1.67
   COMPONENTS system program_options
   REQUIRED)
 

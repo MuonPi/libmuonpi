@@ -40,7 +40,7 @@ endif()
 
 
 find_package(
-  Boost 1.71
+  Boost 1.67
   COMPONENTS system program_options
   REQUIRED)
 
