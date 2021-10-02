@@ -15,29 +15,7 @@ influx::entry::entry(const std::string& measurement, influx& link)
 
 auto influx::entry::operator<<(const tag& tag) -> entry&
 {
-    m_tags << ',' << tag.name << '=' << tag.field;
-    return *this;
-}
-
-template <class... Ts>
-struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
-
-auto influx::entry::operator<<(const field& field) -> entry&
-{
-    std::visit(overloaded {
-                   [this, field](const std::string& value) { m_fields << ',' << field.name << "=\"" << value << '"'; },
-                   [this, field](std::int_fast64_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
-                   [this, field](std::size_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
-                   [this, field](std::uint8_t value) { m_fields << ',' << field.name << '=' << static_cast<std::uint16_t>(value) << 'i'; },
-                   [this, field](std::uint16_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
-                   [this, field](std::uint32_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
-                   [this, field](bool value) { m_fields << ',' << field.name << '=' << (value ? 't' : 'f'); },
-                   [this, field](double value) { m_fields << ',' << field.name << '=' << value; } },
-        field.value);
+    m_tags << ',' << tag.name << '=' << tag.value;
     return *this;
 }
 

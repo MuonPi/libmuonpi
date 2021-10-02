@@ -15,11 +15,12 @@ class influx {
 public:
     struct tag {
         std::string name;
-        std::string field;
+        std::string value;
     };
+    template <typename T>
     struct field {
         std::string name;
-        std::variant<std::string, bool, std::int_fast64_t, double, std::size_t, std::uint8_t, std::uint16_t, std::uint32_t> value;
+        T value;
     };
 
     struct configuration {
@@ -36,7 +37,32 @@ public:
         entry() = delete;
 
         auto operator<<(const tag& tag) -> entry&;
-        auto operator<<(const field& field) -> entry&;
+
+        auto operator<<(const field<std::string>& field) -> entry&
+        {
+            m_fields << ',' << field.name << "=\"" << field.value << '"';
+            return *this;
+        }
+
+        auto operator<<(const field<bool>& field) -> entry&
+        {
+            m_fields << ',' << field.name << "=" << (field.value?'t':'f');
+            return *this;
+        }
+
+        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+        auto operator<<(const field<T>& field) -> entry&
+        {
+            m_fields << ',' << field.name << "=" << field.value << 'i';
+            return *this;
+        }
+
+        template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+        auto operator<<(const field<T>& field) -> entry&
+        {
+            m_fields << ',' << field.name << "=" << field.value;
+            return *this;
+        }
 
         [[nodiscard]] auto commit(std::int_fast64_t timestamp) -> bool;
 
