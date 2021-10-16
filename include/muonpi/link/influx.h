@@ -6,6 +6,7 @@
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -45,7 +46,7 @@ public:
             if constexpr (std::is_same_v<T, std::string>) {
                 m_fields << '"' << field.value << '"';
             } else if constexpr (std::is_same_v<T, bool>) {
-                m_fields << (field.value?'t':'f');
+                m_fields << (field.value ? 't' : 'f');
             } else if constexpr (std::is_floating_point_v<T>) {
                 m_fields << field.value;
             } else if constexpr (std::is_integral_v<T>) {

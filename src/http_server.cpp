@@ -8,7 +8,6 @@
 #include <sstream>
 #include <utility>
 
-
 namespace muonpi::http {
 
 http_server::http_server(configuration config)

@@ -1,16 +1,15 @@
 #ifndef MUONPI_HTTP_SESSION_H
 #define MUONPI_HTTP_SESSION_H
-#include "muonpi/http_tools.h"
 #include "muonpi/base64.h"
+#include "muonpi/http_tools.h"
 #include "muonpi/log.h"
 #include "muonpi/scopeguard.h"
 
+#include <condition_variable>
 #include <sstream>
 #include <utility>
-#include <condition_variable>
 
 namespace muonpi::http::detail {
-
 
 template <typename Stream>
 class session {

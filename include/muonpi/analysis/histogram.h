@@ -336,9 +336,9 @@ auto histogram<T, C>::rms() const -> T
 {
     T total { 0 };
     for (std::size_t i { 0 }; i < m_bins.size(); i++) {
-        const T middle { m_lower + (static_cast<T>(i) + 0.5)*m_width };
+        const T middle { m_lower + (static_cast<T>(i) + 0.5) * m_width };
 
-        total += static_cast<T>(m_bins.at(i))*middle*middle;
+        total += static_cast<T>(m_bins.at(i)) * middle * middle;
     }
 
     return std::sqrt(total / static_cast<T>(integral()));

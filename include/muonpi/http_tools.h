@@ -3,11 +3,11 @@
 
 #include "muonpi/log.h"
 
-#include <boost/version.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/version.hpp>
 
 #if BOOST_VERSION < 106900
 #include <boost/asio/connect.hpp>
@@ -40,11 +40,11 @@ void fail(beast::error_code ec, const std::string& what);
 
 namespace detail {
 #if BOOST_VERSION < 106900
-using ssl_stream_t = ssl::stream<tcp::socket>;
-using tcp_stream_t = tcp::socket;
+    using ssl_stream_t = ssl::stream<tcp::socket>;
+    using tcp_stream_t = tcp::socket;
 #else
-using ssl_stream_t = beast::ssl_stream<beast::tcp_stream>;
-using tcp_stream_t = beast::tcp_stream;
+    using ssl_stream_t = beast::ssl_stream<beast::tcp_stream>;
+    using tcp_stream_t = beast::tcp_stream;
 #endif
 }
 

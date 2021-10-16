@@ -9,8 +9,8 @@
 #include <chrono>
 #include <cmath>
 #include <functional>
-#include <numeric>
 #include <list>
+#include <numeric>
 #include <shared_mutex>
 
 namespace muonpi {
@@ -165,7 +165,7 @@ private:
         if (m_data.empty()) {
             return {};
         }
-        return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0)/static_cast<T>(n()));
+        return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0) / static_cast<T>(n()));
     }
 
     std::list<T> m_data {};
@@ -181,7 +181,8 @@ private:
 
     mutable std::shared_mutex m_mutex {};
 
-    void mark_dirty() {
+    void mark_dirty()
+    {
         m_arithmetic_mean.mark_dirty();
         m_geometric_mean.mark_dirty();
         m_harmonic_mean.mark_dirty();

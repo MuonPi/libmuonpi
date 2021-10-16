@@ -359,7 +359,7 @@ auto mqtt::publisher::publish(const std::vector<std::string>& content) -> bool
 {
     std::ostringstream stream {};
     for (const auto& string : content) {
-        stream<<string<<'\n';
+        stream << string << '\n';
     }
     return m_link->publish(m_topic, stream.str());
 }
@@ -368,7 +368,7 @@ auto mqtt::publisher::publish(const std::string& subtopic, const std::vector<std
 {
     std::ostringstream stream {};
     for (const auto& string : content) {
-        stream<<string<<'\n';
+        stream << string << '\n';
     }
     return m_link->publish(m_topic + '/' + subtopic, stream.str());
 }

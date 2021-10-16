@@ -46,9 +46,9 @@ template <typename Stream>
     ctx.set_verify_mode(ssl::verify_peer);
 
     // These objects perform our I/O
-    tcp::resolver resolver{ioc};
+    tcp::resolver resolver { ioc };
 
-    detail::ssl_stream_t stream{ioc, ctx};
+    detail::ssl_stream_t stream { ioc, ctx };
 
     // Set SNI Hostname (many hosts need this to handshake successfully)
     if (!SSL_set_tlsext_host_name(stream.native_handle(), destination.host.c_str())) {
@@ -95,9 +95,9 @@ auto http_request(destination_t destination, std::string body, std::vector<field
     net::io_context ioc;
 
     // These objects perform our I/O
-    tcp::resolver resolver{ioc};
+    tcp::resolver resolver { ioc };
 
-    detail::tcp_stream_t stream{ioc};
+    detail::tcp_stream_t stream { ioc };
 
     // Look up the domain name
     auto const results = resolver.resolve(destination.host, std::to_string(destination.port));
