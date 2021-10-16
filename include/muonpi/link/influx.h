@@ -38,29 +38,23 @@ public:
 
         auto operator<<(const tag& tag) -> entry&;
 
-        auto operator<<(const field<std::string>& field) -> entry&
-        {
-            m_fields << ',' << field.name << "=\"" << field.value << '"';
-            return *this;
-        }
-
-        auto operator<<(const field<bool>& field) -> entry&
-        {
-            m_fields << ',' << field.name << "=" << (field.value?'t':'f');
-            return *this;
-        }
-
-        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+        template <typename T>
         auto operator<<(const field<T>& field) -> entry&
         {
-            m_fields << ',' << field.name << "=" << field.value << 'i';
-            return *this;
-        }
-
-        template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-        auto operator<<(const field<T>& field) -> entry&
-        {
-            m_fields << ',' << field.name << "=" << field.value;
+            m_fields << ',' << field.name << "=";
+            if constexpr (std::is_same_v<T, std::string>) {
+                m_fields << '"' << field.value << '"';
+            } else if constexpr (std::is_same_v<T, bool>) {
+                m_fields << (field.value?'t':'f');
+            } else if constexpr (std::is_floating_point_v<T>) {
+                m_fields << field.value;
+            } else if constexpr (std::is_integral_v<T>) {
+                if constexpr (sizeof(T) < 2) {
+                    m_fields << static_cast<std::int32_t>(field.value) << 'i';
+                } else {
+                    m_fields << field.value << 'i';
+                }
+            }
             return *this;
         }
 
