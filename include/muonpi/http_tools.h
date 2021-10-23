@@ -7,7 +7,16 @@
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/version.hpp>
+
+#if BOOST_VERSION < 106900
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ssl/stream.hpp>
+#else
 #include <boost/beast/ssl.hpp>
+#endif
+
+#include <boost/asio/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/config.hpp>
@@ -28,6 +37,16 @@ using http_field = beast::http::field;
 using http_status = beast::http::status;
 
 void fail(beast::error_code ec, const std::string& what);
+
+namespace detail {
+#if BOOST_VERSION < 106900
+    using ssl_stream_t = ssl::stream<tcp::socket>;
+    using tcp_stream_t = tcp::socket;
+#else
+    using ssl_stream_t = beast::ssl_stream<beast::tcp_stream>;
+    using tcp_stream_t = beast::tcp_stream;
+#endif
+}
 
 }
 #endif // HTTP_TOOLS_H

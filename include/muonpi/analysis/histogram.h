@@ -137,6 +137,12 @@ public:
      */
     [[nodiscard]] auto median() const -> T;
 
+    /**
+     * @brief rms Calculate the RMS(root mean square) of the histogram
+     * @return The RMS
+     */
+    [[nodiscard]] auto rms() const -> T;
+
 private:
     T m_lower {};
     T m_upper {};
@@ -323,6 +329,19 @@ auto histogram<T, C>::percentile(double percent) const -> T
         }
     }
     return m_upper;
+}
+
+template <typename T, typename C>
+auto histogram<T, C>::rms() const -> T
+{
+    T total { 0 };
+    for (std::size_t i { 0 }; i < m_bins.size(); i++) {
+        const T middle { m_lower + (static_cast<T>(i) + 0.5) * m_width };
+
+        total += static_cast<T>(m_bins.at(i)) * middle * middle;
+    }
+
+    return std::sqrt(total / static_cast<T>(integral()));
 }
 
 }

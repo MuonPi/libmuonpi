@@ -4,9 +4,9 @@ project(libmuonpi LANGUAGES CXX C)
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
 
+
 option(LIBMUONPI_BUILD_LINK "Build the link code" ON )
 option(LIBMUONPI_BUILD_HTTP "Build the HTTP service code" ON)
-option(LIBMUONPI_BUILD_DETECTOR "Build the detector code" ON)
 option(LIBMUONPI_BUILD_SANITIZERS "Build sanitizers into the libraries" OFF)
 option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" OFF)
 
@@ -14,6 +14,7 @@ set(LIBMUONPI_COMPILING ON)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(PROJECT_DETAIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/detail")
 set(PROJECT_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output/bin")
@@ -40,7 +41,7 @@ endif()
 
 
 find_package(
-  Boost 1.71
+  Boost 1.67
   COMPONENTS system program_options
   REQUIRED)
 
@@ -74,28 +75,21 @@ configure_file("${PROJECT_CONFIG_DIR}/config.h" "${PROJECT_HEADER_DIR}/muonpi/gl
 add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})
 
 add_library(muonpi-core SHARED ${CORE_SOURCE_FILES} ${CORE_HEADER_FILES})
-target_include_directories(muonpi-core PUBLIC ${PROJECT_HEADER_DIR})
+target_include_directories(muonpi-core PUBLIC ${PROJECT_HEADER_DIR} ${PROJECT_SRC_DIR})
 target_link_libraries(muonpi-core ${PROJECT_INCLUDE_LIBS})
 
 if (LIBMUONPI_BUILD_LINK)
     add_library(muonpi-link SHARED ${LINK_SOURCE_FILES} ${LINK_HEADER_FILES})
     add_dependencies(muonpi-link muonpi-core)
-    target_include_directories(muonpi-link PUBLIC ${PROJECT_HEADER_DIR})
+    target_include_directories(muonpi-link PUBLIC ${PROJECT_HEADER_DIR} ${PROJECT_SRC_DIR})
     target_link_libraries(muonpi-link ${PROJECT_INCLUDE_LIBS} mosquitto muonpi-http)
 endif ()
 
 if (LIBMUONPI_BUILD_HTTP)
     add_library(muonpi-http SHARED ${HTTP_SOURCE_FILES} ${HTTP_HEADER_FILES})
     add_dependencies(muonpi-http muonpi-core)
-    target_include_directories(muonpi-http PUBLIC ${PROJECT_HEADER_DIR})
+    target_include_directories(muonpi-http PUBLIC ${PROJECT_HEADER_DIR} ${PROJECT_SRC_DIR})
     target_link_libraries(muonpi-http ${PROJECT_INCLUDE_LIBS} muonpi-core ssl crypto dl)
-endif ()
-
-if (LIBMUONPI_BUILD_DETECTOR)
-    add_library(muonpi-detector SHARED ${DETECTOR_SOURCE_FILES} ${DETECTOR_HEADER_FILES})
-    add_dependencies(muonpi-detector muonpi-core)
-    target_include_directories(muonpi-detector PUBLIC ${PROJECT_HEADER_DIR})
-    target_link_libraries(muonpi-detector ${PROJECT_INCLUDE_LIBS} gpiod)
 endif ()
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")

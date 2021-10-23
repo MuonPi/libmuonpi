@@ -9,8 +9,9 @@
 #include <chrono>
 #include <cmath>
 #include <functional>
+#include <list>
 #include <numeric>
-#include <vector>
+#include <shared_mutex>
 
 namespace muonpi {
 
@@ -32,7 +33,7 @@ public:
 
     /**
      * @brief data_series
-     * @param n the maximum buffer size to use
+     * @param n the maximum number of entries to hold
      */
     explicit data_series(std::size_t n) noexcept;
 
@@ -55,17 +56,23 @@ public:
     [[nodiscard]] auto median() const -> T;
 
     /**
-     * @brief mean Calculates the standard deviation of all values. This value gets cached between data entries.
+     * @brief stddev Calculates the standard deviation of all values. This value gets cached between data entries.
      * @return The standard deviation
      */
     [[nodiscard]] auto stddev() const -> T;
 
     /**
-     * @brief mean Calculates the variance of all values. This value gets cached between data entries.
+     * @brief variance Calculates the variance of all values. This value gets cached between data entries.
      * Depending on the template parameter given with Sample, this calculates the variance of a sample
      * @return The variance
      */
     [[nodiscard]] auto variance() const -> T;
+
+    /**
+     * @brief rms Calculates the rms (Root Mean Square) of all values. This value gets cached between data entries.
+     * @return The RMS
+     */
+    [[nodiscard]] auto rms() const -> T;
 
     /**
      * @brief current Gets the most recent value
@@ -83,22 +90,44 @@ public:
      * @brief data Get the data
      * @return const ref to the data vector
      */
-    [[nodiscard]] auto data() const -> const std::vector<T>&;
+    [[nodiscard]] auto data() const -> const std::list<T>&;
+
+    /**
+     * @brief reset Clear the whole dataset and leave the size unchanged
+     */
+    void reset();
+
+    /**
+     * @brief reset Clear the whole dataset and resize the sample size
+     * @param n The new sample size
+     */
+    void reset(std::size_t n);
 
 private:
     [[nodiscard]] inline auto private_mean(const mean_t& type) const -> T
     {
-        if (type == mean_t::geometric) {
-            return std::pow(std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
-        } else if (type == mean_t::harmonic) {
-            return static_cast<T>(n()) / std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
+        std::shared_lock lock { m_mutex };
+        if (m_data.empty()) {
+            return {};
         }
-        return std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0) / static_cast<T>(n());
+        if (type == mean_t::geometric) {
+            return std::pow(std::accumulate(m_data.begin(), m_data.end(), 0.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
+        } else if (type == mean_t::harmonic) {
+            return static_cast<T>(n()) / std::accumulate(m_data.begin(), m_data.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
+        }
+        return std::accumulate(m_data.begin(), m_data.end(), 0.0) / static_cast<T>(n());
     }
 
     [[nodiscard]] inline auto private_median() const -> T
     {
-        std::vector<T> sorted { m_buffer };
+        std::shared_lock lock { m_mutex };
+        if (m_data.empty()) {
+            return {};
+        }
+        std::vector<T> sorted {};
+        sorted.resize(n());
+
+        std::copy(m_data.begin(), m_data.end(), sorted.begin());
 
         std::sort(sorted.begin(), sorted.end());
 
@@ -110,19 +139,36 @@ private:
 
     [[nodiscard]] inline auto private_stddev() const -> T
     {
+        std::shared_lock lock { m_mutex };
+        if (m_data.empty()) {
+            return {};
+        }
         return std::sqrt(variance());
     }
 
     [[nodiscard]] inline auto private_variance() const -> T
     {
+        std::shared_lock lock { m_mutex };
+        if (m_data.empty()) {
+            return {};
+        }
         const auto denominator { Sample ? (n() - 1.0) : n() };
         const auto m { mean() };
 
         return 1.0 / (denominator)*std::inner_product(
-                   m_buffer.begin(), m_buffer.end(), m_buffer.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
+                   m_data.begin(), m_data.end(), m_data.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
     }
 
-    std::vector<T> m_buffer {};
+    [[nodiscard]] inline auto private_rms() const -> T
+    {
+        std::shared_lock lock { m_mutex };
+        if (m_data.empty()) {
+            return {};
+        }
+        return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0) / static_cast<T>(n()));
+    }
+
+    std::list<T> m_data {};
     std::size_t m_n { 0 };
 
     cached_value<T> m_geometric_mean { [this] { return private_mean(mean_t::geometric); } };
@@ -131,6 +177,20 @@ private:
     cached_value<T> m_median { [this] { return private_median(); } };
     cached_value<T> m_stddev { [this] { return private_stddev(); } };
     cached_value<T> m_variance { [this] { return private_variance(); } };
+    cached_value<T> m_rms { [this] { return private_rms(); } };
+
+    mutable std::shared_mutex m_mutex {};
+
+    void mark_dirty()
+    {
+        m_arithmetic_mean.mark_dirty();
+        m_geometric_mean.mark_dirty();
+        m_harmonic_mean.mark_dirty();
+        m_median.mark_dirty();
+        m_stddev.mark_dirty();
+        m_variance.mark_dirty();
+        m_rms.mark_dirty();
+    }
 };
 
 // +++++++++++++++++++++++++++++++
@@ -146,30 +206,27 @@ data_series<T, Sample>::data_series(std::size_t n) noexcept
 template <typename T, bool Sample>
 void data_series<T, Sample>::add(T value)
 {
-    m_buffer.emplace_back(value);
+    std::unique_lock lock { m_mutex };
+    m_data.emplace_back(value);
 
     if (n() > m_n) {
-        m_buffer.erase(m_buffer.begin());
+        m_data.erase(m_data.begin());
     }
 
-    m_arithmetic_mean.mark_dirty();
-    m_geometric_mean.mark_dirty();
-    m_harmonic_mean.mark_dirty();
-    m_median.mark_dirty();
-    m_stddev.mark_dirty();
-    m_variance.mark_dirty();
+    mark_dirty();
 }
 
 template <typename T, bool Sample>
-auto data_series<T, Sample>::data() const -> const std::vector<T>&
+auto data_series<T, Sample>::data() const -> const std::list<T>&
 {
-    return m_buffer;
+    std::shared_lock lock { m_mutex };
+    return m_data;
 }
 
 template <typename T, bool Sample>
 auto data_series<T, Sample>::n() const -> std::size_t
 {
-    return m_buffer.size();
+    return m_data.size();
 }
 
 template <typename T, bool Sample>
@@ -202,10 +259,33 @@ auto data_series<T, Sample>::variance() const -> T
 }
 
 template <typename T, bool Sample>
+auto data_series<T, Sample>::rms() const -> T
+{
+    return m_rms.get();
+}
+
+template <typename T, bool Sample>
 auto data_series<T, Sample>::current() const -> T
 {
-    return m_buffer.back();
+    return m_data.back();
+}
+
+template <typename T, bool Sample>
+void data_series<T, Sample>::reset()
+{
+    std::unique_lock lock { m_mutex };
+    m_data.clear();
+
+    mark_dirty();
+}
+
+template <typename T, bool Sample>
+void data_series<T, Sample>::reset(std::size_t n)
+{
+    m_n = n;
+    reset();
 }
 
 }
+
 #endif // DATASERIES_H

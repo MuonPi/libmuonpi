@@ -46,8 +46,9 @@ template <typename Stream>
     ctx.set_verify_mode(ssl::verify_peer);
 
     // These objects perform our I/O
-    tcp::resolver resolver(ioc);
-    beast::ssl_stream<beast::tcp_stream> stream(ioc, ctx);
+    tcp::resolver resolver { ioc };
+
+    detail::ssl_stream_t stream { ioc, ctx };
 
     // Set SNI Hostname (many hosts need this to handshake successfully)
     if (!SSL_set_tlsext_host_name(stream.native_handle(), destination.host.c_str())) {
@@ -59,7 +60,12 @@ template <typename Stream>
     auto const results = resolver.resolve(destination.host, std::to_string(destination.port));
 
     // Make the connection on the IP address we get from a lookup
+
+#if BOOST_VERSION < 106900
+    boost::asio::connect(stream.next_layer(), results.begin(), results.end());
+#else
     beast::get_lowest_layer(stream).connect(results);
+#endif
 
     // Perform the SSL handshake
     stream.handshake(ssl::stream_base::client);
@@ -89,21 +95,30 @@ auto http_request(destination_t destination, std::string body, std::vector<field
     net::io_context ioc;
 
     // These objects perform our I/O
-    tcp::resolver resolver(ioc);
-    beast::tcp_stream stream(ioc);
+    tcp::resolver resolver { ioc };
+
+    detail::tcp_stream_t stream { ioc };
 
     // Look up the domain name
     auto const results = resolver.resolve(destination.host, std::to_string(destination.port));
 
     // Make the connection on the IP address we get from a lookup
+#if BOOST_VERSION < 106900
+    boost::asio::connect(stream, results.begin(), results.end());
+#else
     stream.connect(results);
+#endif
 
     response_type res { create_request(stream, std::move(destination), std::move(body), std::move(fields)) };
 
     // Write the message to standard out
     // Gracefully close the socket
     beast::error_code ec;
+#if BOOST_VERSION < 106900
+    stream.shutdown(tcp::socket::shutdown_both, ec);
+#else
     stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+#endif
 
     // not_connected happens sometimes
     // so don't bother reporting it.

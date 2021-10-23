@@ -12,25 +12,15 @@ set(HTTP_SOURCE_FILES
     "${PROJECT_SRC_DIR}/http_request.cpp"
     "${PROJECT_SRC_DIR}/http_tools.cpp"
 
-    "${PROJECT_SRC_DIR}/websocket_server.cpp"
     )
 set(HTTP_HEADER_FILES
     "${PROJECT_HEADER_DIR}/muonpi/http_server.h"
     "${PROJECT_HEADER_DIR}/muonpi/http_request.h"
     "${PROJECT_HEADER_DIR}/muonpi/http_tools.h"
 
-    "${PROJECT_HEADER_DIR}/muonpi/websocket_server.h"
+    "${PROJECT_DETAIL_DIR}/http_session.hpp"
     )
 
-
-set(DETECTOR_SOURCE_FILES
-    "${PROJECT_SRC_DIR}/detector.cpp"
-    "${PROJECT_SRC_DIR}/gpio_handler.cpp"
-    )
-set(DETECTOR_HEADER_FILES
-    "${PROJECT_HEADER_DIR}/muonpi/detector.h"
-    "${PROJECT_HEADER_DIR}/muonpi/gpio_handler.h"
-    )
 
 set(CORE_SOURCE_FILES
     "${PROJECT_SRC_DIR}/threadrunner.cpp"

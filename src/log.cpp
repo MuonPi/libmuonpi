@@ -48,44 +48,44 @@ void system::callback(int exit_code)
     s_singleton->m_callback(exit_code);
 }
 
-auto debug() -> logger<Level::Debug>
+auto debug(const std::string& component) -> logger<Level::Debug>
 {
-    return {};
+    return logger<Level::Debug> { component };
 }
 
-auto info() -> logger<Level::Info>
+auto info(const std::string& component) -> logger<Level::Info>
 {
-    return {};
+    return logger<Level::Info> { component };
 }
 
-auto notice() -> logger<Level::Notice>
+auto notice(const std::string& component) -> logger<Level::Notice>
 {
-    return {};
+    return logger<Level::Notice> { component };
 }
 
-auto warning() -> logger<Level::Warning>
+auto warning(const std::string& component) -> logger<Level::Warning>
 {
-    return {};
+    return logger<Level::Warning> { component };
 }
 
-auto error() -> logger<Level::Error>
+auto error(const std::string& component) -> logger<Level::Error>
 {
-    return {};
+    return logger<Level::Error> { component };
 }
 
-auto critical(int exit_code) -> logger<Level::Critical>
+auto critical(int exit_code, const std::string& component) -> logger<Level::Critical>
 {
-    return { exit_code };
+    return logger<Level::Critical> { component, exit_code };
 }
 
-auto alert(int exit_code) -> logger<Level::Alert>
+auto alert(int exit_code, const std::string& component) -> logger<Level::Alert>
 {
-    return { exit_code };
+    return logger<Level::Alert> { component, exit_code };
 }
 
-auto emergency(int exit_code) -> logger<Level::Emergency>
+auto emergency(int exit_code, const std::string& component) -> logger<Level::Emergency>
 {
-    return { exit_code };
+    return logger<Level::Emergency> { component, exit_code };
 }
 
 } // namespace muonpi::log
