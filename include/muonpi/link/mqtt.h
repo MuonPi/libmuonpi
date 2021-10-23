@@ -60,11 +60,14 @@ public:
 
     struct configuration {
         std::string host {};
-        int port {};
+        int port { 1883 };
         struct login_t {
             std::string username {};
             std::string password {};
         } login;
+        std::size_t max_retries { 10 };
+        std::chrono::seconds timeout { 3 };
+        int keepalive { 60 };
     };
 
     struct message_t {
@@ -94,7 +97,7 @@ public:
          * @param content The content to send
          * @return true if the sending was successful
          */
-        [[nodiscard]] auto publish(const std::string& content) -> bool;
+        auto publish(const std::string& content) -> bool;
 
         /**
          * @brief publish Publish a message
@@ -102,7 +105,22 @@ public:
          * @param content The content to send
          * @return true if the sending was successful
          */
-        [[nodiscard]] auto publish(const std::string& subtopic, const std::string& content) -> bool;
+        auto publish(const std::string& subtopic, const std::string& content) -> bool;
+
+        /**
+         * @brief publish Publish a number of messages combined to one.
+         * @param content Vector with the content to send
+         * @return true if the sending was successful
+         */
+        auto publish(const std::vector<std::string>& content) -> bool;
+
+        /**
+         * @brief publish Publish a number of messages combined to one.
+         * @param subtopic Subtopic to add to the basetopic specified in the constructor
+         * @param content Vector with the content to send
+         * @return true if the sending was successful
+         */
+        auto publish(const std::string& subtopic, const std::vector<std::string>& content) -> bool;
 
         /**
          * @brief get_publish_topic Gets the topic under which the publisher publishes messages
@@ -137,7 +155,7 @@ public:
 
         subscriber() = default;
 
-        void set_callback(std::function<void(const message_t&)> callback);
+        void emplace_callback(std::function<void(const message_t&)> callback);
 
         /**
          * @brief get_subscribe_topic Gets the topic the subscriber subscribes to
@@ -262,7 +280,6 @@ private:
     std::condition_variable m_connect_condition {};
 
     std::size_t m_tries { 0 };
-    static constexpr std::size_t s_max_tries { 10 };
 
     /**
      * @brief callback_connected Gets called by mosquitto client

@@ -3,7 +3,7 @@
 
 #include "muonpi/global.h"
 
-#include <cassert>
+#include <boost/stacktrace.hpp>
 #include <functional>
 #include <map>
 #include <unordered_map>
@@ -22,6 +22,8 @@ public:
      * @param n The dimension of the matrix
      */
     upper_matrix(std::size_t n);
+
+    upper_matrix();
 
     /**
      * @brief at Gets a reference to the element at position x,y
@@ -69,6 +71,11 @@ public:
      */
     [[nodiscard]] auto data() -> std::vector<T>&;
 
+    /**
+     * @brief iterate Iterate over one index and execute the lambda with each step
+     * @param index the item to iterate over
+     * @param function the lambda to execute
+     */
     [[nodiscard]] auto iterate(std::size_t index, std::function<void(T&)> function);
 
 private:
@@ -80,9 +87,9 @@ private:
      */
     [[nodiscard]] inline auto position(std::size_t x, std::size_t y) const -> std::size_t
     {
-        assert(x != y);
-        assert(x < m_columns);
-        assert(y < m_columns);
+        BOOST_ASSERT(x != y);
+        BOOST_ASSERT(x < m_columns);
+        BOOST_ASSERT(y < m_columns);
 
         const std::size_t x_c { std::max(x, y) };
         const std::size_t y_c { std::min(x, y) };
@@ -101,16 +108,19 @@ private:
         return m_elements.begin() + position(std::move(x), std::move(y));
     }
 
-    std::size_t m_columns;
-    std::vector<T> m_elements;
+    std::size_t m_columns { 0 };
+    std::vector<T> m_elements {};
 };
 
 template <typename T>
 upper_matrix<T>::upper_matrix(std::size_t n)
     : m_columns { n }
-    , m_elements { std::vector<T> { position(n, 0) } }
+    , m_elements { std::vector<T>((n * n - n) / 2) }
 {
 }
+
+template <typename T>
+upper_matrix<T>::upper_matrix() = default;
 
 template <typename T>
 auto upper_matrix<T>::at(std::size_t x, std::size_t y) -> T&
@@ -155,7 +165,7 @@ template <typename T>
 auto upper_matrix<T>::increase() -> std::size_t
 {
     m_columns++;
-    m_elements.resize(position(m_columns, 0));
+    m_elements.resize((m_columns * m_columns - m_columns) / 2);
     return m_columns - 1;
 }
 

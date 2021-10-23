@@ -73,6 +73,8 @@ public:
      */
     void start_synchronuos();
 
+    [[nodiscard]] auto wait_for(State state, std::chrono::milliseconds timeout = std::chrono::seconds { 5 }) -> bool;
+
 protected:
     /**
      * @brief run executed as the main loop
@@ -112,6 +114,8 @@ protected:
     bool m_quit { false };
 
 private:
+    void set_state(State state);
+
     bool m_use_custom_run { false };
 
     std::atomic<bool> m_run { true };
@@ -125,6 +129,8 @@ private:
     State m_state { State::Initial };
 
     std::unique_ptr<std::thread> m_thread { nullptr };
+
+    std::condition_variable m_state_condition;
 };
 
 }

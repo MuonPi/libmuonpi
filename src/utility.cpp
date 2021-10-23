@@ -156,10 +156,10 @@ auto guid::get_number() -> std::uint64_t
     return distribution(gen);
 }
 
-namespace Version {
+namespace Version::libmuonpi {
     auto string() -> std::string
     {
         return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + "-" + std::string { additional };
     }
-} // namespace Version
+} // namespace Version::libmuonpi
 } // namespace muonpi

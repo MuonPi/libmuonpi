@@ -31,7 +31,7 @@
 
 #define BOOST_ENABLE_ASSERT_DEBUG_HANDLER
 
-namespace muonpi::Version {
+namespace muonpi::Version::libmuonpi {
 constexpr int major { @PROJECT_VERSION_MAJOR@ };
 constexpr int minor { @PROJECT_VERSION_MINOR@ };
 constexpr int patch { @PROJECT_VERSION_PATCH@ };

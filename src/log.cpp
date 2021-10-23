@@ -1,45 +1,91 @@
+#include <utility>
+
 #include "muonpi/log.h"
 
 namespace muonpi::log {
 
-auto debug() -> logger<Level::Debug>
+std::unique_ptr<system> system::s_singleton { nullptr };
+
+system::system(Level l, std::function<void(int)> cb, std::ostream& str)
+    : m_level { l }
+    , m_callback { std::move(cb) }
+    , m_stream { str }
 {
-    return {};
 }
 
-auto info() -> logger<Level::Info>
+void system::setup(Level l, std::function<void(int)> callback, std::ostream& str)
 {
-    return {};
+    if (s_singleton != nullptr) {
+        throw std::runtime_error("Double initialsation of logging system");
+    }
+    s_singleton = std::make_unique<system>(l, std::move(callback), str);
 }
 
-auto notice() -> logger<Level::Notice>
+auto system::level() -> Level
 {
-    return {};
+    if (s_singleton == nullptr) {
+        throw std::runtime_error("Logging system not initialised");
+    }
+
+    return s_singleton->m_level;
 }
 
-auto warning() -> logger<Level::Warning>
+auto system::stream() -> std::ostream&
 {
-    return {};
+    if (s_singleton == nullptr) {
+        throw std::runtime_error("Logging system not initialised");
+    }
+
+    return s_singleton->m_stream;
 }
 
-auto error() -> logger<Level::Error>
+void system::callback(int exit_code)
 {
-    return {};
+    if (s_singleton == nullptr) {
+        throw std::runtime_error("Logging system not initialised");
+    }
+
+    s_singleton->m_callback(exit_code);
 }
 
-auto critical(int exit_code) -> logger<Level::Critical>
+auto debug(const std::string& component) -> logger<Level::Debug>
 {
-    return { exit_code };
+    return logger<Level::Debug> { component };
 }
 
-auto alert(int exit_code) -> logger<Level::Alert>
+auto info(const std::string& component) -> logger<Level::Info>
 {
-    return { exit_code };
+    return logger<Level::Info> { component };
 }
 
-auto emergency(int exit_code) -> logger<Level::Emergency>
+auto notice(const std::string& component) -> logger<Level::Notice>
 {
-    return { exit_code };
+    return logger<Level::Notice> { component };
+}
+
+auto warning(const std::string& component) -> logger<Level::Warning>
+{
+    return logger<Level::Warning> { component };
+}
+
+auto error(const std::string& component) -> logger<Level::Error>
+{
+    return logger<Level::Error> { component };
+}
+
+auto critical(int exit_code, const std::string& component) -> logger<Level::Critical>
+{
+    return logger<Level::Critical> { component, exit_code };
+}
+
+auto alert(int exit_code, const std::string& component) -> logger<Level::Alert>
+{
+    return logger<Level::Alert> { component, exit_code };
+}
+
+auto emergency(int exit_code, const std::string& component) -> logger<Level::Emergency>
+{
+    return logger<Level::Emergency> { component, exit_code };
 }
 
 } // namespace muonpi::log
