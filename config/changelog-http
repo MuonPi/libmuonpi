@@ -1,4 +1,4 @@
-libmuonpi-rest (0.1.0); urgency=low
+libmuonpi-http (0.1.0); urgency=low
 
   * Initial release.
 
