@@ -26,6 +26,12 @@ set(CPACK_PACKAGE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output/packages/")
 include_directories(${PROJECT_HEADER_DIR} ${PROJECT_SRC_DIR})
 
 
+if (CMAKE_BUILD_TYPE STREQUAL Release)
+    set(LIBMUONPI_IS_RELEASE ON)
+else()
+    set(LIBMUONPI_IS_RELEASE OFF)
+endif()
+
 
 
 
@@ -38,6 +44,18 @@ set(PROJECT_INCLUDE_LIBS
     ${Boost_LIBRARIES}
     )
 
+# +++ necessary for compatability with older compilers
+find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
+
+if(STD_CPP_FS)
+    set(PROJECT_INCLUDE_LIBS ${PROJECT_INCLUDE_LIBS} stdc++fs)
+endif()
+# --- necessary for compatability with older compilers
+
+configure_file("${PROJECT_CONFIG_DIR}/config.h" "${PROJECT_HEADER_DIR}/muonpi/global.h")
+
+
+
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/macros.cmake")
 
@@ -45,8 +63,6 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/core.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/http.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/link.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/detector.cmake")
-
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/files.cmake")
 
 if(${LIBMUONPI_BUILD_SANITIZERS})
     add_compile_options(-fsanitize=address,undefined)
@@ -59,15 +75,17 @@ if(${LIBMUONPI_BUILD_EXAMPLES})
 endif()
 
 
-# +++ necessary for compatability with older compilers
-find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
+set(PROJECT_SOURCE_FILES
+    ${CORE_SOURCE_FILES}
+    ${LINK_SOURCE_FILES}
+    ${HTTP_SOURCE_FILES}
+    )
 
-if(STD_CPP_FS)
-    set(PROJECT_INCLUDE_LIBS ${PROJECT_INCLUDE_LIBS} stdc++fs)
-endif()
-# --- necessary for compatability with older compilers
-
-configure_file("${PROJECT_CONFIG_DIR}/config.h" "${PROJECT_HEADER_DIR}/muonpi/global.h")
+set(PROJECT_HEADER_FILES
+    ${CORE_HEADER_FILES}
+    ${LINK_HEADER_FILES}
+    ${HTTP_HEADER_FILES}
+    )
 
 add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})
 
