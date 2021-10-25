@@ -44,7 +44,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/macros.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/core.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/http.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/link.cmake")
-
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/detector.cmake")
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/files.cmake")
 

@@ -1,0 +1,105 @@
+#ifndef MUONPI_I2CDEVICE_H
+#define MUONPI_I2CDEVICE_H
+
+
+#include <fcntl.h> // open
+#include <inttypes.h> // std::uint8_t, etc
+#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <sys/ioctl.h> // ioctl
+#include <sys/time.h> // for gettimeofday()
+#include <unistd.h>
+#include <vector>
+#include <chrono>
+
+
+
+#define DEFAULT_DEBUG_LEVEL 0
+
+namespace muonpi::serial {
+
+class i2c_bus;
+
+class i2c_device {
+public:
+    enum class Flags : std::uint8_t {
+        None = 0,
+        Normal = 0x01,
+        Force = 0x02,
+        Unreachable = 0x04,
+        Failed = 0x08,
+        Locked = 0x10
+    };
+
+    explicit i2c_device(const i2c_bus& bus, std::size_t& rx_counter, std::size_t& tx_counter, std::uint8_t address);
+    virtual ~i2c_device();
+
+    [[nodiscard]] auto is_open() const -> bool;
+    void close();
+
+    void read_capabilities();
+    [[nodiscard]] virtual auto present() -> bool;
+
+    [[nodiscard]] auto io_errors() const -> std::size_t;
+
+    [[nodiscard]] auto rx_bytes() const -> std::size_t;
+    [[nodiscard]] auto tx_bytes() const -> std::size_t;
+
+    [[nodiscard]] auto flag_set(Flags flag) const -> bool;
+
+    void lock(bool locked = true);
+    [[nodiscard]] auto locked() const -> bool;
+
+    [[nodiscard]] auto last_interval() const -> double;
+
+    void set_title(std::string title);
+    [[nodiscard]] auto title() const -> std::string;
+
+
+    [[nodiscard]] auto read(std::uint8_t* buffer, std::size_t bytes = 1) -> int;
+
+    [[nodiscard]] auto read(std::uint8_t reg, std::uint8_t bit_mask) -> std::uint16_t;
+
+    [[nodiscard]] auto read(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes = 1) -> int;
+
+
+    [[nodiscard]] auto write(std::uint8_t* buffer, std::size_t bytes = 1) -> int;
+
+    [[nodiscard]] auto write(std::uint8_t reg, std::uint8_t bit_mask, std::uint8_t value) -> bool;
+
+    [[nodiscard]] auto write(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes = 1) -> int;
+
+    [[nodiscard]] auto write(std::uint8_t reg, uint16_t* buffer, std::size_t length = 1) -> int;
+
+protected:
+    void set_flag(Flags flag);
+    void unset_flag(Flags flag);
+
+    void start_timer();
+    void stop_timer();
+
+private:
+    std::uint8_t m_address {};
+
+    int m_handle {};
+    bool m_locked { false };
+
+    std::size_t m_rx_bytes {};
+    std::size_t m_tx_bytes {};
+
+    std::size_t& m_rx_counter;
+    std::size_t& m_tx_counter;
+
+    std::size_t m_io_errors {};
+    double m_last_interval; // the last time measurement's result is stored here
+
+    std::string m_title { "I2C device" };
+    std::uint8_t m_flags {};
+
+    std::chrono::system_clock::time_point m_start {};
+};
+
+}
+
+#endif // MUONPI_I2CDEVICE_H
