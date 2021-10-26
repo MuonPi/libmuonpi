@@ -7,6 +7,8 @@ i2c_bus::i2c_bus(std::string address)
 {
 }
 
+i2c_bus::i2c_bus() = default;
+
 i2c_bus::~i2c_bus()
 {
     m_devices.clear();

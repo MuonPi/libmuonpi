@@ -24,6 +24,7 @@ class i2c_bus {
 
 public:
     explicit i2c_bus(std::string address);
+    explicit i2c_bus();
 
     virtual ~i2c_bus();
 
