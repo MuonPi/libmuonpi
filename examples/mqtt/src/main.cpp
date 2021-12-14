@@ -2,6 +2,7 @@
 #include <muonpi/log.h>
 
 #include <iostream>
+#include <thread>
 
 auto main() -> int
 {

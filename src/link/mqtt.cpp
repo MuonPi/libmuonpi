@@ -7,6 +7,7 @@
 #include <regex>
 #include <sstream>
 #include <utility>
+#include <thread>
 
 namespace muonpi::link {
 
