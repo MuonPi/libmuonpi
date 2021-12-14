@@ -4,7 +4,48 @@
 
 #include <future>
 
+#if BOOST_OS_WINDOWS
+#include <wincrypt.h>
+#endif
+
 namespace muonpi::http {
+
+void load_root_ca(ssl::context& ctx)
+{
+#if BOOST_OS_WINDOWS
+    /*
+     * +++++++++++++++++++++++++++++++++++++++++++++
+     * +++++++ Code block taken unaltered from
+     * https://stackoverflow.com/questions/39772878/reliable-way-to-get-root-ca-certificates-on-windows/40710806#40710806
+     */
+
+    HCERTSTORE hStore = CertOpenSystemStore(0, "ROOT");
+    if (hStore == NULL) {
+        return;
+    }
+
+    X509_STORE *store = X509_STORE_new();
+    PCCERT_CONTEXT pContext = NULL;
+    while ((pContext = CertEnumCertificatesInStore(hStore, pContext)) != NULL) {
+        X509 *x509 = d2i_X509(NULL,
+                              (const unsigned char **)&pContext->pbCertEncoded,
+                              pContext->cbCertEncoded);
+        if(x509 != NULL) {
+            X509_STORE_add_cert(store, x509);
+            X509_free(x509);
+        }
+    }
+
+    CertFreeCertificateContext(pContext);
+    CertCloseStore(hStore, 0);
+
+    SSL_CTX_set_cert_store(ctx.native_handle(), store);
+
+    // ---------------------------------------------
+#else
+    ctx.set_default_verify_paths();
+#endif
+}
 
 template <typename Stream>
 [[nodiscard]] auto create_request(Stream& stream, const destination_t& destination, const std::string& body, const std::vector<field_t>& fields) -> response_type
@@ -44,6 +85,8 @@ template <typename Stream>
 
     // Verify the remote server's certificate
     ctx.set_verify_mode(ssl::verify_peer);
+
+    load_root_ca(ctx);
 
     // These objects perform our I/O
     tcp::resolver resolver { ioc };
