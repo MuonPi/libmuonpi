@@ -3,6 +3,7 @@ project(libmuonpi LANGUAGES CXX C)
 
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
+include(GnuInstallDirs)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
