@@ -22,8 +22,8 @@ macro(setup_packaging)
 
     set_target_properties("muonpi-${CAS_COMPONENT}" PROPERTIES
         SUFFIX ".so.${CPACK_PACKAGE_VERSION}"
-        INSTALL_REMOVE_ENVIRONMENT_RPATH ON
-        SKIP_BUILD_RPATH ON
+        BUILD_WITH_INSTALL_RPATH ON
+        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
         )
     configure_file("${PROJECT_CONFIG_DIR}/changelog-${CAS_COMPONENT}" "${CMAKE_CURRENT_BINARY_DIR}/${CAS_COMPONENT}/changelog")
     add_custom_target("changelog-libmuonpi-${CAS_COMPONENT}" ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/${CAS_COMPONENT}/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/${CAS_COMPONENT}/changelog.gz")
