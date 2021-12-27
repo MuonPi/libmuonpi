@@ -16,8 +16,8 @@ endmacro(install_with_directory)
 
 macro(setup_packaging)
     set(optionsArgs "")
-    set(oneValueArgs COMPONENT HEADERS DESCRIPTION DESCRIPTIONDEV)
-    set(multiValueArgs "")
+    set(oneValueArgs COMPONENT DESCRIPTION DESCRIPTIONDEV)
+    set(multiValueArgs HEADERS)
     cmake_parse_arguments(CAS "${optionsArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
     set_target_properties("muonpi-${CAS_COMPONENT}" PROPERTIES
