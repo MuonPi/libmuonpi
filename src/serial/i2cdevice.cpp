@@ -109,6 +109,11 @@ void i2c_device::lock(bool locked)
     m_locked = locked;
 }
 
+auto i2c_device::locked() const -> bool
+{
+	return m_locked;
+}
+
 auto i2c_device::last_interval() const -> double
 {
     return m_last_interval;

@@ -12,7 +12,7 @@ add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
 
 
 option(LIBMUONPI_BUILD_SANITIZERS "Build sanitizers into the libraries" OFF)
-option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" OFF)
+option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" ON)
 
 set(LIBMUONPI_COMPILING ON)
 
