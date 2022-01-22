@@ -4,11 +4,13 @@ if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
     set(DETECTOR_SOURCE_FILES
         "${PROJECT_SRC_DIR}/serial/i2cdevice.cpp"
         "${PROJECT_SRC_DIR}/serial/i2cbus.cpp"
+        "${PROJECT_SRC_DIR}/serial/i2cdevices/lm75.cpp"
         )
 
     set(DETECTOR_HEADER_FILES
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevice.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cbus.h"
+        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices//lm75.h"
         )
 
     find_library(LIBGPIOD gpiod REQUIRED)

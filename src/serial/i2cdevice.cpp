@@ -15,16 +15,37 @@
 namespace muonpi::serial {
 
 
-i2c_device::i2c_device(const i2c_bus& bus, std::size_t& rx_counter, std::size_t& tx_counter, std::uint8_t address)
-    : m_address { address }
+i2c_device::i2c_device(i2c_bus& bus, std::uint8_t address)
+    : m_bus { bus }
+    , m_address { address }
     , m_handle { open(bus.address().c_str(), O_RDWR) }
-    , m_rx_counter { rx_counter }
-    , m_tx_counter { tx_counter }
+{
+    if (m_handle > 0) {
+		set_address( m_address );
+	} else {
+        set_flag(Flags::Failed);
+    }
+}
+
+i2c_device::i2c_device(i2c_bus& bus)
+	: m_bus { bus }
+	, m_address { 0 }
+    , m_handle { open(bus.address().c_str(), O_RDWR) }
+{
+    if (m_handle > 0) {
+		//set_address( m_address );
+	} else {
+        set_flag(Flags::Failed);
+    }
+}
+
+void i2c_device::set_address( std::uint8_t address )
 {
     if (m_handle > 0) {
         if (ioctl(m_handle, I2C_SLAVE, m_address) < 0) {
             if (ioctl(m_handle, I2C_SLAVE_FORCE, m_address) < 0) {
                 m_io_errors++;
+				set_flag(Flags::Failed);
             } else {
                 set_flag(Flags::Force);
             }
@@ -34,9 +55,8 @@ i2c_device::i2c_device(const i2c_bus& bus, std::size_t& rx_counter, std::size_t&
     } else {
         set_flag(Flags::Failed);
     }
+    m_address = address;
 }
-
-
 
 i2c_device::~i2c_device()
 {
@@ -73,6 +93,10 @@ auto i2c_device::present() -> bool
     return (read(&dummy, 1) == 1);
 }
 
+auto i2c_device::identify() -> bool
+{
+    return false;
+}
 
 auto i2c_device::io_errors() const -> std::size_t
 {
@@ -138,7 +162,7 @@ auto i2c_device::read(std::uint8_t* buffer, std::size_t bytes) -> int
     int nread = ::read(m_handle, buffer, bytes);
     if (nread > 0) {
         m_rx_bytes += nread;
-        m_rx_counter += nread;
+        m_bus.m_rx_bytes += nread;
         unset_flag(Flags::Unreachable);
     } else {
         m_io_errors++;
@@ -164,7 +188,34 @@ auto i2c_device::read(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes)
     return read(buffer, bytes);
 }
 
-auto i2c_device::write(uint8_t* buffer, std::size_t bytes) -> int
+auto i2c_device::read(std::uint8_t reg, std::uint16_t* buffer, std::size_t n_words) -> int
+{
+    if (write(&reg, 1) != 1) {
+        return -1;
+    }
+	std::uint8_t* read_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), n_words * 2)) };
+
+    scope_guard free_guard { [&read_buffer]{
+            free(read_buffer);
+        } };
+
+	int nread = read( read_buffer, n_words * 2);
+	
+	if ( nread != static_cast<int>(n_words) * 2  ) 
+	{
+		return -1;
+	}
+		
+    for (std::size_t i { 0 }; i < n_words; ++i) 
+	{
+		buffer[i] = read_buffer[i * 2] << 8;
+		buffer[i] |= read_buffer[i * 2 + 1];
+    }
+
+    return nread / 2;
+}
+
+auto i2c_device::write(std::uint8_t* buffer, std::size_t bytes) -> int
 {
     if (locked() || (m_handle <= 0)) {
         return 0;
@@ -172,7 +223,7 @@ auto i2c_device::write(uint8_t* buffer, std::size_t bytes) -> int
     int nwritten = ::write(m_handle, buffer, bytes);
     if (nwritten > 0) {
         m_tx_bytes += nwritten;
-        m_tx_counter += nwritten;
+        m_bus.m_tx_bytes += nwritten;
         unset_flag(Flags::Unreachable);
     } else {
         m_io_errors++;
@@ -209,7 +260,7 @@ auto i2c_device::write(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes
 
 
 
-auto i2c_device::write(std::uint8_t reg, uint16_t* buffer, std::size_t length) -> int
+auto i2c_device::write(std::uint8_t reg, std::uint16_t* buffer, std::size_t length) -> int
 {
     std::uint8_t* write_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), length * 2 + 1)) };
 

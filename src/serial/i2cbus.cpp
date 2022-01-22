@@ -25,7 +25,7 @@ auto i2c_bus::is_open(std::uint8_t address) const -> bool
     if (iterator == m_devices.end()) {
         return false;
     }
-    return (iterator->second).get().is_open();
+    return (iterator->second)->is_open();
 }
 
 auto i2c_bus::close(std::uint8_t address) -> bool
@@ -54,7 +54,7 @@ auto i2c_bus::tx_bytes() const -> std::size_t
     return m_tx_bytes;
 }
 
-auto i2c_bus::get_devices() const -> const std::map<std::uint8_t, std::reference_wrapper<i2c_device>>&
+auto i2c_bus::get_devices() const -> const std::map<std::uint8_t, std::shared_ptr<i2c_device>>&
 {
     return m_devices;
 }
