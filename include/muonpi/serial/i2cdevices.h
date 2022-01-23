@@ -7,6 +7,7 @@
 #include "muonpi/serial/i2cdevices/ads1115.h"
 #include "muonpi/serial/i2cdevices/mcp4728.h"
 #include "muonpi/serial/i2cdevices/eeprom24aa02.h"
+#include "muonpi/serial/i2cdevices/pca9536.h"
 
 /*
 #include "hardware/i2c/adafruit_ssd1306.h"

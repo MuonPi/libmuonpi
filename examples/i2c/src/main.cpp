@@ -33,7 +33,7 @@ auto main() -> int
 	}
 
 	bool ok { false };
-	constexpr uint8_t tempsens_addr { 0x4b };
+	constexpr std::uint8_t tempsens_addr { 0x4b };
 	ok = bus.identify_device<serial::devices::MIC184>( tempsens_addr );
 	if (ok) {
 		// found the specific device at the expected position, so close the previously created generic
@@ -46,8 +46,8 @@ auto main() -> int
 		<< std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( tempsens_addr );
 	}
 
-	constexpr uint8_t adc_addr { 0x48 };
-	ok = bus.identify_device<serial::devices::ADS1115>( 0x48 );
+	constexpr std::uint8_t adc_addr { 0x48 };
+	ok = bus.identify_device<serial::devices::ADS1115>( adc_addr );
 	if (ok) {
 		// found the specific device at the expected position, so close the previously created generic
 		// i2c_device and reopen as adc device
@@ -63,6 +63,25 @@ auto main() -> int
 		log::error()<<"error identifying ADS1115 at 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( adc_addr );
 	}
 
+	constexpr std::uint8_t i2c_extender_addr { 0x41 };
+	ok = bus.identify_device<serial::devices::PCA9536>( i2c_extender_addr );
+	if (ok) {
+		// found the specific device at the expected position, so close the previously created generic
+		// i2c_device and reopen as PCA9536 device
+		bus.close( i2c_extender_addr );
+		serial::devices::PCA9536& pca = bus.open<serial::devices::PCA9536>( i2c_extender_addr );
+		std::uint8_t input_state { 0 };
+		if ( !pca.getInputState( &input_state ) ) {
+			log::error() << "reading PCA9536 input state register";
+		} else {
+			log::info()<<"identified PCA9536 at 0x"
+			<< std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( i2c_extender_addr ) 
+			<<" : inputs=0x" <<std::setw(1) << static_cast<int>(input_state) << std::dec;
+		}
+	} else {
+		log::error()<<"error identifying PCA9536 at 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( i2c_extender_addr );
+	}
+	
 	log::info()<<"nr of instatiated devices: "<<bus.count_devices();
 
 	// close all devices previously found
