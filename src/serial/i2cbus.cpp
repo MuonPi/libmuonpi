@@ -2,10 +2,41 @@
 
 namespace muonpi::serial {
 
-i2c_bus::i2c_bus(std::string address)
-    : m_address { std::move(address) }
+constexpr std::uint8_t GeneralCallAddress { 0x00 };
+
+i2c_bus::general_call_t::general_call_t( i2c_bus* bus )
+: m_bus ( bus )
+{}
+
+auto i2c_bus::general_call_t::reset() -> bool
 {
+	if ( m_bus == nullptr ) return false;
+	i2c_device dev { *m_bus, GeneralCallAddress };
+	std::uint8_t data { 0x06 };
+	return ( dev.write( &data, 1 ) == 1 );
 }
+
+auto i2c_bus::general_call_t::wake_up() -> bool
+{
+	if ( m_bus == nullptr ) return false;
+	i2c_device dev { *m_bus, GeneralCallAddress };
+	std::uint8_t data { 0x09 };
+	return ( dev.write( &data, 1 ) == 1 );
+}
+
+auto i2c_bus::general_call_t::software_update() -> bool
+{
+	if ( m_bus == nullptr ) return false;
+	i2c_device dev { *m_bus, GeneralCallAddress };
+	std::uint8_t data { 0x08 };
+	return ( dev.write( &data, 1 ) == 1 );
+}
+
+
+i2c_bus::i2c_bus(std::string address)
+    : general_call( this )
+    , m_address { std::move(address) }
+{}
 
 i2c_bus::i2c_bus() = default;
 

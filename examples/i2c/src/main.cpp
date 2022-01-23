@@ -13,6 +13,9 @@ auto main() -> int
 	log::system::setup(muonpi::log::Level::Info, [](int c){exit(c);}, std::cerr);
 
 	serial::i2c_bus bus { "/dev/i2c-1" };
+	if ( !bus.general_call.reset() ) {
+		log::error() << "resetting bus through general call command";
+	}
 	
 	log::info() << "scanning bus " << bus.address() <<" for devices...";
 	

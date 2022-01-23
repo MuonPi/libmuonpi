@@ -63,7 +63,17 @@ public:
     [[nodiscard]] auto tx_bytes() const -> std::size_t;
 
     [[nodiscard]] auto get_devices() const -> const std::map<std::uint8_t, std::shared_ptr<i2c_device>>&;
-
+	
+	struct general_call_t {
+	public:
+		explicit general_call_t( i2c_bus* bus );
+		auto reset() -> bool;
+		auto wake_up() -> bool;
+		auto software_update() -> bool;
+	private:
+		i2c_bus* m_bus { nullptr };
+	} general_call { nullptr };
+	
 protected:
     std::string m_address { "/dev/i2c-1" };
     std::map<std::uint8_t, std::shared_ptr<i2c_device>> m_devices {};
