@@ -17,6 +17,7 @@
 #include <functional>
 #include <type_traits>
 #include <memory>
+#include <set>
 
 
 namespace muonpi::serial {
@@ -49,6 +50,8 @@ public:
     
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
     [[nodiscard]] auto identify_device( std::uint8_t address ) -> bool;
+	template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
+	[[nodiscard]] auto identify_devices( const std::set<uint8_t>& possible_addresses = std::set<uint8_t>() ) -> std::set<std::uint8_t>;
 
     [[nodiscard]] auto is_open(std::uint8_t address) const -> bool;
 
@@ -76,6 +79,21 @@ auto i2c_bus::identify_device( std::uint8_t address ) -> bool
 	T dev { *this, address };
 	if ( !dev.is_open() || !dev.present() ) return false;
 	return dev.identify();
+}
+
+template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
+auto i2c_bus::identify_devices( const std::set<uint8_t>& possible_addresses ) -> std::set<std::uint8_t>
+{
+	std::set<std::uint8_t> found_addresses { };
+	
+	for ( const auto address : possible_addresses ) {
+		T dev { *this, address };
+		if ( !dev.is_open() || !dev.present() ) continue;
+		if ( dev.identify() ) {
+			found_addresses.insert( address );
+		}
+	}
+	return std::move( found_addresses );
 }
 
 } // namespace muonpi::serial
