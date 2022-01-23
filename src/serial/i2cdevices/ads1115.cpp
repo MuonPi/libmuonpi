@@ -332,7 +332,7 @@ bool ADS1115::setCompQueue( uint8_t bitpattern )
 	return true;
 }
 
-bool ADS1115::identify()
+auto ADS1115::identify() -> bool
 {
 	if ( flag_set(Flags::Failed) ) return false;
 	if ( !present() ) return false;
