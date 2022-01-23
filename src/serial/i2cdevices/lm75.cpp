@@ -49,7 +49,7 @@ float LM75::get_temperature()
     return temp;
 }
 
-bool LM75::identify()
+auto LM75::identify() -> bool
 {
 	if ( flag_set(Flags::Failed) ) return false;
 	if ( !present() ) return false;

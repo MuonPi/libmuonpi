@@ -44,7 +44,7 @@ public:
 	
     static auto code2voltage( const DacChannel& channelData ) -> float;
 
-	bool identify() override;
+	[[nodiscard]] auto identify() -> bool override;
 
 private:
 	static constexpr float fVddRefVoltage { 3.3 }; ///< voltage at which the device is powered

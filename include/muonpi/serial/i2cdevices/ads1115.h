@@ -48,7 +48,7 @@ public:
 	explicit ADS1115(i2c_bus& bus, std::uint8_t address);
 	virtual ~ADS1115();
 	
-    auto identify() -> bool override;
+    [[nodiscard]] auto identify() -> bool override;
 	
 	void setActiveChannel( uint8_t channel, bool differential_mode = false );
     void setPga(CFG_PGA pga) { fPga[0] = fPga[1] = fPga[2] = fPga[3] = pga; }

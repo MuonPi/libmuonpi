@@ -46,7 +46,7 @@ float MIC184::get_temperature()
     return temp;
 }
 
-bool MIC184::identify()
+auto MIC184::identify() -> bool
 {
 	if ( flag_set(Flags::Failed) ) return false;
 	if ( !present() ) return false;

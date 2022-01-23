@@ -13,7 +13,7 @@ public:
 
     float get_temperature();
         
-	bool identify() override;
+	[[nodiscard]] auto identify() -> bool override;
 	bool is_external() const { return fExternal; }
 	bool set_external( bool enable_external = true );
 private:

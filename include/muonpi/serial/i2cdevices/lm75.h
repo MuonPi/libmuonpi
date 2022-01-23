@@ -13,7 +13,7 @@ public:
 	virtual ~LM75();
     float get_temperature();
 
-    bool identify() override;
+    [[nodiscard]] auto identify() -> bool override;
 protected:
     int16_t readRaw();
 
