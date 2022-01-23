@@ -39,7 +39,7 @@ public:
     {
         m_devices.emplace( address, std::make_shared<T>(*this, address) );
 
-        return dynamic_cast<T&>( *( m_devices[address].get() ) );
+        return this->get<T>(address);
     }
 
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
