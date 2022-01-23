@@ -34,15 +34,15 @@ public:
 
 	explicit MCP4728(i2c_bus& bus, std::uint8_t address);
 
-	bool present() override;
-	bool set_voltage( unsigned int channel, float voltage );
-	bool store_settings();
-	bool write_channel( uint8_t channel, const DacChannel& channelData );
-	bool read_channel( uint8_t channel, DacChannel& channelData );
-	bool set_vref( unsigned int channel, CFG_VREF vref_setting );
-	bool set_vref( CFG_VREF vref_setting );
+	[[nodiscard]] auto present() -> bool override;
+	[[nodiscard]] auto set_voltage( unsigned int channel, float voltage ) -> bool;
+	[[nodiscard]] auto store_settings() -> bool;
+	[[nodiscard]] auto write_channel( uint8_t channel, const DacChannel& channelData ) -> bool;
+	[[nodiscard]] auto read_channel( uint8_t channel, DacChannel& channelData ) -> bool;
+	[[nodiscard]] auto set_vref( unsigned int channel, CFG_VREF vref_setting ) -> bool;
+	[[nodiscard]] auto set_vref( CFG_VREF vref_setting ) -> bool;
 	
-    static float code2voltage(const DacChannel& channelData);
+    static auto code2voltage( const DacChannel& channelData ) -> float;
 
 	bool identify() override;
 
@@ -62,12 +62,12 @@ private:
 	std::chrono::time_point<std::chrono::steady_clock> fLastRegisterUpdate { };
 	bool fBusy { false };
 	
-	bool set_voltage( uint8_t channel, float voltage, bool toEEPROM );
-	bool set_value( uint8_t channel, uint16_t value, CFG_GAIN gain = GAIN1, bool toEEPROM = false );
-	bool read_registers();
+	auto set_voltage( uint8_t channel, float voltage, bool toEEPROM ) -> bool;
+	auto set_value( uint8_t channel, uint16_t value, CFG_GAIN gain = GAIN1, bool toEEPROM = false ) -> bool;
+	auto read_registers() -> bool;
 	void parse_channel_data( uint8_t* buf );
 	void dump_registers();
-	bool waitEepReady();
+	auto waitEepReady() -> bool;
 };
 
 } // namespace muonpi::serial::devices

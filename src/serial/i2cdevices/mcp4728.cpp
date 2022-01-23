@@ -17,7 +17,7 @@ MCP4728::MCP4728(i2c_bus& bus, std::uint8_t address)
 	set_title("MCP4728");
 }
 
-bool MCP4728::set_voltage(unsigned int channel, float voltage)
+auto MCP4728::set_voltage(unsigned int channel, float voltage) -> bool
 {
 	if ( voltage < 0 || channel > 3 ) {
 		return false;
@@ -25,7 +25,7 @@ bool MCP4728::set_voltage(unsigned int channel, float voltage)
 	return set_voltage( channel, voltage, false );
 }
 
-bool MCP4728::set_voltage(uint8_t channel, float voltage, bool toEEPROM)
+auto MCP4728::set_voltage(uint8_t channel, float voltage, bool toEEPROM) -> bool
 {
     if ( voltage < 0 || channel > 3 ) {
         return false;
@@ -51,7 +51,7 @@ bool MCP4728::set_voltage(uint8_t channel, float voltage, bool toEEPROM)
     return set_value(channel, value, gain, toEEPROM);
 }
 
-bool MCP4728::set_value(uint8_t channel, uint16_t value, CFG_GAIN gain, bool toEEPROM)
+auto MCP4728::set_value(uint8_t channel, uint16_t value, CFG_GAIN gain, bool toEEPROM) -> bool
 {
     if (value > 0xfff) {
         value = 0xfff;
@@ -69,7 +69,7 @@ bool MCP4728::set_value(uint8_t channel, uint16_t value, CFG_GAIN gain, bool toE
 	return write_channel( channel, dacChannel );
 }
 
-bool MCP4728::write_channel(uint8_t channel, const DacChannel& channelData)
+auto MCP4728::write_channel(uint8_t channel, const DacChannel& channelData) -> bool
 {
     if (channelData.value > 0xfff) {
         // error number of bits exceeding 12
@@ -110,7 +110,7 @@ bool MCP4728::write_channel(uint8_t channel, const DacChannel& channelData)
     return true;
 }
 
-bool MCP4728::store_settings()
+auto MCP4728::store_settings() -> bool
 {
     start_timer();
     const uint8_t startchannel { 0 };
@@ -140,12 +140,12 @@ bool MCP4728::store_settings()
 	return true;
 }
 
-bool MCP4728::present()
+auto MCP4728::present() -> bool
 {
 	return read_registers();
 }
 
-bool MCP4728::waitEepReady()
+auto MCP4728::waitEepReady() -> bool
 {
 //	if ( !fBusy ) return false;
 	if ( !read_registers() ) return false;
@@ -159,7 +159,7 @@ bool MCP4728::waitEepReady()
 	return false;
 }
 
-bool MCP4728::read_registers()
+auto MCP4728::read_registers() -> bool
 {
     uint8_t buf[24];
     start_timer();
@@ -176,7 +176,7 @@ bool MCP4728::read_registers()
 	return true;
 }
 
-bool MCP4728::read_channel(uint8_t channel, DacChannel& channelData)
+auto MCP4728::read_channel(uint8_t channel, DacChannel& channelData) -> bool
 {
     if (channel > 3) {
         // error: channel index exceeding 3
@@ -193,7 +193,7 @@ bool MCP4728::read_channel(uint8_t channel, DacChannel& channelData)
     return true;
 }
 
-float MCP4728::code2voltage(const DacChannel& channelData)
+auto MCP4728::code2voltage( const DacChannel& channelData ) -> float
 {
     float vref = (channelData.vref == VREF_2V) ? 2.048 : fVddRefVoltage;
     float voltage = vref * channelData.value / 4096.;
@@ -202,7 +202,8 @@ float MCP4728::code2voltage(const DacChannel& channelData)
     return voltage;
 }
 
-bool MCP4728::identify() {
+auto MCP4728::identify() -> bool
+{
 	if ( flag_set(Flags::Failed) ) return false;
 	if ( !present() ) return false;
     uint8_t buf[24];
@@ -219,7 +220,7 @@ bool MCP4728::identify() {
 	return false;
 }
 
-bool MCP4728::set_vref( unsigned int channel, CFG_VREF vref_setting )
+auto MCP4728::set_vref( unsigned int channel, CFG_VREF vref_setting ) -> bool
 {
 	start_timer();
 	if ( !waitEepReady() ) return false;
@@ -246,7 +247,7 @@ bool MCP4728::set_vref( unsigned int channel, CFG_VREF vref_setting )
     return true;
 }
 
-bool MCP4728::set_vref( CFG_VREF vref_setting )
+auto MCP4728::set_vref( CFG_VREF vref_setting ) -> bool
 {
 	start_timer();
 	if ( !waitEepReady() ) return false;
