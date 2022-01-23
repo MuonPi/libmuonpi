@@ -40,7 +40,7 @@ int16_t LM75::readRaw()
     return val;
 }
 
-float LM75::getTemperature()
+float LM75::get_temperature()
 {
 	int16_t dataword = readRaw();
 	float temp = static_cast<float>( dataword >> 8 );

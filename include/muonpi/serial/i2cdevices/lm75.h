@@ -11,10 +11,9 @@ public:
 	explicit LM75(i2c_bus& bus, std::uint8_t address);
 
 	virtual ~LM75();
-    float getTemperature();
+    float get_temperature();
 
     bool identify() override;
-	//bool probeDevicePresence() override { return devicePresent(); }
 protected:
     int16_t readRaw();
 
@@ -24,9 +23,6 @@ protected:
 		THYST = 0x02,
 		TOS = 0x03
 	};
-
-	//unsigned int m_last_conv_time;
-    //signed int fLastRawValue;
 };
 
 } // namespace muonpi::serial::devices

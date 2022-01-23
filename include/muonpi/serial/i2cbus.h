@@ -47,11 +47,8 @@ public:
         return dynamic_cast<T&>( *( m_devices[address].get() ) );
     }
     
-    template <typename T>
-    [[nodiscard]] auto identify_device( std::uint8_t address ) -> bool 
-    {
-		return false;
-	}
+    template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
+    [[nodiscard]] auto identify_device( std::uint8_t address ) -> bool;
 
     [[nodiscard]] auto is_open(std::uint8_t address) const -> bool;
 
@@ -70,8 +67,17 @@ protected:
 
     std::size_t m_rx_bytes {};
     std::size_t m_tx_bytes {};
-
 };
+
+
+template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
+auto i2c_bus::identify_device( std::uint8_t address ) -> bool 
+{
+	T dev { *this, address };
+	if ( !dev.is_open() || !dev.present() ) return false;
+	return dev.identify();
 }
+
+} // namespace muonpi::serial
 
 #endif // MUONPI_I2CINTERFACE_H
