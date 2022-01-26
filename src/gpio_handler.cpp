@@ -340,7 +340,7 @@ auto gpio_handler::get_flags(gpio::bias_t bias) -> int
     if ((bias & gpio::bias_t::ActiveLow) > 0) {
         return GPIOD_LINE_REQUEST_FLAG_ACTIVE_LOW;
     }
-    return GPIOD_LINE_REQUEST_FLAG_ACTIVE_LOW;
+    return 0;
 }
 
 void gpio_handler::reload_bulk_interrupt()
