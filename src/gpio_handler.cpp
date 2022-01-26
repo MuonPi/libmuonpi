@@ -27,7 +27,7 @@ gpio_handler::~gpio_handler()
         gpiod_line_release(line);
     }
 
-    for ( auto [gpio,line] : m_output_lines ) {
+    for ( auto [gpio,line] : m_io_lines ) {
         gpiod_line_release(line);
     }
 
@@ -113,7 +113,7 @@ auto gpio_handler::set_pin_interrupt(const gpio::pins_t& pins, const gpio::callb
 
 auto gpio_handler::set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, gpio::bias_t bias) -> std::function<bool(gpio::state_t)>
 {
-    auto* line = allocate_output_line(pin);
+    auto* line = allocate_io_line(pin);
 
     if (gpiod_line_is_used(line)) {
         log::error()<<"Line "<<pin<<" is in use";
@@ -128,14 +128,14 @@ auto gpio_handler::set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, 
         throw std::runtime_error{"Line request failed"};
     }
 
-    return [&pin, this](gpio::state_t state){
-        auto* l = allocate_output_line(pin);
+    return [pin, this](gpio::state_t state){
+        auto* l = allocate_io_line(pin);
         if (l == nullptr) {
             return false;
         }
         int r = gpiod_line_set_value( l, static_cast<int>(state) );
         if ( r < 0 ) {
-            log::error()<<"Setting state of gpio line" << pin << "failed: " << std::strerror(errno);
+            log::error()<<"Setting state of gpio line " << pin << " failed: " << std::strerror(errno);
             return false;
         }
         return true;
@@ -295,13 +295,13 @@ auto gpio_handler::post_run() -> int
     return 0;
 }
 
-auto gpio_handler::allocate_output_line(gpio::pin_t pin) -> gpiod_line*
+auto gpio_handler::allocate_io_line(gpio::pin_t pin) -> gpiod_line*
 {
-    auto line_it = m_output_lines.find(pin);
+    auto line_it = m_io_lines.find(pin);
     gpiod_line* line { nullptr };
-    if (line_it == m_output_lines.end()) {
+    if (line_it == m_io_lines.end()) {
         line = gpiod_chip_get_line(m_device, pin);
-	m_output_lines.emplace(pin, line);
+	m_io_lines.emplace(pin, line);
     } else {
         line = line_it->second;
     }

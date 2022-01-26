@@ -184,7 +184,7 @@ private:
      * @brief allocate_output_line Allocates a line for output, or returns the line if already allocated
      * @param pin the pin number to use
      */
-    [[nodiscard]] auto allocate_output_line(gpio::pin_t pin) -> gpiod_line*;
+    [[nodiscard]] auto allocate_io_line(gpio::pin_t pin) -> gpiod_line*;
 
     /**
      * @brief allocate_interrupt_line Allocates a line for interrupt, or returns the line if already allocated
@@ -220,7 +220,7 @@ private:
 
     std::map<gpio::pin_t, gpiod_line*> m_interrupt_lines { }; ///<! Registered interrupt lines
     gpiod_line_bulk m_bulk_interrupt; ///<! The bulk interrupt object
-    std::map<gpio::pin_t, gpiod_line*> m_output_lines { }; ///<! Registered output lines
+    std::map<gpio::pin_t, gpiod_line*> m_io_lines { }; ///<! Registered I/O lines
 
     std::condition_variable m_events_available {}; ///<! Condition variable for thread synchronisation
 
