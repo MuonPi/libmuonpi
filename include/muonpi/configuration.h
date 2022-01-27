@@ -1,5 +1,5 @@
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#ifndef MUONPI_CONFIGURATION_H
+#define MUONPI_CONFIGURATION_H
 
 #include "muonpi/global.h"
 #include "muonpi/log.h"
@@ -78,4 +78,4 @@ auto operator<<(std::ostream& ostream, const config::initialisation& initialisat
 
 } // namespace muonpi
 
-#endif // CONFIGURATION_H
+#endif // MUONPI_CONFIGURATION_H

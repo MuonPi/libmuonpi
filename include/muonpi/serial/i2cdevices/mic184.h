@@ -1,5 +1,5 @@
-#ifndef _MIC184_H_
-#define _MIC184_H_
+#ifndef MUONPI_SERIAL_I2CDEVICES_MIC184_H
+#define MUONPI_SERIAL_I2CDEVICES_MIC184_H
 #include "muonpi/serial/i2cbus.h"
 #include "muonpi/serial/i2cdevice.h"
 
@@ -29,4 +29,4 @@ private:
 };
 
 } // namespace muonpi::serial::devices
-#endif // !_MIC184_H_
+#endif // MUONPI_SERIAL_I2CDEVICES_MIC184_H

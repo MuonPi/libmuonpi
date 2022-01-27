@@ -1,5 +1,5 @@
-#ifndef _ADS1115_H_
-#define _ADS1115_H_
+#ifndef MUONPI_SERIAL_I2CDEVICES_ADS1115_H
+#define MUONPI_SERIAL_I2CDEVICES_ADS1115_H
 
 #include "muonpi/serial/i2cbus.h"
 #include "muonpi/serial/i2cdevice.h"
@@ -128,4 +128,4 @@ private:
 };
 
 } // namespace muonpi::serial::devices
-#endif // !_ADS1115_H_
+#endif // MUONPI_SERIAL_I2CDEVICES_ADS1115_H

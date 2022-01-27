@@ -1,5 +1,5 @@
-#ifndef REST_SERVICE_H
-#define REST_SERVICE_H
+#ifndef MUONPI_HTTP_SERVER_H
+#define MUONPI_HTTP_SERVER_H
 
 #include "muonpi/global.h"
 #include "muonpi/http_tools.h"
@@ -107,4 +107,4 @@ private:
 
 } // namespace muonpi::http
 
-#endif // REST_SERVICE_H
+#endif // MUONPI_HTTP_SERVER_H

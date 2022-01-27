@@ -1,5 +1,5 @@
-#ifndef DATASERIES_H
-#define DATASERIES_H
+#ifndef MUONPI_ANALYSIS_DATASERIES_H
+#define MUONPI_ANALYSIS_DATASERIES_H
 
 #include "muonpi/global.h"
 
@@ -291,4 +291,4 @@ void data_series<T, Sample>::reset(std::size_t n)
 
 } // namespace muonpi
 
-#endif // DATASERIES_H
+#endif // MUONPI_ANALYSIS_DATASERIES_H

@@ -1,5 +1,5 @@
-#ifndef RATEMEASUREMENT_H
-#define RATEMEASUREMENT_H
+#ifndef MUONPI_ANALYSIS_RATEMEASUREMENT_H
+#define MUONPI_ANALYSIS_RATEMEASUREMENT_H
 
 #include "muonpi/global.h"
 
@@ -83,4 +83,4 @@ auto rate_measurement<T, Sample>::step(const std::chrono::system_clock::time_poi
 }
 
 } // namespace muonpi
-#endif // RATEMEASUREMENT_H
+#endif // MUONPI_ANALYSIS_RATEMEASUREMENT_H

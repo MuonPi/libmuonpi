@@ -1,5 +1,5 @@
-#ifndef _I2CDEVICES_H_
-#define _I2CDEVICES_H_
+#ifndef MUONPI_SERIAL_I2CDEVICES_H
+#define MUONPI_SERIAL_I2CDEVICES_H
 
 #include "muonpi/serial/i2cdevice.h"
 #include "muonpi/serial/i2cdevices/ads1115.h"
@@ -9,4 +9,4 @@
 #include "muonpi/serial/i2cdevices/mic184.h"
 #include "muonpi/serial/i2cdevices/pca9536.h"
 
-#endif // !_I2CDEVICES_H_
+#endif // MUONPI_SERIAL_I2CDEVICES_H

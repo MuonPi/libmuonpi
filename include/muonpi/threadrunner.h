@@ -1,5 +1,5 @@
-#ifndef THREADRUNNER_H
-#define THREADRUNNER_H
+#ifndef MUONPI_THREADRUNNER_H
+#define MUONPI_THREADRUNNER_H
 
 #include "muonpi/global.h"
 
@@ -135,4 +135,4 @@ private:
 
 } // namespace muonpi
 
-#endif // THREADRUNNER_H
+#endif // MUONPI_THREADRUNNER_H

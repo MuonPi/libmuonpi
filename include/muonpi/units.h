@@ -1,5 +1,5 @@
-#ifndef UNITS_H
-#define UNITS_H
+#ifndef MUONPI_UNITS_H
+#define MUONPI_UNITS_H
 
 #include "muonpi/global.h"
 
@@ -33,4 +33,4 @@ namespace consts {
 
 } // namespace muonpi
 
-#endif // UNITS_H
+#endif // MUONPI_UNITS_H

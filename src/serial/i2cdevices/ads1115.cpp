@@ -269,7 +269,7 @@ auto ADS1115::setLowThreshold(int16_t thr) -> bool
     // These three bytes are written to the ADS1115 to set the Lo_thresh register
     writeBuf[0] = static_cast<uint8_t>(REG::LO_THRESH); // This sets the pointer register to Lo_thresh register
     writeBuf[1] = (thr & 0xff00) >> 8;
-    writeBuf[2] |= (thr & 0x00ff);
+    writeBuf[2] |= (thr & 0x00ff); // TODO: logic operation with an unitialised value here. Content will be random.
 
     // Initialize the buffer used to read data from the ADS1115 to 0
     readBuf[0] = 0;
@@ -302,7 +302,7 @@ auto ADS1115::setHighThreshold(int16_t thr) -> bool
     // These three bytes are written to the ADS1115 to set the Hi_thresh register
     writeBuf[0] = static_cast<uint8_t>(REG::HI_THRESH); // This sets the pointer register to Hi_thresh register
     writeBuf[1] = (thr & 0xff00) >> 8;
-    writeBuf[2] |= (thr & 0x00ff);
+    writeBuf[2] |= (thr & 0x00ff); // TODO: logic operation with an unitialised value here. Content will be random.
 
     // Initialize the buffer used to read data from the ADS1115 to 0
     readBuf[0] = 0;

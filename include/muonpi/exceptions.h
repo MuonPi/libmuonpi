@@ -1,5 +1,5 @@
-#ifndef EXCEPTIONS_H
-#define EXCEPTIONS_H
+#ifndef MUONPI_EXCEPTIONS_H
+#define MUONPI_EXCEPTIONS_H
 
 #include "muonpi/global.h"
 
@@ -28,4 +28,4 @@ void assertion_failed_msg(char const* expr, char const* msg, char const* functio
 void assertion_failed(char const* expr, char const* function, char const* file, long line);
 } // namespace boost
 
-#endif // EXCEPTIONS_H
+#endif // MUONPI_EXCEPTIONS_H

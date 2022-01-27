@@ -1,5 +1,5 @@
-#ifndef GPIO_HANDLER_H
-#define GPIO_HANDLER_H
+#ifndef MUONPI_GPIO_HANDLER_H
+#define MUONPI_GPIO_HANDLER_H
 
 #include "muonpi/analysis/ratemeasurement.h"
 #include "muonpi/global.h"
@@ -245,4 +245,4 @@ private:
 };
 } // namespace muonpi
 
-#endif // GPIO_HANDLER_H
+#endif // MUONPI_GPIO_HANDLER_H

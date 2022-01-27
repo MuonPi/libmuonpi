@@ -1,5 +1,5 @@
-#ifndef SCOPEGUARD_H
-#define SCOPEGUARD_H
+#ifndef MUONPI_SCOPEGUARD_H
+#define MUONPI_SCOPEGUARD_H
 
 #include "muonpi/global.h"
 
@@ -41,4 +41,4 @@ scope_guard::scope_guard(const F& cleanup)
 
 } // namespace muonpi
 
-#endif // SCOPEGUARD_H
+#endif // MUONPI_SCOPEGUARD_H

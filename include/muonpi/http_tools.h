@@ -1,5 +1,5 @@
-#ifndef HTTP_TOOLS_H
-#define HTTP_TOOLS_H
+#ifndef MUONPI_HTTP_TOOLS_H
+#define MUONPI_HTTP_TOOLS_H
 
 #include "muonpi/log.h"
 
@@ -49,4 +49,4 @@ namespace detail {
 } // namespace detail
 
 } // namespace muonpi::http
-#endif // HTTP_TOOLS_H
+#endif // MUONPI_HTTP_TOOLS_H

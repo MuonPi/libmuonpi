@@ -1,5 +1,5 @@
-#ifndef ABSTRACTEVENTSOURCE_H
-#define ABSTRACTEVENTSOURCE_H
+#ifndef MUONPI_SOURCE_BASE_H
+#define MUONPI_SOURCE_BASE_H
 
 #include "muonpi/global.h"
 
@@ -55,4 +55,4 @@ void base<T>::put(T item)
 
 } // namespace muonpi::source
 
-#endif // ABSTRACTEVENTSOURCE_H
+#endif // MUONPI_SOURCE_BASE_H

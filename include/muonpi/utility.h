@@ -1,5 +1,5 @@
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef MUONPI_UTILITY_H
+#define MUONPI_UTILITY_H
 
 #include "muonpi/global.h"
 
@@ -111,4 +111,4 @@ private:
 };
 
 } // namespace muonpi
-#endif // UTILITY_H
+#endif // MUONPI_UTILITY_H

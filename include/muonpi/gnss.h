@@ -1,5 +1,5 @@
-#ifndef COORDINATEMODEL_H
-#define COORDINATEMODEL_H
+#ifndef MUONPI_GNSS_H
+#define MUONPI_GNSS_H
 
 #include "muonpi/global.h"
 
@@ -264,4 +264,4 @@ template <typename T>
 
 } // namespace muonpi::coordinate
 
-#endif // COORDINATEMODEL_H
+#endif // MUONPI_GNSS_H

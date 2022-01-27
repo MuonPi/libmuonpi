@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef MUONPI_TYPES_H
+#define MUONPI_TYPES_H
 
 #include <vector>
 
@@ -29,4 +29,4 @@ template <typename T,
 
 } // namespace muonpi
 
-#endif // TYPES_H
+#endif // MUONPI_TYPES_H

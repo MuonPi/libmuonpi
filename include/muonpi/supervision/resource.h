@@ -1,5 +1,5 @@
-#ifndef RESOURCETRACKER_H
-#define RESOURCETRACKER_H
+#ifndef MUONPI_SUPERVISION_RESOURCE_H
+#define MUONPI_SUPERVISION_RESOURCE_H
 
 #include "muonpi/global.h"
 
@@ -32,4 +32,4 @@ private:
 };
 } // namespace muonpi::supervision
 
-#endif // RESOURCETRACKER_H
+#endif // MUONPI_SUPERVISION_RESOURCE_H

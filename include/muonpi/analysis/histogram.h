@@ -1,5 +1,5 @@
-#ifndef HISTOGRAM_H
-#define HISTOGRAM_H
+#ifndef MUONPI_ANALYSIS_HISTOGRAM_H
+#define MUONPI_ANALYSIS_HISTOGRAM_H
 
 #include "muonpi/global.h"
 
@@ -341,4 +341,4 @@ auto histogram<T, C>::rms() const -> T
 }
 
 } // namespace muonpi
-#endif // HISTOGRAM_H
+#endif // MUONPI_ANALYSIS_HISTOGRAM_H

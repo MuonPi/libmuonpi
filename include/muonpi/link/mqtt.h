@@ -1,5 +1,5 @@
-#ifndef MQTTLINK_H
-#define MQTTLINK_H
+#ifndef MUONPI_LINK_MQTT_H
+#define MUONPI_LINK_MQTT_H
 
 #include "muonpi/global.h"
 
@@ -314,4 +314,4 @@ private:
 
 } // namespace muonpi::link
 
-#endif // MQTTLINK_H
+#endif // MUONPI_LINK_MQTT_H

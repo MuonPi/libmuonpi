@@ -1,5 +1,5 @@
-#ifndef MUONPI_I2CDEVICE_H
-#define MUONPI_I2CDEVICE_H
+#ifndef MUONPI_SERIAL_I2CDEVICE_H
+#define MUONPI_SERIAL_I2CDEVICE_H
 
 #include <chrono>
 #include <cinttypes> // std::uint8_t, etc
@@ -104,4 +104,4 @@ private:
 
 } // namespace muonpi::serial
 
-#endif // MUONPI_I2CDEVICE_H
+#endif // MUONPI_SERIAL_I2CDEVICE_H

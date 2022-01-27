@@ -1,5 +1,5 @@
-#ifndef INFLUX_H
-#define INFLUX_H
+#ifndef MUONPI_LINK_INFLUX_H
+#define MUONPI_LINK_INFLUX_H
 
 #include "muonpi/global.h"
 
@@ -90,4 +90,4 @@ private:
 
 } // namespace muonpi::link
 
-#endif // INFLUX_H
+#endif // MUONPI_LINK_INFLUX_H

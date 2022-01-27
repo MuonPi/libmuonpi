@@ -1,5 +1,5 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef MUONPI_LOG_H
+#define MUONPI_LOG_H
 
 #include "muonpi/global.h"
 
@@ -122,4 +122,4 @@ private:
 
 } // namespace muonpi::log
 
-#endif // LOG_H
+#endif // MUONPI_LOG_H

@@ -1,5 +1,5 @@
-#ifndef HTTP_REQUEST_H
-#define HTTP_REQUEST_H
+#ifndef MUONPI_HTTP_REQUEST_H
+#define MUONPI_HTTP_REQUEST_H
 
 #include "muonpi/global.h"
 #include "muonpi/http_tools.h"
@@ -25,4 +25,4 @@ struct field_t {
 
 } // namespace muonpi::http
 
-#endif // HTTP_REQUEST_H
+#endif // MUONPI_HTTP_REQUEST_H

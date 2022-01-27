@@ -1,5 +1,5 @@
-#ifndef UPPERMATRIX_H
-#define UPPERMATRIX_H
+#ifndef MUONPI_ANALYSIS_UPPERMATRIX_H
+#define MUONPI_ANALYSIS_UPPERMATRIX_H
 
 #include "muonpi/global.h"
 
@@ -214,4 +214,4 @@ auto upper_matrix<T>::iterate(std::size_t index, std::function<void(T&)> functio
 }
 
 } // namespace muonpi
-#endif // UPPERMATRIX_H
+#endif // MUONPI_ANALYSIS_UPPERMATRIX_H

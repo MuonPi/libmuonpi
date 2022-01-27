@@ -1,5 +1,5 @@
-#ifndef _PCA9536_H_
-#define _PCA9536_H_
+#ifndef MUONPI_SERIAL_I2CDEVICES_PCA9536_H
+#define MUONPI_SERIAL_I2CDEVICES_PCA9536_H
 #include "muonpi/serial/i2cbus.h"
 #include "muonpi/serial/i2cdevice.h"
 
@@ -36,4 +36,4 @@ private:
 };
 
 } // namespace muonpi::serial::devices
-#endif // !_PCA9536_H_
+#endif // MUONPI_SERIAL_I2CDEVICES_PCA9536_H

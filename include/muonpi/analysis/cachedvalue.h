@@ -1,5 +1,5 @@
-#ifndef CACHEDVALUE_H
-#define CACHEDVALUE_H
+#ifndef MUONPI_ANALYSIS_CACHEDVALUE_H
+#define MUONPI_ANALYSIS_CACHEDVALUE_H
 
 #include "muonpi/global.h"
 
@@ -62,4 +62,4 @@ private:
 };
 
 } // namespace muonpi
-#endif // CACHEDVALUE_H
+#endif // MUONPI_ANALYSIS_CACHEDVALUE_H

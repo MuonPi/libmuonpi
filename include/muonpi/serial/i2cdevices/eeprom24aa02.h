@@ -1,5 +1,5 @@
-#ifndef _EEPROM24AA02_H_
-#define _EEPROM24AA02_H_
+#ifndef MUONPI_SERIAL_I2CDEVICES_EEPROM24AA02_H
+#define MUONPI_SERIAL_I2CDEVICES_EEPROM24AA02_H
 
 #include "muonpi/serial/i2cbus.h"
 #include "muonpi/serial/i2cdevice.h"
@@ -38,4 +38,4 @@ private:
 };
 
 } // namespace muonpi::serial::devices
-#endif //!_EEPROM24AA02_H
+#endif // MUONPI_SERIAL_I2CDEVICES_EEPROM24AA02_H

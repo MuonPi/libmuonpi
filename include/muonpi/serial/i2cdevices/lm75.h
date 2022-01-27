@@ -1,5 +1,5 @@
-#ifndef _LM75_H_
-#define _LM75_H_
+#ifndef MUONPI_SERIAL_I2CDEVICES_LM75_H
+#define MUONPI_SERIAL_I2CDEVICES_LM75_H
 #include "muonpi/serial/i2cbus.h"
 #include "muonpi/serial/i2cdevice.h"
 
@@ -27,4 +27,4 @@ protected:
 
 } // namespace muonpi::serial::devices
 
-#endif // !_LM75_H_
+#endif // MUONPI_SERIAL_I2CDEVICES_LM75_H

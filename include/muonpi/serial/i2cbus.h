@@ -1,5 +1,5 @@
-#ifndef MUONPI_I2CINTERFACE_H
-#define MUONPI_I2CINTERFACE_H
+#ifndef MUONPI_SERIAL_I2CBUS_H
+#define MUONPI_SERIAL_I2CBUS_H
 
 #include "muonpi/serial/i2cdevice.h"
 
@@ -111,4 +111,4 @@ auto i2c_bus::identify_devices(const std::set<uint8_t>& possible_addresses) -> s
 
 } // namespace muonpi::serial
 
-#endif // MUONPI_I2CINTERFACE_H
+#endif // MUONPI_SERIAL_I2CBUS_H

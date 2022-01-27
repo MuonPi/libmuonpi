@@ -1,9 +1,9 @@
-#ifndef LIBMUONPI_VERSION_H
-#define LIBMUONPI_VERSION_H
+#ifndef MUONPI_GLOBAL_H
+#define MUONPI_GLOBAL_H
 
 #include <chrono>
-#include <string>
 #include <memory>
+#include <string>
 
 #ifdef _MSC_VER
     //  Microsoft
@@ -39,6 +39,7 @@ constexpr const char* additional { "@PROJECT_VERSION_ADDITIONAL@" };
 
 [[nodiscard]] auto string() -> std::string;
 
-}
+} // namespace muonpi::Version::libmuonpi
 
-#endif // LIBMUONPI_VERSION_H
+
+#endif // MUONPI_GLOBAL_H

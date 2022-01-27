@@ -1,5 +1,5 @@
-#ifndef MUONPI_HTTP_SESSION_H
-#define MUONPI_HTTP_SESSION_H
+#ifndef MUONPI_SRC_DETAIL_HTTP_SESSION_HPP
+#define MUONPI_SRC_DETAIL_HTTP_SESSION_HPP
 #include "muonpi/base64.h"
 #include "muonpi/http_tools.h"
 #include "muonpi/log.h"
@@ -195,4 +195,4 @@ void session<Stream>::notify()
 
 } // namespace muonpi::http::detail
 
-#endif //  MUONPI_HTTP_SESSION_H
+#endif // MUONPI_SRC_DETAIL_HTTP_SESSION_HPP

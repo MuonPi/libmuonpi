@@ -1,5 +1,5 @@
-#ifndef _MCP4728_H_
-#define _MCP4728_H_
+#ifndef MUONPI_SERIAL_I2CDEVICES_MCP4728_H
+#define MUONPI_SERIAL_I2CDEVICES_MCP4728_H
 
 #include "muonpi/serial/i2cbus.h"
 #include "muonpi/serial/i2cdevice.h"
@@ -72,4 +72,4 @@ private:
 };
 
 } // namespace muonpi::serial::devices
-#endif //!_MCP4728_H_
+#endif // MUONPI_SERIAL_I2CDEVICES_MCP4728_H

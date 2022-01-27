@@ -1,5 +1,5 @@
-﻿#ifndef SINKBASE_H
-#define SINKBASE_H
+﻿#ifndef MUONPI_SINK_BASE_H
+#define MUONPI_SINK_BASE_H
 
 #include "muonpi/global.h"
 
@@ -227,4 +227,4 @@ void collection<T>::emplace(base<T>& sink)
 
 } // namespace muonpi::sink
 
-#endif // SINKBASE_H
+#endif // MUONPI_SINK_BASE_H

@@ -1,5 +1,5 @@
-#ifndef PIPELINE_H
-#define PIPELINE_H
+#ifndef MUONPI_PIPELINE_BASE_H
+#define MUONPI_PIPELINE_BASE_H
 
 #include "muonpi/global.h"
 
@@ -22,4 +22,4 @@ base<T>::base(sink::base<T>& sink)
 
 } // namespace muonpi::pipeline
 
-#endif // PIPELINE_H
+#endif // MUONPI_PIPELINE_BASE_H
