@@ -12,6 +12,18 @@
 
 namespace muonpi::serial {
 
+i2c_device::i2c_device(i2c_bus& bus, std::uint8_t address)
+    : m_bus { bus }
+    , m_address { address }
+    , m_handle { open(bus.address().c_str(), O_RDWR) }
+{
+    if (m_handle > 0) {
+		set_address( m_address );
+	} else {
+        set_flag(Flags::Failed);
+    }
+}
+
 i2c_device::i2c_device(i2c_bus& bus)
     : m_bus { bus }
     , m_address { 0 }
