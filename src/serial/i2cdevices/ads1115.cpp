@@ -11,7 +11,7 @@ namespace muonpi::serial::devices {
 constexpr uint16_t HI_RANGE_LIMIT { static_cast<uint16_t>(ADS1115::MAX_ADC_VALUE * 0.8) };
 constexpr uint16_t LO_RANGE_LIMIT { static_cast<uint16_t>(ADS1115::MAX_ADC_VALUE * 0.2) };
 
-auto ADS1115::Sample::operator==(const Sample& other) -> bool
+auto ADS1115::Sample::operator==(const Sample& other) const -> bool
 {
     return (value == other.value && voltage == other.voltage && channel == other.channel && timestamp == other.timestamp);
 }
@@ -67,7 +67,7 @@ auto ADS1115::writeConfig(bool startNewConversion) -> bool
 
     // read in the current contents of config reg only if conv_mode is unknown
     if (fConvMode == CONV_MODE::UNKNOWN) {
-        if (!read(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
+        if (read(static_cast<uint8_t>(REG::CONFIG), &conf_reg) == 0) {
             return false;
         }
         if ((conf_reg & 0x0100) == 0) {
@@ -95,7 +95,7 @@ auto ADS1115::writeConfig(bool startNewConversion) -> bool
     conf_reg |= 0x00; // TODO: enable ALERT/RDY pin
     conf_reg |= (fRate & 0x07) << 5;
 
-    if (!write(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
+    if (write(static_cast<uint8_t>(REG::CONFIG), &conf_reg) == 0) {
         return false;
     }
     fCurrentChannel = fSelectedChannel;
@@ -110,7 +110,7 @@ void ADS1115::waitConversionFinished(bool& error)
     while ((conf_reg & 0x8000) == 0 && nloops * fReadWaitDelay / 1000 < 1000) // readBuf[0] contains 8 MSBs of config register, AND with 10000000 to select bit 15
     {
         std::this_thread::sleep_for(std::chrono::microseconds(fReadWaitDelay));
-        if (!read(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
+        if (read(static_cast<uint8_t>(REG::CONFIG), &conf_reg) == 0) {
             error = true;
             return;
         }
@@ -130,7 +130,7 @@ auto ADS1115::readConversionResult(int16_t& dataword) -> bool
 {
     uint16_t data { 0 };
     // Read the contents of the conversion register into readBuf
-    if (!read(static_cast<uint8_t>(REG::CONVERSION), &data)) {
+    if (read(static_cast<uint8_t>(REG::CONVERSION), &data) == 0) {
         return false;
     }
 
@@ -342,15 +342,12 @@ auto ADS1115::setDataReadyPinMode() -> bool
 auto ADS1115::setCompQueue(uint8_t bitpattern) -> bool
 {
     std::uint16_t conf_reg { 0 };
-    if (!read(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
+    if (read(static_cast<uint8_t>(REG::CONFIG), &conf_reg) == 0) {
         return false;
     }
     conf_reg &= 0b11111100;
     conf_reg |= bitpattern & 0b00000011;
-    if (!write(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
-        return false;
-    }
-    return true;
+    return write(static_cast<uint8_t>(REG::CONFIG), &conf_reg) != 0;
 }
 
 auto ADS1115::identify() -> bool
@@ -363,16 +360,16 @@ auto ADS1115::identify() -> bool
     }
 
     uint16_t dataword { 0 };
-    if (!read(static_cast<uint8_t>(REG::CONFIG), &dataword)) {
+    if (read(static_cast<uint8_t>(REG::CONFIG), &dataword) == 0) {
         return false;
     }
-    if (((dataword & 0x8000) == 0) && (dataword & 0x0100)) {
+    if (((dataword & 0x8000) == 0) && ((dataword & 0x0100) != 0)) {
         return false;
     }
     uint16_t dataword2 { 0 };
     // try to read at addr conf_reg+4 and compare with the previously read config register
     // both should be identical since only the 2 LSBs of the pointer register are evaluated by the ADS1115
-    if (!read(static_cast<uint8_t>(REG::CONFIG) | 0x04, &dataword2)) {
+    if (read(static_cast<uint8_t>(REG::CONFIG) | 0x04, &dataword2) == 0) {
         return false;
     }
     if (dataword != dataword2) {

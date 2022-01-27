@@ -65,21 +65,21 @@ auto PCA9536::identify() -> bool
     }
 
     std::uint8_t bytereg { 0 };
-    if (!read(static_cast<std::uint8_t>(REG::INPUT), &bytereg)) {
+    if (read(static_cast<std::uint8_t>(REG::INPUT), &bytereg) == 0) {
         // there was an error
         return false;
     }
     if ((bytereg & 0xf0) != 0xf0) {
         return false;
     }
-    if (!read(static_cast<std::uint8_t>(REG::POLARITY), &bytereg)) {
+    if (read(static_cast<std::uint8_t>(REG::POLARITY), &bytereg) == 0) {
         return false;
     }
     if ((bytereg & 0xf0) != 0x00) {
         return false;
     }
 
-    if (!read(static_cast<std::uint8_t>(REG::CONFIG), &bytereg)) {
+    if (read(static_cast<std::uint8_t>(REG::CONFIG), &bytereg) == 0) {
         return false;
     }
     if ((bytereg & 0xf0) != 0xf0) {

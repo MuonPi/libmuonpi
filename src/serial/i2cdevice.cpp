@@ -53,14 +53,14 @@ auto i2c_device::is_open() const -> bool
     return m_handle > 0;
 }
 
-void i2c_device::close()
+void i2c_device::close() const
 {
     if (m_handle > 0) {
         ::close(m_handle);
     }
 }
 
-void i2c_device::read_capabilities()
+void i2c_device::read_capabilities() const
 {
     unsigned long funcs {};
     int res = ioctl(m_handle, I2C_FUNCS, &funcs);
@@ -239,7 +239,7 @@ auto i2c_device::write(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes
     return write(write_buffer, bytes + 1) - 1;
 }
 
-auto i2c_device::write(std::uint8_t reg, std::uint16_t* buffer, std::size_t length) -> int
+auto i2c_device::write(std::uint8_t reg, const std::uint16_t* buffer, std::size_t length) -> int
 {
     std::uint8_t* write_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), length * 2 + 1)) };
 

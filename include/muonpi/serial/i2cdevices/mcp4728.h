@@ -66,7 +66,7 @@ private:
     auto set_voltage(uint8_t channel, float voltage, bool toEEPROM) -> bool;
     auto set_value(uint8_t channel, uint16_t value, CFG_GAIN gain = GAIN1, bool toEEPROM = false) -> bool;
     auto read_registers() -> bool;
-    void parse_channel_data(uint8_t* buf);
+    void parse_channel_data(const uint8_t* buf);
     void dump_registers();
     auto waitEepReady() -> bool;
 };

@@ -24,7 +24,7 @@ auto MIC184::readRaw() -> int16_t
 
     uint16_t dataword { 0 };
     // Read the temp register
-    if (!read(static_cast<uint8_t>(REG::TEMP), &dataword)) {
+    if (read(static_cast<uint8_t>(REG::TEMP), &dataword) == 0) {
         // there was an error
         return INT16_MIN;
     }
@@ -59,7 +59,7 @@ auto MIC184::identify() -> bool
     uint16_t tos_save { 0 };
 
     // Read the config register
-    if (!read(static_cast<uint8_t>(REG::CONF), &conf_reg_save)) {
+    if (read(static_cast<uint8_t>(REG::CONF), &conf_reg_save) == 0) {
         return false;
     }
     // datasheet: the interrupt mask bit in conf register should be zero when device is in init state
@@ -68,7 +68,7 @@ auto MIC184::identify() -> bool
     }
 
     // read temp register
-    if (!read(static_cast<uint8_t>(REG::TEMP), &dataword)) {
+    if (read(static_cast<uint8_t>(REG::TEMP), &dataword) == 0) {
         return false;
     }
     // the 5 LSBs should always read zero
@@ -77,7 +77,7 @@ auto MIC184::identify() -> bool
     }
 
     // read Thyst register
-    if (!read(static_cast<uint8_t>(REG::THYST), &thyst_save)) {
+    if (read(static_cast<uint8_t>(REG::THYST), &thyst_save) == 0) {
         return false;
     }
     // the 7 MSBs should always read zero
@@ -86,7 +86,7 @@ auto MIC184::identify() -> bool
     }
 
     // read Tos register
-    if (!read(static_cast<uint8_t>(REG::TOS), &tos_save)) {
+    if (read(static_cast<uint8_t>(REG::TOS), &tos_save) == 0) {
         return false;
     }
     // the 7 MSBs should always read zero
@@ -98,41 +98,41 @@ auto MIC184::identify() -> bool
     // datasheet: test, if the STS (status) bit in config register toggles when a alarm condition is provoked
     // set config reg to 0x02
     uint8_t conf_reg { 0x02 };
-    if (!write(static_cast<uint8_t>(REG::CONF), &conf_reg)) {
+    if (write(static_cast<uint8_t>(REG::CONF), &conf_reg) == 0) {
         return false;
     }
     // write 0xc880 to Thyst and Tos regs. This corresponds to -55.5 degrees centigrade
     dataword = 0xc880;
-    if (!write(static_cast<uint8_t>(REG::THYST), &dataword)) {
+    if (write(static_cast<uint8_t>(REG::THYST), &dataword) == 0) {
         return false;
     }
-    if (!write(static_cast<uint8_t>(REG::TOS), &dataword)) {
+    if (write(static_cast<uint8_t>(REG::TOS), &dataword) == 0) {
         return false;
     }
     // wait at least one conversion cycle (>160ms)
     std::this_thread::sleep_for(std::chrono::milliseconds(160));
     // Read the config register
-    if (!read(static_cast<uint8_t>(REG::CONF), &conf_reg)) {
+    if (read(static_cast<uint8_t>(REG::CONF), &conf_reg) == 0) {
         return false;
     }
     // datasheet: MSB of conf reg should be set to one
     // this is considered an indication for MIC184
-    if (!(conf_reg & 0x80)) {
+    if ((conf_reg & 0x80) == 0) {
         return false;
     }
 
     // write 0x7f80 to Thyst and Tos regs. This corresponds to +127.5 degrees centigrade
     dataword = 0x7f80;
-    if (!write(static_cast<uint8_t>(REG::THYST), &dataword)) {
+    if (write(static_cast<uint8_t>(REG::THYST), &dataword) == 0) {
         return false;
     }
-    if (!write(static_cast<uint8_t>(REG::TOS), &dataword)) {
+    if (write(static_cast<uint8_t>(REG::TOS), &dataword) == 0) {
         return false;
     }
     // wait at least one conversion cycle (>160ms)
     std::this_thread::sleep_for(std::chrono::milliseconds(160));
     // Read the config register again to clear pending interrupt request
-    if (!read(static_cast<uint8_t>(REG::CONF), &conf_reg)) {
+    if (read(static_cast<uint8_t>(REG::CONF), &conf_reg) == 0) {
         return false;
     }
 
@@ -141,8 +141,8 @@ auto MIC184::identify() -> bool
     write(static_cast<uint8_t>(REG::THYST), &thyst_save);
     write(static_cast<uint8_t>(REG::TOS), &tos_save);
     // finally, set config reg into original state
-    if (write(static_cast<uint8_t>(REG::CONF), &conf_reg_save)) {
-        fExternal = (conf_reg_save & 0x20);
+    if (write(static_cast<uint8_t>(REG::CONF), &conf_reg_save) != 0) {
+        fExternal = ((conf_reg_save & 0x20) != 0);
         return true;
     }
     return false;
@@ -153,17 +153,17 @@ auto MIC184::set_external(bool enable_external) -> bool
     // Read and save the config register
     uint8_t conf_reg { 0 };
     uint8_t conf_reg_save { 0 };
-    if (!read(static_cast<uint8_t>(REG::CONF), &conf_reg)) {
+    if (read(static_cast<uint8_t>(REG::CONF), &conf_reg) == 0) {
         return false;
     }
     conf_reg_save = conf_reg;
     // disable interrupts, clear IM bit
     conf_reg &= ~0x40;
-    if (!write(static_cast<uint8_t>(REG::CONF), &conf_reg)) {
+    if (write(static_cast<uint8_t>(REG::CONF), &conf_reg) == 0) {
         return false;
     }
     // read back config reg to clear STS flag
-    if (!read(static_cast<uint8_t>(REG::CONF), &conf_reg)) {
+    if (read(static_cast<uint8_t>(REG::CONF), &conf_reg) == 0) {
         return false;
     }
     if (enable_external) {
@@ -171,10 +171,10 @@ auto MIC184::set_external(bool enable_external) -> bool
     } else {
         conf_reg_save &= ~0x20;
     }
-    if (!write(static_cast<uint8_t>(REG::CONF), &conf_reg_save)) {
+    if (write(static_cast<uint8_t>(REG::CONF), &conf_reg_save) == 0) {
         return false;
     }
-    if (!read(static_cast<uint8_t>(REG::CONF), &conf_reg)) {
+    if (read(static_cast<uint8_t>(REG::CONF), &conf_reg) == 0) {
         return false;
     }
     if ((conf_reg & 0x20) != (conf_reg_save & 0x20)) {

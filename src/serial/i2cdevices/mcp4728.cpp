@@ -157,10 +157,7 @@ auto MCP4728::waitEepReady() -> bool
             return false;
         }
     }
-    if (timeout_ctr > 0) {
-        return true;
-    }
-    return false;
+    return timeout_ctr > 0;
 }
 
 auto MCP4728::read_registers() -> bool
@@ -225,11 +222,7 @@ auto MCP4728::identify() -> bool
         return false;
     }
 
-    if (((buf[0] & 0xf0) == 0xc0) && ((buf[6] & 0xf0) == 0xd0) && ((buf[12] & 0xf0) == 0xe0) && ((buf[18] & 0xf0) == 0xf0)) {
-        return true;
-    }
-
-    return false;
+    return ((buf[0] & 0xf0) == 0xc0) && ((buf[6] & 0xf0) == 0xd0) && ((buf[12] & 0xf0) == 0xe0) && ((buf[18] & 0xf0) == 0xf0);
 }
 
 auto MCP4728::set_vref(unsigned int channel, CFG_VREF vref_setting) -> bool
@@ -284,19 +277,19 @@ auto MCP4728::set_vref(CFG_VREF vref_setting) -> bool
     return true;
 }
 
-void MCP4728::parse_channel_data(uint8_t* buf)
+void MCP4728::parse_channel_data(const uint8_t* buf)
 {
     for (unsigned int channel = 0; channel < 4; channel++) {
         // dac reg: offs = 1
         // eep: offs = 4
-        fChannelSetting[channel].vref = (buf[channel * 6 + 1] & 0x80) ? VREF_2V : VREF_VDD;
-        fChannelSettingEep[channel].vref = (buf[channel * 6 + 4] & 0x80) ? VREF_2V : VREF_VDD;
+        fChannelSetting[channel].vref = (buf[channel * 6 + 1] & 0x80) != 0 ? VREF_2V : VREF_VDD;
+        fChannelSettingEep[channel].vref = (buf[channel * 6 + 4] & 0x80) != 0 ? VREF_2V : VREF_VDD;
 
         fChannelSetting[channel].pd = (buf[channel * 6 + 1] & 0x60) >> 5;
         fChannelSettingEep[channel].pd = (buf[channel * 6 + 4] & 0x60) >> 5;
 
-        fChannelSetting[channel].gain = (buf[channel * 6 + 1] & 0x10) ? GAIN2 : GAIN1;
-        fChannelSettingEep[channel].gain = (buf[channel * 6 + 4] & 0x10) ? GAIN2 : GAIN1;
+        fChannelSetting[channel].gain = (buf[channel * 6 + 1] & 0x10) != 0 ? GAIN2 : GAIN1;
+        fChannelSettingEep[channel].gain = (buf[channel * 6 + 4] & 0x10) != 0 ? GAIN2 : GAIN1;
 
         fChannelSetting[channel].value = (uint16_t)(buf[channel * 6 + 1] & 0x0f) << 8; // TODO: Don't use c-style casts. Use static_cast instead.
         fChannelSetting[channel].value |= (uint16_t)(buf[channel * 6 + 1 + 1] & 0xff); // TODO: Don't use c-style casts. Use static_cast instead.

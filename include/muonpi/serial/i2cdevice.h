@@ -36,9 +36,9 @@ public:
     virtual ~i2c_device();
 
     [[nodiscard]] auto is_open() const -> bool;
-    void close();
+    void close() const;
 
-    void read_capabilities();
+    void read_capabilities() const;
     [[nodiscard]] virtual auto present() -> bool;
     [[nodiscard]] virtual auto identify() -> bool;
 
@@ -71,7 +71,7 @@ public:
 
     auto write(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes = 1) -> int;
 
-    auto write(std::uint8_t reg, std::uint16_t* buffer, std::size_t length = 1) -> int;
+    auto write(std::uint8_t reg, const std::uint16_t* buffer, std::size_t length = 1) -> int;
 
 protected:
     void set_flag(Flags flag);

@@ -23,7 +23,7 @@ auto LM75::readRaw() -> int16_t
 
     uint16_t dataword { 0 };
     // Read the temp register
-    if (!read(static_cast<uint8_t>(REG::TEMP), &dataword)) {
+    if (read(static_cast<uint8_t>(REG::TEMP), &dataword) == 0) {
         // there was an error
         return INT16_MIN;
     }
@@ -54,7 +54,7 @@ auto LM75::identify() -> bool
     uint16_t dataword { 0 };
     uint8_t conf_reg { 0 };
     // Read the config register
-    if (!read(static_cast<uint8_t>(REG::CONF), &conf_reg)) {
+    if (read(static_cast<uint8_t>(REG::CONF), &conf_reg) == 0) {
         return false;
     }
     // datasheet: 3 MSBs of conf register "should be kept as zeroes"
@@ -63,7 +63,7 @@ auto LM75::identify() -> bool
     }
 
     // read temp register
-    if (!read(static_cast<uint8_t>(REG::TEMP), &dataword)) {
+    if (read(static_cast<uint8_t>(REG::TEMP), &dataword) == 0) {
         return false;
     }
     // the 5 LSBs should always read zero
@@ -72,7 +72,7 @@ auto LM75::identify() -> bool
     }
 
     // read Thyst register
-    if (!read(static_cast<uint8_t>(REG::THYST), &dataword)) {
+    if (read(static_cast<uint8_t>(REG::THYST), &dataword) == 0) {
         return false;
     }
     // the 7 MSBs should always read zero
@@ -81,7 +81,7 @@ auto LM75::identify() -> bool
     }
 
     // read Tos register
-    if (!read(static_cast<uint8_t>(REG::TOS), &dataword)) {
+    if (read(static_cast<uint8_t>(REG::TOS), &dataword) == 0) {
         return false;
     }
     // the 7 MSBs should always read zero

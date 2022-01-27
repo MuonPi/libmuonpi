@@ -25,7 +25,7 @@ public:
         float voltage;
         float lsb_voltage;
         unsigned int channel;
-        [[nodiscard]] auto operator==(const Sample& other) -> bool;
+        [[nodiscard]] auto operator==(const Sample& other) const -> bool;
         [[nodiscard]] auto operator!=(const Sample& other) -> bool;
     };
     static constexpr Sample InvalidSample { std::chrono::steady_clock::time_point::min(), 0, 0., 0., 0 };
@@ -62,7 +62,7 @@ public:
         SINGLE,
         CONTINUOUS };
 
-    static auto adcToVoltage(int16_t adc, const CFG_PGA pga_setting) -> float;
+    static auto adcToVoltage(int16_t adc, CFG_PGA pga_setting) -> float;
 
     explicit ADS1115(i2c_bus& bus, std::uint8_t address);
     ~ADS1115() override;
