@@ -1,5 +1,5 @@
-#ifndef UNITS_H
-#define UNITS_H
+#ifndef MUONPI_UNITS_H
+#define MUONPI_UNITS_H
 
 #include "muonpi/global.h"
 
@@ -25,12 +25,12 @@ namespace units {
 
     static constexpr double nanosecond = 1.0;
     static constexpr double second = nanosecond / nano;
-}
+} // namespace units
 
 namespace consts {
     static constexpr double c_0 { 299'792'458.0 * units::nano };
-}
+} // namespace consts
 
-}
+} // namespace muonpi
 
-#endif // UNITS_H
+#endif // MUONPI_UNITS_H

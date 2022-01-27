@@ -1,5 +1,5 @@
-#ifndef SCOPEGUARD_H
-#define SCOPEGUARD_H
+#ifndef MUONPI_SCOPEGUARD_H
+#define MUONPI_SCOPEGUARD_H
 
 #include "muonpi/global.h"
 
@@ -10,7 +10,7 @@ namespace muonpi {
 class LIBMUONPI_PUBLIC scope_guard {
 public:
     template <class F>
-    scope_guard(const F& cleanup);
+    explicit scope_guard(const F& cleanup);
 
     scope_guard(scope_guard&& other) noexcept;
 
@@ -39,6 +39,6 @@ scope_guard::scope_guard(const F& cleanup)
 {
 }
 
-}
+} // namespace muonpi
 
-#endif // SCOPEGUARD_H
+#endif // MUONPI_SCOPEGUARD_H

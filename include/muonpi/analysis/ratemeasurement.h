@@ -1,5 +1,5 @@
-#ifndef RATEMEASUREMENT_H
-#define RATEMEASUREMENT_H
+#ifndef MUONPI_ANALYSIS_RATEMEASUREMENT_H
+#define MUONPI_ANALYSIS_RATEMEASUREMENT_H
 
 #include "muonpi/global.h"
 
@@ -54,7 +54,7 @@ private:
 template <typename T, bool Sample>
 rate_measurement<T, Sample>::rate_measurement(std::size_t n, std::chrono::seconds t) noexcept
     : data_series<T, Sample>(n)
-    , m_t { std::move(t) }
+    , m_t { t }
 {
 }
 
@@ -82,5 +82,5 @@ auto rate_measurement<T, Sample>::step(const std::chrono::system_clock::time_poi
     return false;
 }
 
-}
-#endif // RATEMEASUREMENT_H
+} // namespace muonpi
+#endif // MUONPI_ANALYSIS_RATEMEASUREMENT_H

@@ -1,100 +1,98 @@
-#ifndef GPIO_HANDLER_H
-#define GPIO_HANDLER_H
+#ifndef MUONPI_GPIO_HANDLER_H
+#define MUONPI_GPIO_HANDLER_H
 
+#include "muonpi/analysis/ratemeasurement.h"
 #include "muonpi/global.h"
 #include "muonpi/threadrunner.h"
-#include "muonpi/analysis/ratemeasurement.h"
 
 #include "muonpi/log.h"
 
 #include <gpiod.h>
 
-#include <map>
-#include <vector>
-#include <functional>
-#include <chrono>
 #include <atomic>
-#include <mutex>
+#include <chrono>
 #include <condition_variable>
+#include <functional>
+#include <map>
+#include <mutex>
 #include <queue>
+#include <vector>
 
 namespace muonpi {
 
-
 namespace gpio {
-/**
- * @brief The gpio_chip struct.
- * Information about a gpio chip.
- */
-struct chip_info {
-    std::string name; ///<! The name of the chip as present in the kernel
-    std::string label; ///<! The label of the chip as present in the kernel
-    std::size_t num_lines; ///<! The number of lines present in the chip
-    struct line_t {
-        std::string name;
-        std::string consumer;
+    /**
+     * @brief The gpio_chip struct.
+     * Information about a gpio chip.
+     */
+    struct chip_info {
+        std::string name; ///<! The name of the chip as present in the kernel
+        std::string label; ///<! The label of the chip as present in the kernel
+        std::size_t num_lines; ///<! The number of lines present in the chip
+        struct line_t {
+            std::string name;
+            std::string consumer;
+        };
+        std::vector<line_t> lines; ///<! The names of all lines reported in the chip
     };
-    std::vector<line_t> lines; ///<! The names of all lines reported in the chip
-};
 
-/**
- * @brief The bias_t enum.
- * bias settings for gpio pins.
- */
-enum bias_t : std::uint8_t {
-    Disabled = 0x00,
-    PullDown = 0x01,
-    PullUp = 0x02,
-    ActiveLow = 0x04,
-    OpenDrain = 0x08,
-    OpenSource = 0x10
-};
+    /**
+     * @brief The bias_t enum.
+     * bias settings for gpio pins.
+     */
+    enum bias_t : std::uint8_t {
+        Disabled = 0x00,
+        PullDown = 0x01,
+        PullUp = 0x02,
+        ActiveLow = 0x04,
+        OpenDrain = 0x08,
+        OpenSource = 0x10
+    };
 
-/**
- * @brief The edge_t enum.
- * The type of edge detection for interrupts
- */
-enum edge_t {
-    Rising = 0x01,
-    Falling = 0x02,
-    Both = Rising | Falling
-};
+    /**
+     * @brief The edge_t enum.
+     * The type of edge detection for interrupts
+     */
+    enum edge_t {
+        Rising = 0x01,
+        Falling = 0x02,
+        Both = Rising | Falling
+    };
 
-/**
- * @brief The state_t enum.
- * The state of an output pin.
- */
-enum state_t : int {
-    Low = 0,
-    High = 1,
-	Undefined = -1
-};
+    /**
+     * @brief The state_t enum.
+     * The state of an output pin.
+     */
+    enum state_t : int {
+        Low = 0,
+        High = 1,
+        Undefined = -1
+    };
 
+    // +++ convencience definitions
+    using pin_t = unsigned int;
+    using time_t = std::chrono::system_clock::time_point;
+    struct settings_t {
+        gpio::pin_t pin;
+        gpio::edge_t edge;
+        gpio::bias_t bias;
+    };
 
-// +++ convencience definitions
-using pin_t = unsigned int;
-using time_t = std::chrono::system_clock::time_point;
-struct settings_t {
-    gpio::pin_t pin;
-    gpio::edge_t edge;
-    gpio::bias_t bias;
-};
+    using pins_t = std::vector<settings_t>;
+    // --- convencience definitions
 
-using pins_t = std::vector<settings_t>;
-// --- convencience definitions
+    /**
+     * @brief The event_t struct.
+     * Convenience struct for the event queue
+     */
+    struct event_t {
+        gpio::pin_t pin {}; ///<! The pin offset of the event
+        gpio::edge_t edge; ///<! The type of detected edge
+        time_t time; ///<! The timestamp of the event
+    };
 
-/**
- * @brief The event_t struct.
- * Convenience struct for the event queue
- */
-struct event_t {
-    gpio::pin_t pin; ///<! The pin offset of the event
-    gpio::edge_t edge; ///<! The type of detected edge
-    time_t time; ///<! The timestamp of the event
-};
-
-using callback_t = std::function<void(event_t)>;
-}
+    using callback_t = std::function<void(event_t)>;
+} // namespace gpio
 
 /**
  * @brief The gpio_handler class.
@@ -102,10 +100,8 @@ using callback_t = std::function<void(event_t)>;
  * one to handle the callback invokation as well as rate limiting through timeout inhibition.
  * The callbacks do not delay the gpio reading thread, though they should still not take too long to excute.
  */
-class LIBMUONPI_PUBLIC gpio_handler : public thread_runner
-{
+class LIBMUONPI_PUBLIC gpio_handler : public thread_runner {
 public:
-
     /**
      * @brief gpio_handler
      * @param device The device file to use
@@ -113,7 +109,7 @@ public:
      */
     gpio_handler(const std::string& device, std::string consumer_name);
 
-    ~gpio_handler();
+    ~gpio_handler() override;
 
     /**
      * @brief set_pin_interrupt Enable a callback for one specific pin.
@@ -163,6 +159,7 @@ public:
      * @return
      */
     [[nodiscard]] auto get_chip_info() -> gpio::chip_info;
+
 protected:
     /**
      * @brief custom_run Reimplemented from thread_runner. Executed continuously
@@ -213,11 +210,9 @@ private:
      */
     void reload_bulk_interrupt();
 
-    bool m_autoreload { true }; ///<! Autoreload the bulk object.
-
     std::atomic<bool> m_bulk_dirty { true };
 
-    std::map<gpio::pin_t, std::map<gpio::edge_t, std::vector<gpio::callback_t>>> m_callback{}; ///<! All registered callbacks
+    std::map<gpio::pin_t, std::map<gpio::edge_t, std::vector<gpio::callback_t>>> m_callback {}; ///<! All registered callbacks
 
     std::atomic<bool> m_inhibit { false }; ///<! Inhibit the event processing execution
 
@@ -227,9 +222,9 @@ private:
 
     gpiod_chip* m_device { nullptr }; ///<! The device pointer
 
-    std::map<gpio::pin_t, gpiod_line*> m_interrupt_lines { }; ///<! Registered interrupt lines
-    gpiod_line_bulk m_bulk_interrupt; ///<! The bulk interrupt object
-    std::map<gpio::pin_t, gpiod_line*> m_io_lines { }; ///<! Registered I/O lines
+    std::map<gpio::pin_t, gpiod_line*> m_interrupt_lines {}; ///<! Registered interrupt lines
+    gpiod_line_bulk m_bulk_interrupt {}; ///<! The bulk interrupt object
+    std::map<gpio::pin_t, gpiod_line*> m_io_lines {}; ///<! Registered I/O lines
 
     std::condition_variable m_events_available {}; ///<! Condition variable for thread synchronisation
 
@@ -237,13 +232,13 @@ private:
 
     std::condition_variable m_interrupt_condition {};
 
-    rate_measurement<float> m_event_rate {100, std::chrono::seconds{6} }; ///<! Rate measurement object for the incoming event rate
+    rate_measurement<float> m_event_rate { 100, std::chrono::seconds { 6 } }; ///<! Rate measurement object for the incoming event rate
 
-    std::atomic<std::chrono::system_clock::duration> m_inhibit_timeout { std::chrono::microseconds{0} }; ///<! dynamic timeout for the inhibition time
+    std::atomic<std::chrono::system_clock::duration> m_inhibit_timeout { std::chrono::microseconds { 0 } }; ///<! dynamic timeout for the inhibition time
 
     struct private_event {
-	    gpio::pin_t pin;
-	    gpiod_line_event evt;
+        gpio::pin_t pin;
+        gpiod_line_event evt;
     };
 
     std::queue<private_event> m_events {}; ///<! queue with all current events
@@ -255,8 +250,8 @@ private:
     constexpr static float s_max_timeout { 100'000.0F }; ///<! Maximum timeout in us
 
     constexpr static float s_b { s_max_timeout * s_min_rate / (s_min_rate - s_max_rate) }; ///<! m*x+b
-    constexpr static float s_m { - s_max_timeout / (s_min_rate - s_max_rate) }; ///<! m*x+b
+    constexpr static float s_m { -s_max_timeout / (s_min_rate - s_max_rate) }; ///<! m*x+b
 };
-}
+} // namespace muonpi
 
-#endif // GPIO_HANDLER_H
+#endif // MUONPI_GPIO_HANDLER_H

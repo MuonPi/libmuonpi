@@ -1,5 +1,5 @@
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#ifndef MUONPI_CONFIGURATION_H
+#define MUONPI_CONFIGURATION_H
 
 #include "muonpi/global.h"
 #include "muonpi/log.h"
@@ -42,7 +42,7 @@ public:
     [[nodiscard]] auto setup(const std::string& description) -> initialisation;
 
     template <typename T>
-    [[nodiscard]] auto get(std::string name) -> T;
+    [[nodiscard]] auto get(const std::string& name) -> T;
 
     [[nodiscard]] auto is_set(const std::string& name) -> bool;
 
@@ -51,13 +51,13 @@ private:
 };
 
 template <typename T>
-auto config::get(std::string name) -> T
+auto config::get(const std::string& name) -> T
 {
     if (!is_set(name)) {
         log::error() << "Option '" << name << "' not set.";
         throw std::runtime_error("Option '" + name + "' not set.");
     }
-    return m_options[std::move(name)].as<T>();
+    return m_options[name].as<T>();
 }
 
 template <typename T>
@@ -76,6 +76,6 @@ auto config::initialisation::add_option(const std::string& name, T value, const 
 
 auto operator<<(std::ostream& ostream, const config::initialisation& initialisation) -> std::ostream&;
 
-}
+} // namespace muonpi
 
-#endif // CONFIGURATION_H
+#endif // MUONPI_CONFIGURATION_H

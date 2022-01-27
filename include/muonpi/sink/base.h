@@ -1,5 +1,5 @@
-﻿#ifndef SINKBASE_H
-#define SINKBASE_H
+﻿#ifndef MUONPI_SINK_BASE_H
+#define MUONPI_SINK_BASE_H
 
 #include "muonpi/global.h"
 
@@ -44,9 +44,9 @@ public:
      * @brief threaded
      * @param name The name of the thread. Useful for identification.
      */
-    threaded(const std::string& name);
+    explicit threaded(const std::string& name);
 
-    virtual ~threaded() override;
+    ~threaded() override;
 
 protected:
     /**
@@ -90,8 +90,8 @@ public:
      * @brief collection A collection of multiple sinks
      * @param sinks The sinks where the items should be distributed
      */
-    collection(std::vector<base<T>*> sinks, const std::string& name = "muon::sink");
-    collection(const std::string& name = "muon::sink");
+    explicit collection(std::vector<base<T>*> sinks, const std::string& name = "muon::sink");
+    explicit collection(const std::string& name = "muon::sink");
 
     ~collection() override;
 
@@ -225,6 +225,6 @@ void collection<T>::emplace(base<T>& sink)
     m_sinks.emplace_back(forward { sink });
 }
 
-}
+} // namespace muonpi::sink
 
-#endif // SINKBASE_H
+#endif // MUONPI_SINK_BASE_H

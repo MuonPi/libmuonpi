@@ -1,19 +1,18 @@
 #include "muonpi/gpio_handler.h"
 
-
 #include <cstring>
 
 namespace muonpi {
 
 gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
-    : thread_runner { "gpiod",true }
+    : thread_runner { "gpiod", true }
     , m_consumer { std::move(consumer_name) }
-    , m_device { gpiod_chip_open(device.c_str())}
+    , m_device { gpiod_chip_open(device.c_str()) }
 
 {
-    if ( m_device == nullptr ) {
-        log::error() << "error opening gpio chip '" << device <<"'";
-        throw std::runtime_error{"error opening gpio chip"};
+    if (m_device == nullptr) {
+        log::error() << "error opening gpio chip '" << device << "'";
+        throw std::runtime_error { "error opening gpio chip" };
     }
     read_chip_info();
     start();
@@ -23,16 +22,16 @@ gpio_handler::~gpio_handler()
 {
     stop();
 
-    for ( auto [gpio,line] : m_interrupt_lines ) {
+    for (auto [gpio, line] : m_interrupt_lines) {
         gpiod_line_release(line);
     }
 
-    for ( auto [gpio,line] : m_io_lines ) {
+    for (auto [gpio, line] : m_io_lines) {
         gpiod_line_release(line);
     }
 
-    if ( m_device != nullptr ) {
-        gpiod_chip_close( m_device );
+    if (m_device != nullptr) {
+        gpiod_chip_close(m_device);
     }
 }
 
@@ -44,8 +43,8 @@ auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpi
         auto* line = allocate_interrupt_line(settings.pin);
 
         if (gpiod_line_is_used(line)) {
-            log::error()<<"Line "<<settings.pin<<" is in use";
-            throw std::runtime_error{"Line in use"};
+            log::error() << "Line " << settings.pin << " is in use";
+            throw std::runtime_error { "Line in use" };
         }
 
         auto flags { get_flags(settings.bias) };
@@ -53,30 +52,30 @@ auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpi
         int ret = -1;
         switch (settings.edge) {
         case gpio::edge_t::Rising:
-            ret = gpiod_line_request_rising_edge_events_flags( line, m_consumer.c_str(),flags );
+            ret = gpiod_line_request_rising_edge_events_flags(line, m_consumer.c_str(), flags);
             break;
         case gpio::edge_t::Falling:
-            ret = gpiod_line_request_falling_edge_events_flags( line, m_consumer.c_str(), flags );
+            ret = gpiod_line_request_falling_edge_events_flags(line, m_consumer.c_str(), flags);
             break;
         case gpio::edge_t::Both:
-            ret = gpiod_line_request_both_edges_events_flags( line, m_consumer.c_str(), flags );
+            ret = gpiod_line_request_both_edges_events_flags(line, m_consumer.c_str(), flags);
             break;
         default:
-            log::error()<<"Gpio input line " << settings.pin << ": no valid edge defined";
+            log::error() << "Gpio input line " << settings.pin << ": no valid edge defined";
             return false;
             break;
         }
-        if ( ret < 0 ) {
-            log::error()<<"Request gpio line " << settings.pin << " for events failed";
+        if (ret < 0) {
+            log::error() << "Request gpio line " << settings.pin << " for events failed";
             return false;
         }
 
         std::map<gpio::edge_t, std::vector<gpio::callback_t>> pin_callbacks {};
         if ((settings.edge & gpio::edge_t::Falling) > 0) {
-            pin_callbacks.emplace(gpio::edge_t::Falling, std::vector<gpio::callback_t>{callback});
+            pin_callbacks.emplace(gpio::edge_t::Falling, std::vector<gpio::callback_t> { callback });
         }
         if ((settings.edge & gpio::edge_t::Rising) > 0) {
-            pin_callbacks.emplace(gpio::edge_t::Rising, std::vector<gpio::callback_t>{callback});
+            pin_callbacks.emplace(gpio::edge_t::Rising, std::vector<gpio::callback_t> { callback });
         }
 
         m_callback.emplace(settings.pin, pin_callbacks);
@@ -84,20 +83,20 @@ auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpi
 
         m_bulk_dirty = true;
 
-        log::debug()<<"Registered event callback for pin "<<settings.pin<<" '"<<m_chip.lines.at(settings.pin).name<<"'";
+        log::debug() << "Registered event callback for pin " << settings.pin << " '" << m_chip.lines.at(settings.pin).name << "'";
         return true;
     }
     auto& [def_pin, callbacks] = *it;
 
     if ((settings.edge & gpio::edge_t::Falling) > 0) {
         if (callbacks.find(gpio::edge_t::Falling) == callbacks.end()) {
-            callbacks.emplace(gpio::edge_t::Falling, std::vector<gpio::callback_t>{callback});
+            callbacks.emplace(gpio::edge_t::Falling, std::vector<gpio::callback_t> { callback });
         }
     }
 
     if ((settings.edge & gpio::edge_t::Rising) > 0) {
         if (callbacks.find(gpio::edge_t::Rising) == callbacks.end()) {
-            callbacks.emplace(gpio::edge_t::Rising, std::vector<gpio::callback_t>{callback});
+            callbacks.emplace(gpio::edge_t::Rising, std::vector<gpio::callback_t> { callback });
         }
     }
 
@@ -106,8 +105,8 @@ auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpi
 
 auto gpio_handler::set_pin_interrupt(const gpio::pins_t& pins, const gpio::callback_t& callback) -> bool
 {
-    return std::all_of(pins.begin(), pins.end(), [this, callback](const auto& settings){
-                            return set_pin_interrupt(settings, callback);
+    return std::all_of(pins.begin(), pins.end(), [this, callback](const auto& settings) {
+        return set_pin_interrupt(settings, callback);
     });
 }
 
@@ -116,25 +115,25 @@ auto gpio_handler::set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, 
     auto* line = allocate_io_line(pin);
 
     if (gpiod_line_is_used(line)) {
-        log::error()<<"Line "<<pin<<" is in use";
-        throw std::runtime_error{"Line in use"};
+        log::error() << "Line " << pin << " is in use";
+        throw std::runtime_error { "Line in use" };
     }
 
-    int ret = gpiod_line_request_output_flags( line, m_consumer.c_str(), get_flags(bias), initial_state );
+    int ret = gpiod_line_request_output_flags(line, m_consumer.c_str(), get_flags(bias), initial_state);
 
-    if ( ret < 0 ) {
-        log::error()<<"Request gpio line " << pin << " as output failed: " << std::strerror(errno);
-        throw std::runtime_error{"Line request failed"};
+    if (ret < 0) {
+        log::error() << "Request gpio line " << pin << " as output failed: " << std::strerror(errno);
+        throw std::runtime_error { "Line request failed" };
     }
 
-    return [pin, this](gpio::state_t state){
+    return [pin, this](gpio::state_t state) {
         auto* l = allocate_io_line(pin);
         if (l == nullptr) {
             return false;
         }
-        int r = gpiod_line_set_value( l, static_cast<int>(state) );
-        if ( r < 0 ) {
-            log::error()<<"Setting state of gpio line " << pin << " failed: " << std::strerror(errno);
+        int r = gpiod_line_set_value(l, static_cast<int>(state));
+        if (r < 0) {
+            log::error() << "Setting state of gpio line " << pin << " failed: " << std::strerror(errno);
             return false;
         }
         return true;
@@ -196,9 +195,9 @@ void gpio_handler::read_chip_info()
 
     for (std::size_t i { 0 }; i < chip.num_lines; i++) {
         auto* line = gpiod_chip_get_line(m_device, i);
-        auto name = gpiod_line_name(line);
-        auto consumer = gpiod_line_consumer(line);
-        gpio::chip_info::line_t l{};
+        const auto* name = gpiod_line_name(line);
+        const auto* consumer = gpiod_line_consumer(line);
+        gpio::chip_info::line_t l {};
 
         if (name == nullptr) {
             l.name = "";
@@ -223,48 +222,48 @@ void gpio_handler::read_chip_info()
 auto gpio_handler::custom_run() -> int
 {
     while (!m_quit) {
-	    if (m_bulk_dirty) {
-	        reload_bulk_interrupt();
-	    }
+        if (m_bulk_dirty) {
+            reload_bulk_interrupt();
+        }
 
-	    const timespec timeout { 1, 0 };
-	    gpiod_line_bulk event_bulk { };
-	    const int ret { gpiod_line_event_wait_bulk(&m_bulk_interrupt, &timeout, &event_bulk) };
+        const timespec timeout { 1, 0 };
+        gpiod_line_bulk event_bulk {};
+        const int ret { gpiod_line_event_wait_bulk(&m_bulk_interrupt, &timeout, &event_bulk) };
 
-	    if ( ret > 0 ) {
+        if (ret > 0) {
 
-                for (std::size_t i { 0 }; i < event_bulk.num_lines; i++) {
-                    gpiod_line_event line_event { };
-                    const int result { gpiod_line_event_read( event_bulk.lines[i], &line_event) };
-                    if ( result != 0 ) {
-                        continue;
-                    }
+            for (std::size_t i { 0 }; i < event_bulk.num_lines; i++) {
+                gpiod_line_event line_event {};
+                const int result { gpiod_line_event_read(event_bulk.lines[i], &line_event) };
+                if (result != 0) {
+                    continue;
+                }
 
-                m_events.emplace(private_event{gpiod_line_offset(event_bulk.lines[i]), line_event});
+                m_events.emplace(private_event { gpiod_line_offset(event_bulk.lines[i]), line_event });
             }
             m_events_available.notify_all();
-	    } else if ( ret < 0 ) {
-            log::error()<<"Wait for gpio line events failed: " << ret;
-	    }
+        } else if (ret < 0) {
+            log::error() << "Wait for gpio line events failed: " << ret;
+        }
     }
     return 0;
 }
 
 auto gpio_handler::pre_run() -> int
 {
-    std::mutex mx{};
-    std::unique_lock<std::mutex> lock{mx};
+    std::mutex mx {};
+    std::unique_lock<std::mutex> lock { mx };
 
-    if (m_interrupt_condition.wait_for(lock, std::chrono::seconds{5}) == std::cv_status::timeout && m_interrupt_lines.empty()) {
+    if (m_interrupt_condition.wait_for(lock, std::chrono::seconds { 5 }) == std::cv_status::timeout && m_interrupt_lines.empty()) {
         return 1;
     }
 
-    m_callback_thread = std::thread{ [&](){
+    m_callback_thread = std::thread { [&]() {
         while (!m_quit) {
             std::mutex cb_mx;
-            std::unique_lock<std::mutex> cb_lock{ cb_mx };
+            std::unique_lock<std::mutex> cb_lock { cb_mx };
 
-            m_events_available.wait( cb_lock );
+            m_events_available.wait(cb_lock);
 
             if (m_quit) {
                 return;
@@ -277,31 +276,30 @@ auto gpio_handler::pre_run() -> int
                 continue;
             }
 
-
             while (!m_events.empty()) {
                 auto event = m_events.front();
                 m_events.pop();
                 gpio::event_t evt {};
                 evt.pin = event.pin;
 
-                    switch (event.evt.event_type) {
-                    case GPIOD_LINE_EVENT_RISING_EDGE:
-                        evt.edge = gpio::edge_t::Rising;
-                        break;
-                    case GPIOD_LINE_EVENT_FALLING_EDGE:
-                        evt.edge = gpio::edge_t::Falling;
-                        break;
-                    }
-
-                    evt.time = gpio::time_t{std::chrono::seconds{event.evt.ts.tv_sec} + std::chrono::nanoseconds{event.evt.ts.tv_nsec}};
-
-                    m_event_rate.increase_counter();
-
-                    // Since no interrupts are registerred without callback, we always know that there is an associated callback
-                    for (auto& callback : m_callback.at(evt.pin).at(evt.edge)) {
-                        callback(evt);
-                    }
+                switch (event.evt.event_type) {
+                case GPIOD_LINE_EVENT_RISING_EDGE:
+                    evt.edge = gpio::edge_t::Rising;
+                    break;
+                case GPIOD_LINE_EVENT_FALLING_EDGE:
+                    evt.edge = gpio::edge_t::Falling;
+                    break;
                 }
+
+                evt.time = gpio::time_t { std::chrono::seconds { event.evt.ts.tv_sec } + std::chrono::nanoseconds { event.evt.ts.tv_nsec } };
+
+                m_event_rate.increase_counter();
+
+                // Since no interrupts are registerred without callback, we always know that there is an associated callback
+                for (auto& callback : m_callback.at(evt.pin).at(evt.edge)) {
+                    callback(evt);
+                }
+            }
 
             if (m_event_rate.step()) {
                 const float timeout_us { std::clamp(s_m * m_event_rate.mean() + s_b, 0.0F, s_max_timeout) };
@@ -330,13 +328,13 @@ auto gpio_handler::allocate_io_line(gpio::pin_t pin) -> gpiod_line*
     gpiod_line* line { nullptr };
     if (line_it == m_io_lines.end()) {
         line = gpiod_chip_get_line(m_device, pin);
-	m_io_lines.emplace(pin, line);
+        m_io_lines.emplace(pin, line);
     } else {
         line = line_it->second;
     }
-    if ( line == nullptr ) {
-        log::error()<<"error allocating gpio line " << pin;
-        throw std::runtime_error{"error allocating gpio line"};
+    if (line == nullptr) {
+        log::error() << "error allocating gpio line " << pin;
+        throw std::runtime_error { "error allocating gpio line" };
     }
     return line;
 }
@@ -347,13 +345,13 @@ auto gpio_handler::allocate_interrupt_line(gpio::pin_t pin) -> gpiod_line*
     gpiod_line* line { nullptr };
     if (line_it == m_interrupt_lines.end()) {
         line = gpiod_chip_get_line(m_device, pin);
-	m_interrupt_lines.emplace(pin, line);
+        m_interrupt_lines.emplace(pin, line);
     } else {
         line = line_it->second;
     }
-    if ( line == nullptr ) {
-        log::error()<<"error allocating gpio line " << pin;
-        throw std::runtime_error{"error allocating gpio line"};
+    if (line == nullptr) {
+        log::error() << "error allocating gpio line " << pin;
+        throw std::runtime_error { "error allocating gpio line" };
     }
     return line;
 }
@@ -374,9 +372,9 @@ auto gpio_handler::get_flags(gpio::bias_t bias) -> int
 
 void gpio_handler::reload_bulk_interrupt()
 {
-    gpiod_line_bulk_init( &m_bulk_interrupt );
-    for (auto& [gpio,line] : m_interrupt_lines) {
-        gpiod_line_bulk_add( &m_bulk_interrupt, line );
+    gpiod_line_bulk_init(&m_bulk_interrupt);
+    for (auto& [gpio, line] : m_interrupt_lines) {
+        gpiod_line_bulk_add(&m_bulk_interrupt, line);
     }
     m_bulk_dirty = false;
 }

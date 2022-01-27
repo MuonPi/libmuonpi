@@ -1,5 +1,5 @@
-#ifndef UPPERMATRIX_H
-#define UPPERMATRIX_H
+#ifndef MUONPI_ANALYSIS_UPPERMATRIX_H
+#define MUONPI_ANALYSIS_UPPERMATRIX_H
 
 #include "muonpi/global.h"
 
@@ -21,7 +21,7 @@ public:
      * @brief upper_matrix Constructs an upper triangle matrix with a dimension of n x n
      * @param n The dimension of the matrix
      */
-    upper_matrix(std::size_t n);
+    explicit upper_matrix(std::size_t n);
 
     upper_matrix();
 
@@ -105,7 +105,7 @@ private:
      */
     [[nodiscard]] inline auto iterator(std::size_t x, std::size_t y) const
     {
-        return m_elements.begin() + position(std::move(x), std::move(y));
+        return m_elements.begin() + position(x, y);
     }
 
     std::size_t m_columns { 0 };
@@ -213,5 +213,5 @@ auto upper_matrix<T>::iterate(std::size_t index, std::function<void(T&)> functio
     }
 }
 
-}
-#endif // UPPERMATRIX_H
+} // namespace muonpi
+#endif // MUONPI_ANALYSIS_UPPERMATRIX_H

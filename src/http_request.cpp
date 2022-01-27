@@ -24,13 +24,13 @@ void load_root_ca(ssl::context& ctx)
         return;
     }
 
-    X509_STORE *store = X509_STORE_new();
+    X509_STORE* store = X509_STORE_new();
     PCCERT_CONTEXT pContext = NULL;
     while ((pContext = CertEnumCertificatesInStore(hStore, pContext)) != NULL) {
-        X509 *x509 = d2i_X509(NULL,
-                              (const unsigned char **)&pContext->pbCertEncoded,
-                              pContext->cbCertEncoded);
-        if(x509 != NULL) {
+        X509* x509 = d2i_X509(NULL,
+            (const unsigned char**)&pContext->pbCertEncoded,
+            pContext->cbCertEncoded);
+        if (x509 != NULL) {
             X509_STORE_add_cert(store, x509);
             X509_free(x509);
         }
@@ -76,7 +76,7 @@ template <typename Stream>
     return res;
 }
 
-[[nodiscard]] auto https_request(destination_t destination, std::string body, std::vector<field_t> fields) -> response_type
+[[nodiscard]] auto https_request(const destination_t& destination, const std::string& body, const std::vector<field_t>& fields) -> response_type
 {
     net::io_context ioc;
 
@@ -113,7 +113,7 @@ template <typename Stream>
     // Perform the SSL handshake
     stream.handshake(ssl::stream_base::client);
 
-    response_type res { create_request(stream, std::move(destination), std::move(body), std::move(fields)) };
+    response_type res { create_request(stream, destination, body, fields) };
 
     // Gracefully close the stream
     beast::error_code ec;
@@ -132,7 +132,7 @@ template <typename Stream>
     return res;
 }
 
-auto http_request(destination_t destination, std::string body, std::vector<field_t> fields) -> response_type
+auto http_request(const destination_t& destination, const std::string& body, const std::vector<field_t>& fields) -> response_type
 {
     // The io_context is required for all I/O
     net::io_context ioc;
@@ -152,7 +152,7 @@ auto http_request(destination_t destination, std::string body, std::vector<field
     stream.connect(results);
 #endif
 
-    response_type res { create_request(stream, std::move(destination), std::move(body), std::move(fields)) };
+    response_type res { create_request(stream, destination, body, fields) };
 
     // Write the message to standard out
     // Gracefully close the socket
@@ -172,12 +172,12 @@ auto http_request(destination_t destination, std::string body, std::vector<field
     return res;
 }
 
-auto http_request(destination_t destination, std::string body, bool ssl, std::vector<field_t> fields) -> response_type
+auto http_request(const destination_t& destination, const std::string& body, bool ssl, const std::vector<field_t>& fields) -> response_type
 {
     if (ssl) {
-        return https_request(std::move(destination), std::move(body), std::move(fields));
+        return https_request(destination, body, fields);
     }
-    return http_request(std::move(destination), std::move(body), std::move(fields));
+    return http_request(destination, body, fields);
 }
 
 } // namespace muonpi::http

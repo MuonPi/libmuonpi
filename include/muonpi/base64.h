@@ -1,5 +1,5 @@
-#ifndef BASE64_H
-#define BASE64_H
+#ifndef MUONPI_BASE64_H
+#define MUONPI_BASE64_H
 
 #include "muonpi/global.h"
 
@@ -37,6 +37,6 @@ namespace muonpi::base64 {
     return tmp.append((3 - val.size() % 3) % 3, '=');
 }
 
-}
+} // namespace muonpi::base64
 
-#endif // BASE64_H
+#endif // MUONPI_BASE64_H

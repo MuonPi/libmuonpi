@@ -1,5 +1,5 @@
-#ifndef DATASERIES_H
-#define DATASERIES_H
+#ifndef MUONPI_ANALYSIS_DATASERIES_H
+#define MUONPI_ANALYSIS_DATASERIES_H
 
 #include "muonpi/global.h"
 
@@ -10,6 +10,7 @@
 #include <cmath>
 #include <functional>
 #include <list>
+#include <mutex>
 #include <numeric>
 #include <shared_mutex>
 
@@ -112,7 +113,8 @@ private:
         }
         if (type == mean_t::geometric) {
             return std::pow(std::accumulate(m_data.begin(), m_data.end(), 0.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
-        } else if (type == mean_t::harmonic) {
+        }
+        if (type == mean_t::harmonic) {
             return static_cast<T>(n()) / std::accumulate(m_data.begin(), m_data.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
         }
         return std::accumulate(m_data.begin(), m_data.end(), 0.0) / static_cast<T>(n());
@@ -206,7 +208,7 @@ data_series<T, Sample>::data_series(std::size_t n) noexcept
 template <typename T, bool Sample>
 void data_series<T, Sample>::add(T value)
 {
-    std::unique_lock lock { m_mutex };
+    std::unique_lock<std::shared_mutex> lock { m_mutex };
     m_data.emplace_back(value);
 
     if (n() > m_n) {
@@ -234,7 +236,8 @@ auto data_series<T, Sample>::mean(const mean_t& type) const -> T
 {
     if (type == mean_t::geometric) {
         return m_geometric_mean.get();
-    } else if (type == mean_t::harmonic) {
+    }
+    if (type == mean_t::harmonic) {
         return m_harmonic_mean.get();
     }
     return m_arithmetic_mean.get();
@@ -286,6 +289,6 @@ void data_series<T, Sample>::reset(std::size_t n)
     reset();
 }
 
-}
+} // namespace muonpi
 
-#endif // DATASERIES_H
+#endif // MUONPI_ANALYSIS_DATASERIES_H

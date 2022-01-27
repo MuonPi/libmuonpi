@@ -6,8 +6,8 @@
 #include "detail/http_session.hpp"
 
 #include <sstream>
-#include <utility>
 #include <thread>
+#include <utility>
 
 namespace muonpi::http {
 

@@ -1,5 +1,5 @@
-#ifndef HTTP_TOOLS_H
-#define HTTP_TOOLS_H
+#ifndef MUONPI_HTTP_TOOLS_H
+#define MUONPI_HTTP_TOOLS_H
 
 #include "muonpi/log.h"
 
@@ -46,7 +46,7 @@ namespace detail {
     using ssl_stream_t = beast::ssl_stream<beast::tcp_stream>;
     using tcp_stream_t = beast::tcp_stream;
 #endif
-}
+} // namespace detail
 
-}
-#endif // HTTP_TOOLS_H
+} // namespace muonpi::http
+#endif // MUONPI_HTTP_TOOLS_H

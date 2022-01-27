@@ -1,5 +1,5 @@
-#ifndef REST_SERVICE_H
-#define REST_SERVICE_H
+#ifndef MUONPI_HTTP_SERVER_H
+#define MUONPI_HTTP_SERVER_H
 
 #include "muonpi/global.h"
 #include "muonpi/http_tools.h"
@@ -21,7 +21,7 @@ public:
         json
     };
 
-    http_response(request_type& req, content_type content, std::string application_name = "libmuonpi-" + Version::libmuonpi::string())
+    http_response(request_type& req, content_type content, const std::string& application_name = "libmuonpi-" + Version::libmuonpi::string())
         : m_response { Status, req.version() }
     {
         m_response.set(beast::http::field::server, application_name);
@@ -38,7 +38,7 @@ public:
         m_response.keep_alive(req.keep_alive());
     }
 
-    http_response(request_type& req)
+    explicit http_response(request_type& req)
         : http_response<Status> { req, content_type::html }
     {
     }
@@ -79,7 +79,7 @@ public:
         std::string fullchain {};
     };
 
-    http_server(configuration config);
+    explicit http_server(configuration config);
 
     void add_handler(path_handler han);
 
@@ -105,6 +105,6 @@ private:
     configuration m_conf;
 };
 
-}
+} // namespace muonpi::http
 
-#endif // REST_SERVICE_H
+#endif // MUONPI_HTTP_SERVER_H

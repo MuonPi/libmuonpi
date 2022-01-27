@@ -1,5 +1,5 @@
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef MUONPI_UTILITY_H
+#define MUONPI_UTILITY_H
 
 #include "muonpi/global.h"
 
@@ -22,7 +22,7 @@ public:
      * @brief MessageConstructor
      * @param delimiter The delimiter which separates the fields
      */
-    message_constructor(char delimiter);
+    explicit message_constructor(char delimiter);
 
     /**
      * @brief add_field Adds a field to the complete message
@@ -110,5 +110,5 @@ private:
     std::uint64_t m_second { 0 };
 };
 
-}
-#endif // UTILITY_H
+} // namespace muonpi
+#endif // MUONPI_UTILITY_H

@@ -1,5 +1,5 @@
-#ifndef MQTTLINK_H
-#define MQTTLINK_H
+#ifndef MUONPI_LINK_MQTT_H
+#define MUONPI_LINK_MQTT_H
 
 #include "muonpi/global.h"
 
@@ -12,6 +12,7 @@
 #include <queue>
 #include <regex>
 #include <string>
+#include <utility>
 
 #include <mosquitto.h>
 
@@ -35,13 +36,13 @@ public:
 
 class LIBMUONPI_PUBLIC config_option_not_found : std::runtime_error {
 public:
-    config_option_not_found(const std::string& name)
+    explicit config_option_not_found(const std::string& name)
         : std::runtime_error { "Could not find configuration option '" + name + "'" }
     {
     }
 };
 
-}
+} // namespace muonpi::error
 
 namespace muonpi::link {
 
@@ -72,9 +73,9 @@ public:
 
     struct message_t {
         message_t() = default;
-        message_t(const std::string& a_topic, const std::string& a_content)
-            : topic { a_topic }
-            , content { a_content }
+        message_t(std::string a_topic, std::string a_content)
+            : topic { std::move(a_topic) }
+            , content { std::move(a_content) }
         {
         }
         std::string topic {};
@@ -86,9 +87,9 @@ public:
      */
     class publisher {
     public:
-        publisher(mqtt* link, const std::string& topic)
+        publisher(mqtt* link, std::string topic)
             : m_link { link }
-            , m_topic { topic }
+            , m_topic { std::move(topic) }
         {
         }
 
@@ -142,9 +143,9 @@ public:
      */
     class subscriber {
     public:
-        subscriber(mqtt* link, const std::string& topic)
+        subscriber(mqtt* link, std::string topic)
             : m_link { link }
-            , m_topic { topic }
+            , m_topic { std::move(topic) }
         {
         }
 
@@ -183,7 +184,7 @@ public:
      */
     mqtt(configuration config, std::string station_id, const std::string& name = "muon::mqtt");
 
-    mqtt(std::string station_id, const std::string& name = "muon::mqtt");
+    explicit mqtt(std::string station_id, const std::string& name = "muon::mqtt");
 
     ~mqtt() override;
 
@@ -311,6 +312,6 @@ private:
     friend void wrapper_callback_message(mosquitto* mqtt, void* object, const mosquitto_message* message);
 };
 
-}
+} // namespace muonpi::link
 
-#endif // MQTTLINK_H
+#endif // MUONPI_LINK_MQTT_H

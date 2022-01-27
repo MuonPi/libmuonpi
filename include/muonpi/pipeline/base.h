@@ -1,5 +1,5 @@
-#ifndef PIPELINE_H
-#define PIPELINE_H
+#ifndef MUONPI_PIPELINE_BASE_H
+#define MUONPI_PIPELINE_BASE_H
 
 #include "muonpi/global.h"
 
@@ -11,7 +11,7 @@ namespace muonpi::pipeline {
 template <typename T>
 class LIBMUONPI_PUBLIC base : public sink::base<T>, public source::base<T> {
 public:
-    base(sink::base<T>& sink);
+    explicit base(sink::base<T>& sink);
 };
 
 template <typename T>
@@ -20,6 +20,6 @@ base<T>::base(sink::base<T>& sink)
 {
 }
 
-}
+} // namespace muonpi::pipeline
 
-#endif // PIPELINE_H
+#endif // MUONPI_PIPELINE_BASE_H
