@@ -66,7 +66,8 @@ enum edge_t {
  */
 enum state_t : int {
     Low = 0,
-    High = 1
+    High = 1,
+	Undefined = -1
 };
 
 
@@ -137,7 +138,15 @@ public:
      * @param bias The bias settings for the pin
      * @return A lambda which can be used to set the state of the pin.
      */
-    [[nodiscard]] auto set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, gpio::bias_t bias) -> std::function<bool(gpio::state_t)>;
+    [[nodiscard]] auto set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, gpio::bias_t bias = gpio::bias_t::Disabled) -> std::function<bool(gpio::state_t)>;
+
+    /**
+     * @brief get_pin_input Configure a pin to function as an input pin
+     * @param pin The pin number to configure
+     * @param bias The bias settings for the pin
+     * @return A lambda which can be used to read the state of the pin.
+     */
+    [[nodiscard]] auto get_pin_input(gpio::pin_t pin, gpio::bias_t bias = gpio::bias_t::Disabled) -> std::function<gpio::state_t()>;
 
     /**
      * @brief start_inhibit Stop all event processing.
@@ -181,7 +190,7 @@ private:
     void read_chip_info();
 
     /**
-     * @brief allocate_output_line Allocates a line for output, or returns the line if already allocated
+     * @brief allocate_io_line Allocates a line for output, or returns the line if already allocated
      * @param pin the pin number to use
      */
     [[nodiscard]] auto allocate_io_line(gpio::pin_t pin) -> gpiod_line*;
