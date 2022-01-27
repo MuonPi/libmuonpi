@@ -54,7 +54,7 @@ private:
 template <typename T, bool Sample>
 rate_measurement<T, Sample>::rate_measurement(std::size_t n, std::chrono::seconds t) noexcept
     : data_series<T, Sample>(n)
-    , m_t { std::move(t) }
+    , m_t { t }
 {
 }
 
@@ -82,5 +82,5 @@ auto rate_measurement<T, Sample>::step(const std::chrono::system_clock::time_poi
     return false;
 }
 
-}
+} // namespace muonpi
 #endif // RATEMEASUREMENT_H

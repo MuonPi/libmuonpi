@@ -28,9 +28,9 @@ enum Level : int {
 class LIBMUONPI_PUBLIC system {
 public:
     /**
-        * @brief
-        * @param l Maximum Log level to show
-        */
+     * @brief
+     * @param l Maximum Log level to show
+     */
     static void setup(
         Level l, std::function<void(int)> callback = [](int c) { exit(c); }, std::ostream& str = std::cerr);
 
@@ -58,8 +58,8 @@ public:
         return *this;
     }
 
-    logger(const std::string& component, int exit_code = 0)
-        : m_exit_code { std::move(exit_code) }
+    explicit logger(const std::string& component, int exit_code = 0)
+        : m_exit_code { exit_code }
     {
         m_stream << to_string();
         if (!component.empty()) {
@@ -79,7 +79,7 @@ public:
                              << std::flush;
         }
         if (L <= Level::Critical) {
-            system::callback(std::move(m_exit_code));
+            system::callback(m_exit_code);
         }
     }
 
@@ -120,6 +120,6 @@ private:
 [[nodiscard]] auto LIBMUONPI_PUBLIC alert(int exit_code = 1, const std::string& component = {}) -> logger<Level::Alert>;
 [[nodiscard]] auto LIBMUONPI_PUBLIC emergency(int exit_code = 1, const std::string& component = {}) -> logger<Level::Emergency>;
 
-}
+} // namespace muonpi::log
 
 #endif // LOG_H

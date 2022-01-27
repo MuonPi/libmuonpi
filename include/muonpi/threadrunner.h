@@ -22,7 +22,7 @@ public:
         Running,
         Finalising
     };
-    thread_runner(std::string name, bool use_custom_run = false);
+    explicit thread_runner(std::string name, bool use_custom_run = false);
 
     /**
      * @brief ~thread_runner Stops the thread and waits for it to finish.
@@ -133,6 +133,6 @@ private:
     std::condition_variable m_state_condition;
 };
 
-}
+} // namespace muonpi
 
 #endif // THREADRUNNER_H

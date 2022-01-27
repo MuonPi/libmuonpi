@@ -193,6 +193,6 @@ void session<Stream>::notify()
     m_done.notify_all();
 }
 
-} // namespace muonpi::http
+} // namespace muonpi::http::detail
 
 #endif //  MUONPI_HTTP_SESSION_H

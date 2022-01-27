@@ -46,7 +46,7 @@ namespace detail {
     using ssl_stream_t = beast::ssl_stream<beast::tcp_stream>;
     using tcp_stream_t = beast::tcp_stream;
 #endif
-}
+} // namespace detail
 
-}
+} // namespace muonpi::http
 #endif // HTTP_TOOLS_H

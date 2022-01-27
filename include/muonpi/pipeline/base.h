@@ -11,7 +11,7 @@ namespace muonpi::pipeline {
 template <typename T>
 class LIBMUONPI_PUBLIC base : public sink::base<T>, public source::base<T> {
 public:
-    base(sink::base<T>& sink);
+    explicit base(sink::base<T>& sink);
 };
 
 template <typename T>
@@ -20,6 +20,6 @@ base<T>::base(sink::base<T>& sink)
 {
 }
 
-}
+} // namespace muonpi::pipeline
 
 #endif // PIPELINE_H

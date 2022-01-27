@@ -30,6 +30,6 @@ private:
 
     bool m_first { true };
 };
-}
+} // namespace muonpi::supervision
 
 #endif // RESOURCETRACKER_H

@@ -20,7 +20,7 @@ template <typename T>
  */
 class LIBMUONPI_PUBLIC base {
 public:
-    base(sink::base<T>& sink);
+    explicit base(sink::base<T>& sink);
 
     /**
      * @brief ~base The destructor. If this gets called while the event loop is still running, it will tell the loop to finish and wait for it to be done.
@@ -53,6 +53,6 @@ void base<T>::put(T item)
     m_sink.get(std::move(item));
 }
 
-}
+} // namespace muonpi::source
 
 #endif // ABSTRACTEVENTSOURCE_H

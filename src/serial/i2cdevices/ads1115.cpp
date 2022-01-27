@@ -1,121 +1,124 @@
 #include "muonpi/serial/i2cdevices/ads1115.h"
 #include <future>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 namespace muonpi::serial::devices {
 
 /*
-* ADS1115 4ch 16 bit ADC
-*/
-constexpr uint16_t HI_RANGE_LIMIT { static_cast<uint16_t>( ADS1115::MAX_ADC_VALUE * 0.8 ) };
-constexpr uint16_t LO_RANGE_LIMIT { static_cast<uint16_t>( ADS1115::MAX_ADC_VALUE * 0.2 ) };
+ * ADS1115 4ch 16 bit ADC
+ */
+constexpr uint16_t HI_RANGE_LIMIT { static_cast<uint16_t>(ADS1115::MAX_ADC_VALUE * 0.8) };
+constexpr uint16_t LO_RANGE_LIMIT { static_cast<uint16_t>(ADS1115::MAX_ADC_VALUE * 0.2) };
 
-constexpr std::chrono::microseconds loop_delay { 100L };
-
-
-bool ADS1115::Sample::operator==(const Sample& other) 
+auto ADS1115::Sample::operator==(const Sample& other) -> bool
 {
-	return ( value==other.value && voltage==other.voltage && channel==other.channel && timestamp==other.timestamp );
+    return (value == other.value && voltage == other.voltage && channel == other.channel && timestamp == other.timestamp);
 }
 
-bool ADS1115::Sample::operator!=(const Sample& other) 
+auto ADS1115::Sample::operator!=(const Sample& other) -> bool
 {
-	return ( !(*this == other) );
+    return (!(*this == other));
 }
-		
-auto ADS1115::adcToVoltage( int16_t adc, const CFG_PGA pga_setting ) -> float
+
+auto ADS1115::adcToVoltage(int16_t adc, const CFG_PGA pga_setting) -> float
 {
-	return ( adc * lsb_voltage(pga_setting) );
+    return (adc * lsb_voltage(pga_setting));
 }
 
 ADS1115::ADS1115(i2c_bus& bus, std::uint8_t address)
-	: i2c_device( bus, address )
+    : i2c_device(bus, address)
 {
-	set_title("ADS1115");
-	init();
+    set_title("ADS1115");
+    init();
 }
 
-ADS1115::~ADS1115() {
-}
+ADS1115::~ADS1115()
+    = default;
 
 void ADS1115::init()
 {
-	fRate = 0x00; // RATE8
+    fRate = 0x00; // RATE8
 }
 
 void ADS1115::setPga(uint8_t channel, CFG_PGA pga)
 {
-	if (channel > 3)
-		return;
-	fPga[channel] = pga;
+    if (channel > 3) {
+        return;
+    }
+    fPga[channel] = pga;
 }
 
-void ADS1115::setActiveChannel( uint8_t channel, bool differential_mode ) {
-	fSelectedChannel = channel;
-	fDiffMode = differential_mode;
-}
-
-bool ADS1115::setContinuousSampling( bool cont_sampling )
+void ADS1115::setActiveChannel(uint8_t channel, bool differential_mode)
 {
-	fConvMode = ( cont_sampling ) ? CONV_MODE::CONTINUOUS : CONV_MODE::SINGLE;
-	return writeConfig();
+    fSelectedChannel = channel;
+    fDiffMode = differential_mode;
 }
 
-bool ADS1115::writeConfig( bool startNewConversion )
+auto ADS1115::setContinuousSampling(bool cont_sampling) -> bool
 {
-	uint16_t conf_reg { 0 };
-	
-	// read in the current contents of config reg only if conv_mode is unknown
-	if ( fConvMode == CONV_MODE::UNKNOWN ) {
-		if ( !read(static_cast<uint8_t>(REG::CONFIG), &conf_reg) ) return false;
-		if ( ( conf_reg & 0x0100 ) == 0 ) { 
-			fConvMode = CONV_MODE::CONTINUOUS;
-		} else {
-			fConvMode = CONV_MODE::SINGLE;
-		}
-	}
-	
+    fConvMode = (cont_sampling) ? CONV_MODE::CONTINUOUS : CONV_MODE::SINGLE;
+    return writeConfig();
+}
+
+auto ADS1115::writeConfig(bool startNewConversion) -> bool
+{
+    uint16_t conf_reg { 0 };
+
+    // read in the current contents of config reg only if conv_mode is unknown
+    if (fConvMode == CONV_MODE::UNKNOWN) {
+        if (!read(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
+            return false;
+        }
+        if ((conf_reg & 0x0100) == 0) {
+            fConvMode = CONV_MODE::CONTINUOUS;
+        } else {
+            fConvMode = CONV_MODE::SINGLE;
+        }
+    }
+
     conf_reg = 0;
-	
-    if ( fConvMode == CONV_MODE::SINGLE && startNewConversion ) {
-		conf_reg = 0x8000; // set OS bit 
-	}
-    if ( !fDiffMode ) {
+
+    if (fConvMode == CONV_MODE::SINGLE && startNewConversion) {
+        conf_reg = 0x8000; // set OS bit
+    }
+    if (!fDiffMode) {
         conf_reg |= 0x4000; // single ended mode channels
-	}
-    conf_reg |= ( fSelectedChannel & 0x03 ) << 12; // channel select
-    if ( fConvMode == CONV_MODE::SINGLE ) {
-		conf_reg |= 0x0100; // single shot mode
-	}
-    conf_reg |= ( static_cast<uint8_t>( fPga[fSelectedChannel] ) & 0x07 ) << 9; // PGA gain select
+    }
+    conf_reg |= (fSelectedChannel & 0x03) << 12; // channel select
+    if (fConvMode == CONV_MODE::SINGLE) {
+        conf_reg |= 0x0100; // single shot mode
+    }
+    conf_reg |= (static_cast<uint8_t>(fPga[fSelectedChannel]) & 0x07) << 9; // PGA gain select
 
     // This sets the 8 LSBs of the config register (bits 7-0)
     conf_reg |= 0x00; // TODO: enable ALERT/RDY pin
     conf_reg |= (fRate & 0x07) << 5;
-	
-	if ( !write(static_cast<uint8_t>(REG::CONFIG), &conf_reg) ) return false;
-	fCurrentChannel = fSelectedChannel;
-	return true;
+
+    if (!write(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
+        return false;
+    }
+    fCurrentChannel = fSelectedChannel;
+    return true;
 }
 
-void ADS1115::waitConversionFinished(bool& error) {
+void ADS1115::waitConversionFinished(bool& error)
+{
     uint16_t conf_reg { 0 };
     // Wait for the conversion to complete, this requires bit 15 to change from 0->1
     int nloops = 0;
     while ((conf_reg & 0x8000) == 0 && nloops * fReadWaitDelay / 1000 < 1000) // readBuf[0] contains 8 MSBs of config register, AND with 10000000 to select bit 15
     {
-		std::this_thread::sleep_for( std::chrono::microseconds( fReadWaitDelay) );
-        if ( !read(static_cast<uint8_t>(REG::CONFIG), &conf_reg) ) 
-		{ 
-			error = true;
-			return;
-		}
+        std::this_thread::sleep_for(std::chrono::microseconds(fReadWaitDelay));
+        if (!read(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
+            error = true;
+            return;
+        }
         nloops++;
     }
     if (nloops * fReadWaitDelay / 1000 >= 1000) {
-		error = true;
-		return;
+        error = true;
+        return;
     }
     if (nloops > 1) {
         fReadWaitDelay += (nloops - 1) * fReadWaitDelay / 10;
@@ -123,133 +126,141 @@ void ADS1115::waitConversionFinished(bool& error) {
     error = false;
 }
 
-bool ADS1115::readConversionResult( int16_t& dataword )
+auto ADS1115::readConversionResult(int16_t& dataword) -> bool
 {
     uint16_t data { 0 };
-	// Read the contents of the conversion register into readBuf
-    if ( !read(static_cast<uint8_t>(REG::CONVERSION), &data) ) return false;
+    // Read the contents of the conversion register into readBuf
+    if (!read(static_cast<uint8_t>(REG::CONVERSION), &data)) {
+        return false;
+    }
 
     dataword = static_cast<int16_t>(data);
-	
-	return true;
+
+    return true;
 }
 
-ADS1115::Sample ADS1115::getSample( unsigned int channel )
+auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
 {
-	//if ( fConvMode != CONV_MODE::SINGLE ) return InvalidSample;
-	std::lock_guard<std::mutex> lock(fMutex);
-	int16_t conv_result; // Stores the 16 bit value of our ADC conversion
+    // if ( fConvMode != CONV_MODE::SINGLE ) return InvalidSample;
+    std::lock_guard<std::mutex> lock(fMutex);
+    int16_t conv_result = 0; // Stores the 16 bit value of our ADC conversion
 
     fConvMode = CONV_MODE::SINGLE;
-	fSelectedChannel = channel;
-	
-	start_timer();
+    fSelectedChannel = channel;
 
-	// Write the current config to the ADS1115
+    start_timer();
+
+    // Write the current config to the ADS1115
     // and begin a single conversion
-    if ( !writeConfig( true ) ) {
-		return InvalidSample;
-	}
+    if (!writeConfig(true)) {
+        return InvalidSample;
+    }
 
-	bool err { false };
-	waitConversionFinished(err);
-	if ( err ) {
-		return InvalidSample;
-	}
+    bool err { false };
+    waitConversionFinished(err);
+    if (err) {
+        return InvalidSample;
+    }
 
-		if ( !readConversionResult( conv_result ) ) {
-		return InvalidSample;
-	}
-    
+    if (!readConversionResult(conv_result)) {
+        return InvalidSample;
+    }
+
     stop_timer();
-	
-	Sample sample
-	{ 
-		std::chrono::steady_clock::now(), 
-		conv_result, 
-		adcToVoltage( conv_result, fPga[fCurrentChannel] ),
-		lsb_voltage( fPga[fCurrentChannel] ),
-		fCurrentChannel
-	};
-	if ( fConvReadyFn && sample != InvalidSample ) fConvReadyFn( sample );
 
-	if ( fAGC[fCurrentChannel] ) {
+    Sample sample {
+        std::chrono::steady_clock::now(),
+        conv_result,
+        adcToVoltage(conv_result, fPga[fCurrentChannel]),
+        lsb_voltage(fPga[fCurrentChannel]),
+        fCurrentChannel
+    };
+    if (fConvReadyFn && sample != InvalidSample) {
+        fConvReadyFn(sample);
+    }
+
+    if (fAGC[fCurrentChannel]) {
         int eadc = std::abs(conv_result);
-        if ( eadc > HI_RANGE_LIMIT && fPga[fCurrentChannel] > PGA6V ) {
+        if (eadc > HI_RANGE_LIMIT && fPga[fCurrentChannel] > PGA6V) {
             fPga[fCurrentChannel] = CFG_PGA(fPga[fCurrentChannel] - 1);
-            //if (fDebugLevel > 1) printf("ADC input high...setting PGA to level %d\n", fPga[fCurrentChannel]);
-        } else if ( eadc < LO_RANGE_LIMIT && fPga[fCurrentChannel] < PGA256MV ) {
+            // if (fDebugLevel > 1) printf("ADC input high...setting PGA to level %d\n", fPga[fCurrentChannel]);
+        } else if (eadc < LO_RANGE_LIMIT && fPga[fCurrentChannel] < PGA256MV) {
             fPga[fCurrentChannel] = CFG_PGA(fPga[fCurrentChannel] + 1);
-            //if (fDebugLevel > 1) printf("ADC input low...setting PGA to level %d\n", fPga[fCurrentChannel]);
+            // if (fDebugLevel > 1) printf("ADC input low...setting PGA to level %d\n", fPga[fCurrentChannel]);
         }
     }
-	fLastSample[fCurrentChannel] = sample;
+    fLastSample[fCurrentChannel] = sample;
     return sample;
 }
 
-bool ADS1115::triggerConversion( unsigned int channel )
+auto ADS1115::triggerConversion(unsigned int channel) -> bool
 {
-	// triggering a conversion makes only sense in single shot mode
-	if ( fConvMode == CONV_MODE::SINGLE ) {
-		try {
-			std::thread sampler( &ADS1115::getSample, this, channel );
-			sampler.detach();
-			return true;
-		} catch (...) { }
-	}
-	return false;
-}
-
-ADS1115::Sample ADS1115::conversionFinished()
-{
-	std::lock_guard<std::mutex> lock(fMutex);
-	int16_t conv_result; // Stores the 16 bit value of our ADC conversion
-
-	if ( !readConversionResult( conv_result ) ) {
-		return InvalidSample;
-	}
-    
-    stop_timer();
-	start_timer();
-	
-	Sample sample
-	{ 
-		std::chrono::steady_clock::now(),
-		conv_result, 
-		adcToVoltage( conv_result, fPga[fCurrentChannel] ),
-		lsb_voltage( fPga[fCurrentChannel] ),
-		fCurrentChannel
-	};
-	if ( fConvReadyFn && sample != InvalidSample ) fConvReadyFn( sample );
-
-	if ( fAGC[fCurrentChannel] ) {
-        int eadc = std::abs(conv_result);
-        if ( eadc > HI_RANGE_LIMIT && fPga[fCurrentChannel] > PGA6V ) {
-            fPga[fCurrentChannel] = CFG_PGA(fPga[fCurrentChannel] - 1);
-            //if (fDebugLevel > 1) printf("ADC input high...setting PGA to level %d\n", fPga[fCurrentChannel]);
-        } else if ( eadc < LO_RANGE_LIMIT && fPga[fCurrentChannel] < PGA256MV ) {
-            fPga[fCurrentChannel] = CFG_PGA(fPga[fCurrentChannel] + 1);
-            //if (fDebugLevel > 1) printf("ADC input low...setting PGA to level %d\n", fPga[fCurrentChannel]);
+    // triggering a conversion makes only sense in single shot mode
+    if (fConvMode == CONV_MODE::SINGLE) {
+        try {
+            std::thread sampler(&ADS1115::getSample, this, channel);
+            sampler.detach();
+            return true;
+        } catch (...) {
         }
     }
-	fLastSample[fCurrentChannel] = sample;
+    return false;
+}
+
+auto ADS1115::conversionFinished() -> ADS1115::Sample
+{
+    std::lock_guard<std::mutex> lock(fMutex);
+    int16_t conv_result = 0; // Stores the 16 bit value of our ADC conversion
+
+    if (!readConversionResult(conv_result)) {
+        return InvalidSample;
+    }
+
+    stop_timer();
+    start_timer();
+
+    Sample sample {
+        std::chrono::steady_clock::now(),
+        conv_result,
+        adcToVoltage(conv_result, fPga[fCurrentChannel]),
+        lsb_voltage(fPga[fCurrentChannel]),
+        fCurrentChannel
+    };
+    if (fConvReadyFn && sample != InvalidSample) {
+        fConvReadyFn(sample);
+    }
+
+    if (fAGC[fCurrentChannel]) {
+        int eadc = std::abs(conv_result);
+        if (eadc > HI_RANGE_LIMIT && fPga[fCurrentChannel] > PGA6V) {
+            fPga[fCurrentChannel] = CFG_PGA(fPga[fCurrentChannel] - 1);
+            // if (fDebugLevel > 1) printf("ADC input high...setting PGA to level %d\n", fPga[fCurrentChannel]);
+        } else if (eadc < LO_RANGE_LIMIT && fPga[fCurrentChannel] < PGA256MV) {
+            fPga[fCurrentChannel] = CFG_PGA(fPga[fCurrentChannel] + 1);
+            // if (fDebugLevel > 1) printf("ADC input low...setting PGA to level %d\n", fPga[fCurrentChannel]);
+        }
+    }
+    fLastSample[fCurrentChannel] = sample;
     return sample;
 }
 
-int16_t ADS1115::readADC(unsigned int channel)
+auto ADS1115::readADC(unsigned int channel) -> int16_t
 {
-	try {
-		std::future<Sample> sample_future = std::async(&ADS1115::getSample, this, channel);
-		sample_future.wait();
-		if ( sample_future.valid() ) {
-			Sample sample { sample_future.get() };
-			if ( sample != InvalidSample ) return sample.value;
-		}
-	} catch (...) { }
-	return INT16_MIN;
+    try {
+        std::future<Sample> sample_future = std::async(&ADS1115::getSample, this, channel);
+        sample_future.wait();
+        if (sample_future.valid()) {
+            Sample sample { sample_future.get() };
+            if (sample != InvalidSample) {
+                return sample.value;
+            }
+        }
+    } catch (...) {
+    }
+    return INT16_MIN;
 }
 
-bool ADS1115::setLowThreshold(int16_t thr)
+auto ADS1115::setLowThreshold(int16_t thr) -> bool
 {
     uint8_t writeBuf[3]; // Buffer to store the 3 bytes that we write to the I2C device
     uint8_t readBuf[2]; // 2 byte buffer to store the data read from the I2C device
@@ -267,19 +278,22 @@ bool ADS1115::setLowThreshold(int16_t thr)
     // Write writeBuf to the ADS1115, the 3 specifies the number of bytes we are writing,
     // this sets the Lo_thresh register
     int n = write(writeBuf, 3);
-    if (n != 3)
+    if (n != 3) {
         return false;
+    }
     n = read(readBuf, 2); // Read the same register into readBuf for verification
-    if (n != 2)
+    if (n != 2) {
         return false;
+    }
 
-    if ((readBuf[0] != writeBuf[1]) || (readBuf[1] != writeBuf[2]))
+    if ((readBuf[0] != writeBuf[1]) || (readBuf[1] != writeBuf[2])) {
         return false;
+    }
     stop_timer();
     return true;
 }
 
-bool ADS1115::setHighThreshold(int16_t thr)
+auto ADS1115::setHighThreshold(int16_t thr) -> bool
 {
     uint8_t writeBuf[3]; // Buffer to store the 3 bytes that we write to the I2C device
     uint8_t readBuf[2]; // 2 byte buffer to store the data read from the I2C device
@@ -297,20 +311,23 @@ bool ADS1115::setHighThreshold(int16_t thr)
     // Write writeBuf to the ADS1115, the 3 specifies the number of bytes we are writing,
     // this sets the Hi_thresh register
     int n = write(writeBuf, 3);
-    if (n != 3)
+    if (n != 3) {
         return false;
+    }
 
     n = read(readBuf, 2); // Read the same register into readBuf for verification
-    if (n != 2)
+    if (n != 2) {
         return false;
+    }
 
-    if ((readBuf[0] != writeBuf[1]) || (readBuf[1] != writeBuf[2]))
+    if ((readBuf[0] != writeBuf[1]) || (readBuf[1] != writeBuf[2])) {
         return false;
+    }
     stop_timer();
     return true;
 }
 
-bool ADS1115::setDataReadyPinMode()
+auto ADS1115::setDataReadyPinMode() -> bool
 {
     // c.f. datasheet, par. 9.3.8, p. 19
     // set MSB of Lo_thresh reg to 0
@@ -318,38 +335,54 @@ bool ADS1115::setDataReadyPinMode()
     // set COMP_QUE[1:0] to any value other than '11' (default value)
     bool ok = setLowThreshold(static_cast<int16_t>(0b0000000000000000));
     ok = ok && setHighThreshold(static_cast<int16_t>(0b1111111111111111));
-	ok = ok && setCompQueue( 0x00 );
+    ok = ok && setCompQueue(0x00);
     return ok;
 }
 
-bool ADS1115::setCompQueue( uint8_t bitpattern )
+auto ADS1115::setCompQueue(uint8_t bitpattern) -> bool
 {
-	std::uint16_t conf_reg { 0 };
-	if ( !read(static_cast<uint8_t>(REG::CONFIG), &conf_reg) ) return false;
-	conf_reg &= 0b11111100;
-	conf_reg |= bitpattern & 0b00000011;
-	if ( !write(static_cast<uint8_t>(REG::CONFIG), &conf_reg) ) return false;
-	return true;
+    std::uint16_t conf_reg { 0 };
+    if (!read(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
+        return false;
+    }
+    conf_reg &= 0b11111100;
+    conf_reg |= bitpattern & 0b00000011;
+    if (!write(static_cast<uint8_t>(REG::CONFIG), &conf_reg)) {
+        return false;
+    }
+    return true;
 }
 
 auto ADS1115::identify() -> bool
 {
-	if ( flag_set(Flags::Failed) ) return false;
-	if ( !present() ) return false;
-	
-	uint16_t dataword { 0 };
-	if ( !read(static_cast<uint8_t>(REG::CONFIG), &dataword) ) return false;
-	if ( ( (dataword & 0x8000) == 0 ) && (dataword & 0x0100) ) return false;
-	uint16_t dataword2 { 0 };
-	// try to read at addr conf_reg+4 and compare with the previously read config register
-	// both should be identical since only the 2 LSBs of the pointer register are evaluated by the ADS1115
-	if ( !read(static_cast<uint8_t>(REG::CONFIG) | 0x04, &dataword2) ) return false;
-	if ( dataword != dataword2 ) return false;
-	
-	return true;
+    if (flag_set(Flags::Failed)) {
+        return false;
+    }
+    if (!present()) {
+        return false;
+    }
+
+    uint16_t dataword { 0 };
+    if (!read(static_cast<uint8_t>(REG::CONFIG), &dataword)) {
+        return false;
+    }
+    if (((dataword & 0x8000) == 0) && (dataword & 0x0100)) {
+        return false;
+    }
+    uint16_t dataword2 { 0 };
+    // try to read at addr conf_reg+4 and compare with the previously read config register
+    // both should be identical since only the 2 LSBs of the pointer register are evaluated by the ADS1115
+    if (!read(static_cast<uint8_t>(REG::CONFIG) | 0x04, &dataword2)) {
+        return false;
+    }
+    if (dataword != dataword2) {
+        return false;
+    }
+
+    return true;
 }
 
-double ADS1115::getVoltage(unsigned int channel)
+auto ADS1115::getVoltage(unsigned int channel) -> double
 {
     double voltage = 0.;
     getVoltage(channel, voltage);
@@ -366,23 +399,25 @@ void ADS1115::getVoltage(unsigned int channel, int16_t& adc, double& voltage)
 {
     Sample sample = getSample(channel);
     adc = sample.value;
-	voltage = sample.voltage;
+    voltage = sample.voltage;
 }
 
-void ADS1115::setAGC(bool state) 
+void ADS1115::setAGC(bool state)
 {
-	fAGC[0] = fAGC[1] = fAGC[2] = fAGC[3] = state;
+    fAGC[0] = fAGC[1] = fAGC[2] = fAGC[3] = state;
 }
 
-void ADS1115::setAGC(uint8_t channel, bool state) 
+void ADS1115::setAGC(uint8_t channel, bool state)
 {
-	if ( channel > 3 ) return;
-	fAGC[channel] = state;
+    if (channel > 3) {
+        return;
+    }
+    fAGC[channel] = state;
 }
 
-bool ADS1115::getAGC(uint8_t channel) const 
-{ 
-	return fAGC[channel & 0x03]; 
+auto ADS1115::getAGC(uint8_t channel) const -> bool
+{
+    return fAGC[channel & 0x03];
 }
 
 } // namespace muonpi::serial::devices

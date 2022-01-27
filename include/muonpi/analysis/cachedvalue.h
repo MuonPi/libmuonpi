@@ -61,5 +61,5 @@ private:
     mutable T m_value {};
 };
 
-}
+} // namespace muonpi
 #endif // CACHEDVALUE_H

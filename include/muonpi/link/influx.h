@@ -72,7 +72,7 @@ public:
         entry(const std::string& measurement, influx& link);
     };
 
-    influx(configuration config);
+    explicit influx(configuration config);
     influx();
     ~influx();
 
@@ -88,6 +88,6 @@ private:
     configuration m_config {};
 };
 
-}
+} // namespace muonpi::link
 
 #endif // INFLUX_H

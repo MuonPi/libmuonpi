@@ -160,18 +160,14 @@ private:
 
 template <typename T, typename C>
 histogram<T, C>::histogram(std::size_t n) noexcept
-    : m_lower {}
-    , m_upper {}
-    , m_width {}
-    , m_n { n }
+    : m_n { n }
 {
     reset();
 }
 
 template <typename T, typename C>
 histogram<T, C>::histogram(std::size_t n, T width) noexcept
-    : m_lower {}
-    , m_upper { width * n }
+    : m_upper { width * n }
     , m_width { width }
     , m_n { n }
 {
@@ -344,5 +340,5 @@ auto histogram<T, C>::rms() const -> T
     return std::sqrt(total / static_cast<T>(integral()));
 }
 
-}
+} // namespace muonpi
 #endif // HISTOGRAM_H

@@ -27,6 +27,6 @@ template <typename T,
     return value;
 }
 
-}
+} // namespace muonpi
 
 #endif // TYPES_H

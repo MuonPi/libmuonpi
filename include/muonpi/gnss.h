@@ -262,6 +262,6 @@ template <typename T>
     return geohash;
 }
 
-}
+} // namespace muonpi::coordinate
 
 #endif // COORDINATEMODEL_H

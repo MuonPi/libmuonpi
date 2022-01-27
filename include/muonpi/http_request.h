@@ -21,8 +21,8 @@ struct field_t {
     std::string value {};
 };
 
-[[nodiscard]] LIBMUONPI_PUBLIC auto http_request(destination_t destination, std::string body, bool ssl = false, std::vector<field_t> fields = {}) -> response_type;
+[[nodiscard]] LIBMUONPI_PUBLIC auto http_request(const destination_t& destination, const std::string& body, bool ssl = false, const std::vector<field_t>& fields = {}) -> response_type;
 
-}
+} // namespace muonpi::http
 
 #endif // HTTP_REQUEST_H

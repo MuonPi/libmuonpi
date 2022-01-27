@@ -1,9 +1,8 @@
 #include "muonpi/serial/i2cdevice.h"
-#include "muonpi/serial/i2cbus.h"
 #include "muonpi/scopeguard.h"
+#include "muonpi/serial/i2cbus.h"
 
 #include "muonpi/log.h"
-
 
 #include <algorithm>
 #include <cstring>
@@ -11,41 +10,27 @@
 #include <iostream>
 #include <linux/i2c-dev.h> // I2C bus definitions for linux like systems
 
-
 namespace muonpi::serial {
 
-
-i2c_device::i2c_device(i2c_bus& bus, std::uint8_t address)
-    : m_bus { bus }
-    , m_address { address }
-    , m_handle { open(bus.address().c_str(), O_RDWR) }
-{
-    if (m_handle > 0) {
-		set_address( m_address );
-	} else {
-        set_flag(Flags::Failed);
-    }
-}
-
 i2c_device::i2c_device(i2c_bus& bus)
-	: m_bus { bus }
-	, m_address { 0 }
+    : m_bus { bus }
+    , m_address { 0 }
     , m_handle { open(bus.address().c_str(), O_RDWR) }
 {
     if (m_handle > 0) {
-		//set_address( m_address );
-	} else {
+        // set_address( m_address );
+    } else {
         set_flag(Flags::Failed);
     }
 }
 
-void i2c_device::set_address( std::uint8_t address )
+void i2c_device::set_address(std::uint8_t address)
 {
     if (m_handle > 0) {
         if (ioctl(m_handle, I2C_SLAVE, m_address) < 0) {
             if (ioctl(m_handle, I2C_SLAVE_FORCE, m_address) < 0) {
                 m_io_errors++;
-				set_flag(Flags::Failed);
+                set_flag(Flags::Failed);
             } else {
                 set_flag(Flags::Force);
             }
@@ -75,21 +60,20 @@ void i2c_device::close()
     }
 }
 
-
 void i2c_device::read_capabilities()
 {
-    unsigned long funcs;
+    unsigned long funcs {};
     int res = ioctl(m_handle, I2C_FUNCS, &funcs);
     if (res < 0) {
         log::error("i2c") << "Could not read i2c device capabilities";
     } else {
-        log::info("i2c") << "Device capabilities: 0x"<<std::hex<<funcs;
+        log::info("i2c") << "Device capabilities: 0x" << std::hex << funcs;
     }
 }
 
 auto i2c_device::present() -> bool
 {
-    uint8_t dummy;
+    uint8_t dummy {};
     return (read(&dummy, 1) == 1);
 }
 
@@ -135,7 +119,7 @@ void i2c_device::lock(bool locked)
 
 auto i2c_device::locked() const -> bool
 {
-	return m_locked;
+    return m_locked;
 }
 
 auto i2c_device::last_interval() const -> double
@@ -152,7 +136,6 @@ auto i2c_device::title() const -> std::string
 {
     return m_title;
 }
-
 
 auto i2c_device::read(std::uint8_t* buffer, std::size_t bytes) -> int
 {
@@ -193,23 +176,21 @@ auto i2c_device::read(std::uint8_t reg, std::uint16_t* buffer, std::size_t n_wor
     if (write(&reg, 1) != 1) {
         return -1;
     }
-	std::uint8_t* read_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), n_words * 2)) };
+    std::uint8_t* read_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), n_words * 2)) };
 
-    scope_guard free_guard { [&read_buffer]{
-            free(read_buffer);
-        } };
+    scope_guard free_guard { [&read_buffer] {
+        free(read_buffer);
+    } };
 
-	int nread = read( read_buffer, n_words * 2);
-	
-	if ( nread != static_cast<int>(n_words) * 2  ) 
-	{
-		return -1;
-	}
-		
-    for (std::size_t i { 0 }; i < n_words; ++i) 
-	{
-		buffer[i] = read_buffer[i * 2] << 8;
-		buffer[i] |= read_buffer[i * 2 + 1];
+    int nread = read(read_buffer, n_words * 2);
+
+    if (nread != static_cast<int>(n_words) * 2) {
+        return -1;
+    }
+
+    for (std::size_t i { 0 }; i < n_words; ++i) {
+        buffer[i] = read_buffer[i * 2] << 8;
+        buffer[i] |= read_buffer[i * 2 + 1];
     }
 
     return nread / 2;
@@ -247,9 +228,9 @@ auto i2c_device::write(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes
 {
     std::uint8_t* write_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), bytes + 1)) };
 
-    scope_guard free_guard { [&write_buffer]{
-            free(write_buffer);
-        } };
+    scope_guard free_guard { [&write_buffer] {
+        free(write_buffer);
+    } };
 
     write_buffer[0] = reg;
 
@@ -258,15 +239,13 @@ auto i2c_device::write(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes
     return write(write_buffer, bytes + 1) - 1;
 }
 
-
-
 auto i2c_device::write(std::uint8_t reg, std::uint16_t* buffer, std::size_t length) -> int
 {
     std::uint8_t* write_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), length * 2 + 1)) };
 
-    scope_guard free_guard { [&write_buffer]{
-            free(write_buffer);
-        } };
+    scope_guard free_guard { [&write_buffer] {
+        free(write_buffer);
+    } };
 
     for (std::size_t i { 0 }; i < length; i++) {
         write_buffer[i * 2] = buffer[i] >> 8;
@@ -281,7 +260,6 @@ auto i2c_device::write(std::uint8_t reg, std::uint16_t* buffer, std::size_t leng
     return count / 2;
 }
 
-
 void i2c_device::start_timer()
 {
     m_start = std::chrono::system_clock::now();
@@ -289,6 +267,6 @@ void i2c_device::start_timer()
 
 void i2c_device::stop_timer()
 {
-    m_last_interval = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - m_start).count())*1e-3;
+    m_last_interval = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - m_start).count()) * 1e-3;
 }
-}
+} // namespace muonpi::serial

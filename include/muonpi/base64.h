@@ -37,6 +37,6 @@ namespace muonpi::base64 {
     return tmp.append((3 - val.size() % 3) % 3, '=');
 }
 
-}
+} // namespace muonpi::base64
 
 #endif // BASE64_H
