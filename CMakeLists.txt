@@ -13,15 +13,16 @@ add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
 
 option(LIBMUONPI_BUILD_SANITIZERS "Build sanitizers into the libraries" OFF)
 option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" ON)
+option(LIBMUONPI_TESTS "Build and run unit tests" OFF)
 
 set(LIBMUONPI_COMPILING ON)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(PROJECT_TEST_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(PROJECT_DETAIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/detail")
 set(PROJECT_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output/lib")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output/packages/")
 include_directories(${PROJECT_HEADER_DIR} ${PROJECT_SRC_DIR})
@@ -35,10 +36,15 @@ endif()
 
 
 
+set(USE_BOOST_COMPONENTS system program_options)
+if (LIBMUONPI_TESTS)
+set(USE_BOOST_COMPONENTS ${USE_BOOST_COMPONENTS} unit_test_framework)
+endif ()
+
 
 find_package(
   Boost 1.67
-  COMPONENTS system program_options
+  COMPONENTS ${USE_BOOST_COMPONENTS}
   REQUIRED)
 set(PROJECT_INCLUDE_LIBS
     pthread
@@ -91,3 +97,7 @@ set(PROJECT_HEADER_FILES
 add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")
+
+if(LIBMUONPI_TESTS)
+    enable_testing()
+endif()
