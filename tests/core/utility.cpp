@@ -22,8 +22,6 @@ BOOST_AUTO_TEST_CASE( test_message_constructor )
 
     constructor.add_field("hallo");
     BOOST_TEST(constructor.get_string() == std::string{"a b c hallo"});
-
-    BOOST_TEST(false);
 }
 BOOST_AUTO_TEST_SUITE_END()
 
@@ -37,14 +35,19 @@ struct fixture_message_parser {
 
 BOOST_FIXTURE_TEST_SUITE( core_message_parser_tests, fixture_message_parser )
 
+    BOOST_AUTO_TEST_CASE( test_message_parser_empty )
+    {
+        BOOST_TEST(!parser.empty());
+    }
+
     BOOST_AUTO_TEST_CASE( test_message_parser_size )
     {
         BOOST_TEST(parser.size() == 4);
     }
 
-    BOOST_AUTO_TEST_CASE( test_message_parser_empty )
+    BOOST_AUTO_TEST_CASE( test_message_parser_incomplete )
     {
-        BOOST_TEST(!parser.empty());
+        BOOST_FAIL("Test is incomplete.");
     }
 
 BOOST_AUTO_TEST_SUITE_END()
