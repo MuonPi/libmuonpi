@@ -1,7 +1,5 @@
 #include <boost/test/unit_test.hpp>
 
-namespace butf = boost::unit_test;
-
 #include "muonpi/base64.h"
 
 BOOST_AUTO_TEST_SUITE(core_base64_tests)
