@@ -17,7 +17,16 @@ if (LIBMUONPI_BUILD_LINK) # libraries specific to the link library
 
     add_library(muonpi-link SHARED ${LINK_SOURCE_FILES} ${LINK_HEADER_FILES})
     add_dependencies(muonpi-link muonpi-core)
-    target_link_libraries(muonpi-link ${PROJECT_INCLUDE_LIBS} mosquitto muonpi-http)
+    target_link_libraries(muonpi-link ${PROJECT_INCLUDE_LIBS} muonpi-http mosquitto)
+
+    if (LIBMUONPI_TESTS)
+        set(LINK_TEST_SOURCE_FILES
+            "${PROJECT_TEST_SRC_DIR}/link/main.cpp"
+            )
+        add_executable(muonpi-link-test ${LINK_TEST_SOURCE_FILES})
+        target_link_libraries(muonpi-link-test ${PROJECT_INCLUDE_LIBS} muonpi-link muonpi-http mosquitto)
+        add_test(muonpi-link-test muonpi-link-test)
+    endif ()
 
 
     setup_packaging(

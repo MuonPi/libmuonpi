@@ -22,7 +22,16 @@ if (LIBMUONPI_BUILD_HTTP) # libraries specific to the REST library
 
     add_library(muonpi-http SHARED ${HTTP_SOURCE_FILES} ${HTTP_HEADER_FILES})
     add_dependencies(muonpi-http muonpi-core)
-    target_link_libraries(muonpi-http ${PROJECT_INCLUDE_LIBS} muonpi-core ssl crypto dl)
+    target_link_libraries(muonpi-http ${PROJECT_INCLUDE_LIBS} muonpi-core ssl crypto)
+
+    if (LIBMUONPI_TESTS)
+        set(HTTP_TEST_SOURCE_FILES
+            "${PROJECT_TEST_SRC_DIR}/http/main.cpp"
+            )
+        add_executable(muonpi-http-test ${HTTP_TEST_SOURCE_FILES})
+        target_link_libraries(muonpi-http-test ${PROJECT_INCLUDE_LIBS} muonpi-http muonpi-core ssl crypto)
+        add_test(muonpi-http-test muonpi-http-test)
+    endif ()
 
     setup_packaging(
         COMPONENT "http"
