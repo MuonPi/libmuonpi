@@ -4,6 +4,27 @@
 
 namespace muonpi {
 
+constexpr auto gpio::state_t::operator~() const noexcept -> gpio::state_t
+{
+    if (state == High) {
+		return gpio::state_t{Low};
+	} else if (state == Low) {
+		return gpio::state_t{High};
+	}
+	return gpio::state_t{Undefined};
+}
+
+constexpr auto gpio::state_t::operator==(gpio::state_t other) const noexcept -> bool
+{
+    return other.state == state;
+}
+
+constexpr auto gpio::state_t::operator!=(gpio::state_t other) const noexcept -> bool
+{
+    return other.state != state;
+}
+
+
 gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
     : thread_runner { "gpiod", true }
     , m_consumer { std::move(consumer_name) }
@@ -131,7 +152,7 @@ auto gpio_handler::set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, 
         if (l == nullptr) {
             return false;
         }
-        int r = gpiod_line_set_value(l, static_cast<int>(state));
+        int r = gpiod_line_set_value(l, state);
         if (r < 0) {
             log::error() << "Setting state of gpio line " << pin << " failed: " << std::strerror(errno);
             return false;
@@ -159,12 +180,12 @@ auto gpio_handler::get_pin_input(gpio::pin_t pin, gpio::bias_t bias) -> std::fun
     return [pin, this](){
         auto* l = allocate_io_line(pin);
         if (l == nullptr) {
-            return gpio::state_t::Undefined;
+            return gpio::state_t { gpio::state_t::Undefined };
         }
         int r = gpiod_line_get_value( l );
         if ( r < 0 ) {
             log::error()<<"Setting state of gpio line " << pin << " failed: " << std::strerror(errno);
-            return gpio::state_t::Undefined;
+            return gpio::state_t { gpio::state_t::Undefined };
         }
         return static_cast<gpio::state_t>(r);
     };

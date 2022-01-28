@@ -61,44 +61,40 @@ namespace gpio {
     };
 
     /**
-     * @brief The state_t enum.
+     * @brief The state_t struct.
      * The state of an output pin.
      */
     struct state_t {
+        /*
+        // Note: The state_t struct does not work if the possible states are defined through this enum.
+        // The reason is, that the enum values are not implicitely convertible to int 
+        // such that one can use brace-initialization with eg. state_t{Low}
+        // which is deemed a mandatory feature
         enum {
             Undefined = -1,
             Low = 0,
             High = 1
         } state;
+        */
+        static constexpr int Undefined { -1 };
+        static constexpr int Low { 0 };
+        static constexpr int High { 1 };
 
-        [[nodiscard]] constexpr auto operator~() const noexcept -> state_t
-        {
-            if (state == High) {
-                return state_t{Low};
-            } else if (state == Low) {
-                return state_t{High};
-            }
-            return state_t{Undefined};
-        }
+        int state { Undefined }; ///<! the logical state
 
-        [[nodiscard]] constexpr auto operator==(state_t other) const noexcept -> bool
-        {
-            return other.state == state;
-        }
+        state_t() = default;
+        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+        constexpr state_t( const T& a_state ) noexcept;
 
-        [[nodiscard]] constexpr auto operator!=(state_t other) const noexcept -> bool
-        {
-            return other.state != state;
-        }
+        [[nodiscard]] constexpr auto operator~() const noexcept -> state_t;
+        [[nodiscard]] constexpr auto operator==(state_t other) const noexcept -> bool;
+        [[nodiscard]] constexpr auto operator!=(state_t other) const noexcept -> bool;
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-        [[nodiscard]] constexpr explicit operator T() const noexcept
-        {
-            return static_cast<T>(state);
-        }
-    };
+        [[nodiscard]] constexpr operator T() const noexcept;
+	};
 
-    // +++ convencience definitions
+    // +++ convenience definitions
     using pin_t = unsigned int;
     using time_t = std::chrono::system_clock::time_point;
     struct settings_t {
@@ -108,7 +104,7 @@ namespace gpio {
     };
 
     using pins_t = std::vector<settings_t>;
-    // --- convencience definitions
+    // --- convenience definitions
 
     /**
      * @brief The event_t struct.
@@ -281,6 +277,21 @@ private:
     constexpr static float s_b { s_max_timeout * s_min_rate / (s_min_rate - s_max_rate) }; ///<! m*x+b
     constexpr static float s_m { -s_max_timeout / (s_min_rate - s_max_rate) }; ///<! m*x+b
 };
+
+
+// Implementation part
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+constexpr gpio::state_t::state_t( const T& a_state ) noexcept
+: state( ( (static_cast<int>( a_state ) < Low) || (static_cast<int>( a_state ) > High) )?Undefined:static_cast<int>( a_state ) )
+{ }
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+constexpr gpio::state_t::operator T() const noexcept
+{
+    return static_cast<T>(state);
+}
+
+
 } // namespace muonpi
 
 #endif // MUONPI_GPIO_HANDLER_H
