@@ -55,6 +55,7 @@ find_package(
   REQUIRED)
 set(PROJECT_INCLUDE_LIBS
     pthread
+    dl
     ${Boost_LIBRARIES}
     )
 
