@@ -17,6 +17,7 @@
 #include <mutex>
 #include <queue>
 #include <vector>
+#include <type_traits>
 
 namespace muonpi {
 
@@ -53,7 +54,7 @@ namespace gpio {
      * @brief The edge_t enum.
      * The type of edge detection for interrupts
      */
-    enum edge_t {
+    enum edge_t : std::uint8_t {
         Rising = 0x01,
         Falling = 0x02,
         Both = Rising | Falling
@@ -63,10 +64,38 @@ namespace gpio {
      * @brief The state_t enum.
      * The state of an output pin.
      */
-    enum state_t : int {
-        Low = 0,
-        High = 1,
-        Undefined = -1
+    struct state_t {
+        enum {
+            Undefined = -1,
+            Low = 0,
+            High = 1
+        } state;
+
+        [[nodiscard]] constexpr auto operator~() const noexcept -> state_t
+        {
+            if (state == High) {
+                return state_t{Low};
+            } else if (state == Low) {
+                return state_t{High};
+            }
+            return state_t{Undefined};
+        }
+
+        [[nodiscard]] constexpr auto operator==(state_t other) const noexcept -> bool
+        {
+            return other.state == state;
+        }
+
+        [[nodiscard]] constexpr auto operator!=(state_t other) const noexcept -> bool
+        {
+            return other.state != state;
+        }
+
+        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+        [[nodiscard]] constexpr explicit operator T() const noexcept
+        {
+            return static_cast<T>(state);
+        }
     };
 
     // +++ convencience definitions
