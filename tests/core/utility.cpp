@@ -1,6 +1,4 @@
-#define BOOST_TEST_MODULE muonpi core tests
-#include <boost/test/included/unit_test.hpp>
-
+#include <boost/test/unit_test.hpp>
 namespace butf = boost::unit_test;
 
 #include "muonpi/utility.h"
@@ -24,6 +22,8 @@ BOOST_AUTO_TEST_CASE( test_constructor )
 
     constructor.add_field("hallo");
     BOOST_TEST(constructor.get_string() == std::string{"a b c hallo"});
+
+    BOOST_TEST(false);
 }
 
 BOOST_AUTO_TEST_CASE( test_parser_1 )
@@ -35,3 +35,4 @@ BOOST_AUTO_TEST_CASE( test_parser_1 )
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+

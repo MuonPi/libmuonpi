@@ -40,7 +40,9 @@ target_link_libraries(muonpi-core ${PROJECT_INCLUDE_LIBS} dl)
 
 if (LIBMUONPI_TESTS)
     set(CORE_TEST_SOURCE_FILES
-        "${PROJECT_TEST_SRC_DIR}/core.cpp"
+        "${PROJECT_TEST_SRC_DIR}/core/main.cpp"
+        "${PROJECT_TEST_SRC_DIR}/core/utility.cpp"
+        "${PROJECT_TEST_SRC_DIR}/core/base64.cpp"
         )
     add_executable(muonpi-core-test ${CORE_TEST_SOURCE_FILES})
     target_link_libraries(muonpi-core-test ${PROJECT_INCLUDE_LIBS} muonpi-core dl)
