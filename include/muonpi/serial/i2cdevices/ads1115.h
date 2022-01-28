@@ -26,7 +26,7 @@ public:
         float lsb_voltage;
         unsigned int channel;
         [[nodiscard]] auto operator==(const Sample& other) const -> bool;
-        [[nodiscard]] auto operator!=(const Sample& other) -> bool;
+        [[nodiscard]] auto operator!=(const Sample& other) const -> bool;
     };
     static constexpr Sample InvalidSample { std::chrono::steady_clock::time_point::min(), 0, 0., 0., 0 };
 

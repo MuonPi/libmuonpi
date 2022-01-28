@@ -68,7 +68,7 @@ auto http_server::custom_run() -> int
 
 void http_server::do_accept()
 {
-    m_acceptor.async_accept([&](const beast::error_code& ec, tcp::socket socket) {
+    m_acceptor.async_accept([&](beast::error_code ec, tcp::socket socket) {
         if (ec) {
             fail(ec, "on accept");
         } else {

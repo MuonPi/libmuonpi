@@ -17,7 +17,7 @@ void to_bytes(const T& value, OutputIt<OutputV> bytes)
 
 template <typename T,
     std::enable_if_t<std::is_trivially_copyable<T>::value, bool> = true>
-[[nodiscard]] auto from_bytes(const std::vector<std::byte>::iterator& bytes) -> T
+[[nodiscard]] auto from_bytes(std::vector<std::byte>::iterator bytes) -> T
 {
     T value {};
 

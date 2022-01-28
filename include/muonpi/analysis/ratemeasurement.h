@@ -39,7 +39,7 @@ public:
      * @param now the time point when the method was called
      * @return True if the timeout was reached and the rates have been determined in this step
      */
-    auto step(const std::chrono::system_clock::time_point& now) -> bool;
+    auto step(std::chrono::system_clock::time_point now) -> bool;
 
 private:
     std::size_t m_current_n { 0 };
@@ -71,7 +71,7 @@ auto rate_measurement<T, Sample>::step() -> bool
 }
 
 template <typename T, bool Sample>
-auto rate_measurement<T, Sample>::step(const std::chrono::system_clock::time_point& now) -> bool
+auto rate_measurement<T, Sample>::step(std::chrono::system_clock::time_point now) -> bool
 {
     if ((now - m_last) >= m_t) {
         m_last = now;

@@ -16,7 +16,7 @@ auto ADS1115::Sample::operator==(const Sample& other) const -> bool
     return (value == other.value && voltage == other.voltage && channel == other.channel && timestamp == other.timestamp);
 }
 
-auto ADS1115::Sample::operator!=(const Sample& other) -> bool
+auto ADS1115::Sample::operator!=(const Sample& other) const -> bool
 {
     return (!(*this == other));
 }
