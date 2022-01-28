@@ -31,8 +31,7 @@ if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
 
     add_library(muonpi-detector SHARED ${DETECTOR_SOURCE_FILES} ${DETECTOR_HEADER_FILES})
     add_dependencies(muonpi-detector muonpi-core)
-    target_link_libraries(muonpi-detector ${PROJECT_INCLUDE_LIBS} muonpi-core gpiod)
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -latomic")
+    target_link_libraries(muonpi-detector ${PROJECT_INCLUDE_LIBS} muonpi-core gpiod atomic)
 
     setup_packaging(
         COMPONENT "detector"
