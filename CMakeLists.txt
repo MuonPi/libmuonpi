@@ -89,6 +89,10 @@ if(${LIBMUONPI_BUILD_EXAMPLES})
     add_subdirectory(examples)
 endif()
 
+if(LIBMUONPI_TESTS)
+    add_subdirectory(tests)
+endif()
+
 
 set(PROJECT_SOURCE_FILES
     ${CORE_SOURCE_FILES}
@@ -105,7 +109,3 @@ set(PROJECT_HEADER_FILES
 add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")
-
-if(LIBMUONPI_TESTS)
-    enable_testing()
-endif()

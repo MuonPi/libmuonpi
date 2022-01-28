@@ -33,15 +33,6 @@ if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
     add_dependencies(muonpi-detector muonpi-core)
     target_link_libraries(muonpi-detector ${PROJECT_INCLUDE_LIBS} muonpi-core gpiod atomic)
 
-    if (LIBMUONPI_TESTS)
-        set(DETECTOR_TEST_SOURCE_FILES
-            "${PROJECT_TEST_SRC_DIR}/detector/main.cpp"
-            )
-        add_executable(muonpi-detector-test ${DETECTOR_TEST_SOURCE_FILES})
-        target_link_libraries(muonpi-detector-test ${PROJECT_INCLUDE_LIBS} muonpi-detector muonpi-core gpiod atomic)
-        add_test(muonpi-detector-test muonpi-detector-test)
-    endif ()
-
     setup_packaging(
         COMPONENT "detector"
         HEADERS "${DETECTOR_HEADER_FILES}"
