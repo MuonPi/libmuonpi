@@ -14,6 +14,13 @@ add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
 option(LIBMUONPI_BUILD_SANITIZERS "Build sanitizers into the libraries" OFF)
 option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" ON)
 option(LIBMUONPI_TESTS "Build and run unit tests" OFF)
+option(LIBMUONPI_BUILD_CLANG_TIDY "Run clang-tidy" OFF)
+
+if (LIBMUONPI_BUILD_CLANG_TIDY)
+set(CMAKE_CXX_CLANG_TIDY clang-tidy  -checks=-*,bugprone-*,clang-*,cppcoreguidelines-*,hicpp-*,llvm-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers)
+endif()
+
+
 
 set(LIBMUONPI_COMPILING ON)
 
