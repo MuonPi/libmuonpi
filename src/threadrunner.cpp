@@ -87,7 +87,7 @@ auto thread_runner::run() -> int
 
     try {
         log::debug("thread") << "Starting '" << m_name << '\'';
-        int pre_result { pre_run() };
+        const auto pre_result { pre_run() };
         if (pre_result != 0) {
             return pre_result;
         }
