@@ -4,27 +4,6 @@
 
 namespace muonpi {
 
-constexpr auto gpio::state_t::operator~() const noexcept -> gpio::state_t
-{
-    if (state == High) {
-		return gpio::state_t{Low};
-	} else if (state == Low) {
-		return gpio::state_t{High};
-	}
-	return gpio::state_t{Undefined};
-}
-
-constexpr auto gpio::state_t::operator==(gpio::state_t other) const noexcept -> bool
-{
-    return other.state == state;
-}
-
-constexpr auto gpio::state_t::operator!=(gpio::state_t other) const noexcept -> bool
-{
-    return other.state != state;
-}
-
-
 gpio_handler::gpio_handler(const std::string& device, std::string consumer_name)
     : thread_runner { "gpiod", true }
     , m_consumer { std::move(consumer_name) }
