@@ -105,70 +105,15 @@ public:
     void reset(std::size_t n);
 
 private:
-    [[nodiscard]] inline auto private_mean(const mean_t& type) const -> T
-    {
-        std::shared_lock lock { m_mutex };
-        if (m_data.empty()) {
-            return {};
-        }
-        if (type == mean_t::geometric) {
-            return std::pow(std::accumulate(m_data.begin(), m_data.end(), 0.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
-        }
-        if (type == mean_t::harmonic) {
-            return static_cast<T>(n()) / std::accumulate(m_data.begin(), m_data.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
-        }
-        return std::accumulate(m_data.begin(), m_data.end(), 0.0) / static_cast<T>(n());
-    }
+    [[nodiscard]] auto private_mean(const mean_t& type) const -> T;
 
-    [[nodiscard]] inline auto private_median() const -> T
-    {
-        std::shared_lock lock { m_mutex };
-        if (m_data.empty()) {
-            return {};
-        }
-        std::vector<T> sorted {};
-        sorted.resize(n());
+    [[nodiscard]] auto private_median() const -> T;
 
-        std::copy(m_data.begin(), m_data.end(), sorted.begin());
+    [[nodiscard]] auto private_stddev() const -> T;
 
-        std::sort(sorted.begin(), sorted.end());
+    [[nodiscard]] auto private_variance() const -> T;
 
-        if (n() % 2 == 0) {
-            return (sorted.at(n() / 2) + sorted.at(n() / 2 + 1)) / 2.0;
-        }
-        return sorted.at(n() / 2);
-    }
-
-    [[nodiscard]] inline auto private_stddev() const -> T
-    {
-        std::shared_lock lock { m_mutex };
-        if (m_data.empty()) {
-            return {};
-        }
-        return std::sqrt(variance());
-    }
-
-    [[nodiscard]] inline auto private_variance() const -> T
-    {
-        std::shared_lock lock { m_mutex };
-        if (m_data.empty()) {
-            return {};
-        }
-        const auto denominator { Sample ? (n() - 1.0) : n() };
-        const auto m { mean() };
-
-        return 1.0 / (denominator)*std::inner_product(
-                   m_data.begin(), m_data.end(), m_data.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
-    }
-
-    [[nodiscard]] inline auto private_rms() const -> T
-    {
-        std::shared_lock lock { m_mutex };
-        if (m_data.empty()) {
-            return {};
-        }
-        return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0) / static_cast<T>(n()));
-    }
+    [[nodiscard]] auto private_rms() const -> T;
 
     std::list<T> m_data {};
     std::size_t m_n { 0 };
@@ -288,6 +233,78 @@ void data_series<T, Sample>::reset(std::size_t n)
     m_n = n;
     reset();
 }
+
+
+template <typename T, bool Sample>
+auto data_series<T, Sample>::private_mean(const mean_t& type) const -> T
+{
+    std::shared_lock lock { m_mutex };
+    if (m_data.empty()) {
+        return {};
+    }
+    if (type == mean_t::geometric) {
+        return std::pow(std::accumulate(m_data.begin(), m_data.end(), 0.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
+    }
+    if (type == mean_t::harmonic) {
+        return static_cast<T>(n()) / std::accumulate(m_data.begin(), m_data.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
+    }
+    return std::accumulate(m_data.begin(), m_data.end(), 0.0) / static_cast<T>(n());
+}
+
+template <typename T, bool Sample>
+auto data_series<T, Sample>::private_median() const -> T
+{
+    std::shared_lock lock { m_mutex };
+    if (m_data.empty()) {
+        return {};
+    }
+    std::vector<T> sorted {};
+    sorted.resize(n());
+
+    std::copy(m_data.begin(), m_data.end(), sorted.begin());
+
+    std::sort(sorted.begin(), sorted.end());
+
+    if (n() % 2 == 0) {
+        return (sorted.at(n() / 2) + sorted.at(n() / 2 + 1)) / 2.0;
+    }
+    return sorted.at(n() / 2);
+}
+
+template <typename T, bool Sample>
+auto data_series<T, Sample>::private_stddev() const -> T
+{
+    std::shared_lock lock { m_mutex };
+    if (m_data.empty()) {
+        return {};
+    }
+    return std::sqrt(variance());
+}
+
+template <typename T, bool Sample>
+auto data_series<T, Sample>::private_variance() const -> T
+{
+    std::shared_lock lock { m_mutex };
+    if (m_data.empty()) {
+        return {};
+    }
+    const auto denominator { Sample ? (n() - 1.0) : n() };
+    const auto m { mean() };
+
+    return 1.0 / (denominator)*std::inner_product(
+               m_data.begin(), m_data.end(), m_data.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
+}
+
+template <typename T, bool Sample>
+auto data_series<T, Sample>::private_rms() const -> T
+{
+    std::shared_lock lock { m_mutex };
+    if (m_data.empty()) {
+        return {};
+    }
+    return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0) / static_cast<T>(n()));
+}
+
 
 } // namespace muonpi
 
