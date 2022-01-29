@@ -29,7 +29,8 @@ public:
     enum class mean_t {
         arithmetic,
         geometric,
-        harmonic
+        harmonic,
+        quadratic
     };
 
     /**
@@ -51,6 +52,12 @@ public:
     [[nodiscard]] auto mean(const mean_t& type = mean_t::arithmetic) const -> T;
 
     /**
+     * @brief rms calculathe the quadratic mean
+     * @return the quadratic mean
+     */
+    [[deprecated]]
+    [[nodiscard]] auto rms() const -> T;
+    /**
      * @brief median Calculates the median of all values. This value gets cached between data entries.
      * @return The median
      */
@@ -68,12 +75,6 @@ public:
      * @return The variance
      */
     [[nodiscard]] auto variance() const -> T;
-
-    /**
-     * @brief rms Calculates the rms (Root Mean Square) of all values. This value gets cached between data entries.
-     * @return The RMS
-     */
-    [[nodiscard]] auto rms() const -> T;
 
     /**
      * @brief current Gets the most recent value
@@ -131,18 +132,16 @@ private:
 
     [[nodiscard]] auto private_variance() const -> T;
 
-    [[nodiscard]] auto private_rms() const -> T;
-
     std::list<T> m_data {};
     std::size_t m_n { 0 };
 
     cached_value<T> m_geometric_mean { [this] { return private_mean(mean_t::geometric); } };
     cached_value<T> m_arithmetic_mean { [this] { return private_mean(mean_t::arithmetic); } };
     cached_value<T> m_harmonic_mean { [this] { return private_mean(mean_t::harmonic); } };
+    cached_value<T> m_quadratic_mean { [this] { return private_mean(mean_t::quadratic); } };
     cached_value<T> m_median { [this] { return private_median(); } };
     cached_value<T> m_stddev { [this] { return private_stddev(); } };
     cached_value<T> m_variance { [this] { return private_variance(); } };
-    cached_value<T> m_rms { [this] { return private_rms(); } };
 
     mutable std::shared_mutex m_mutex {};
 
@@ -151,10 +150,10 @@ private:
         m_arithmetic_mean.mark_dirty();
         m_geometric_mean.mark_dirty();
         m_harmonic_mean.mark_dirty();
+        m_quadratic_mean.mark_dirty();
         m_median.mark_dirty();
         m_stddev.mark_dirty();
         m_variance.mark_dirty();
-        m_rms.mark_dirty();
     }
 };
 
@@ -203,7 +202,16 @@ auto data_series<T, Sample>::mean(const mean_t& type) const -> T
     if (type == mean_t::harmonic) {
         return m_harmonic_mean.get();
     }
+    if (type == mean_t::quadratic) {
+        return m_quadratic_mean.get();
+    }
     return m_arithmetic_mean.get();
+}
+
+template <typename T, bool Sample>
+auto data_series<T, Sample>::rms() const -> T
+{
+    return mean(mean_t::quadratic);
 }
 
 template <typename T, bool Sample>
@@ -222,12 +230,6 @@ template <typename T, bool Sample>
 auto data_series<T, Sample>::variance() const -> T
 {
     return m_variance.get();
-}
-
-template <typename T, bool Sample>
-auto data_series<T, Sample>::rms() const -> T
-{
-    return m_rms.get();
 }
 
 template <typename T, bool Sample>
@@ -284,6 +286,9 @@ auto data_series<T, Sample>::private_mean(const mean_t& type) const -> T
     if (type == mean_t::harmonic) {
         return static_cast<T>(n()) / std::accumulate(m_data.begin(), m_data.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
     }
+    if (type == mean_t::quadratic) {
+        return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0) / static_cast<T>(n()));
+    }
     return std::accumulate(m_data.begin(), m_data.end(), 0.0) / static_cast<T>(n());
 }
 
@@ -329,16 +334,6 @@ auto data_series<T, Sample>::private_variance() const -> T
 
     return 1.0 / (denominator)*std::inner_product(
                m_data.begin(), m_data.end(), m_data.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
-}
-
-template <typename T, bool Sample>
-auto data_series<T, Sample>::private_rms() const -> T
-{
-    std::shared_lock lock { m_mutex };
-    if (m_data.empty()) {
-        return {};
-    }
-    return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0) / static_cast<T>(n()));
 }
 
 
