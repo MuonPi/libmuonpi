@@ -27,9 +27,6 @@ BOOST_AUTO_TEST_SUITE_END()
 
 
 struct fixture_message_parser {
-    fixture_message_parser() = default;
-    ~fixture_message_parser() = default;
-
     muonpi::message_parser parser {"this is a  test", ' '};
 };
 
@@ -62,9 +59,6 @@ BOOST_FIXTURE_TEST_SUITE( core_message_parser_tests, fixture_message_parser )
 BOOST_AUTO_TEST_SUITE_END()
 
 struct fixture_message_parser_empty {
-    fixture_message_parser_empty() = default;
-    ~fixture_message_parser_empty() = default;
-
     muonpi::message_parser parser {"  ", ' '};
 };
 
