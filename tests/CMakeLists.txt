@@ -46,6 +46,7 @@ add_test(core-test core-test)
 if (LIBMUONPI_BUILD_DETECTOR)
 set(DETECTOR_TEST_SOURCE_FILES
     "${PROJECT_TEST_SRC_DIR}/detector/main.cpp"
+    "${PROJECT_TEST_SRC_DIR}/detector/gpio.cpp"
     )
 add_executable(detector-test ${DETECTOR_TEST_SOURCE_FILES})
 target_link_libraries(detector-test ${PROJECT_INCLUDE_LIBS} muonpi-detector muonpi-core gpiod atomic)
