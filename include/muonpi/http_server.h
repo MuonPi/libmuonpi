@@ -13,53 +13,6 @@
 
 namespace muonpi::http {
 
-struct content_type {
-    [[nodiscard]] static auto html() noexcept -> content_type
-    {
-        return content_type{"text/html"};
-    }
-
-    [[nodiscard]] static auto json() noexcept -> content_type
-    {
-        return content_type{"text/json"};
-    }
-
-    std::string string {};
-};
-
-template <beast::http::status Status>
-class LIBMUONPI_PUBLIC http_response {
-public:
-
-    http_response(request_type& req, content_type content, const std::string& application_name = "libmuonpi-" + Version::libmuonpi::string())
-        : m_response { Status, req.version() }
-    {
-        m_response.set(beast::http::field::server, application_name);
-        m_response.set(beast::http::field::content_type, content.string);
-        m_response.keep_alive(req.keep_alive());
-    }
-
-    explicit http_response(request_type& req)
-        : http_response<Status> { req, content_type::html() }
-    {
-    }
-
-    [[nodiscard]] auto commit(std::string body) -> response_type
-    {
-        m_response.body() = std::move(body);
-        m_response.prepare_payload();
-        return std::move(m_response);
-    }
-
-    [[nodiscard]] auto operator()(std::string body) -> response_type
-    {
-        return std::move(commit(std::move(body)));
-    }
-
-private:
-    response_type m_response;
-};
-
 struct LIBMUONPI_PUBLIC path_handler {
     std::function<bool(std::string_view path)> matches {};
     std::function<response_type(request_type& req, const std::queue<std::string>& path)> handle {};

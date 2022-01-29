@@ -12,6 +12,7 @@ if (LIBMUONPI_BUILD_HTTP) # libraries specific to the REST library
     set(HTTP_HEADER_FILES
         "${PROJECT_HEADER_DIR}/muonpi/http_server.h"
         "${PROJECT_HEADER_DIR}/muonpi/http_request.h"
+        "${PROJECT_HEADER_DIR}/muonpi/http_response.h"
         "${PROJECT_HEADER_DIR}/muonpi/http_tools.h"
 
         "${PROJECT_DETAIL_DIR}/http_session.hpp"

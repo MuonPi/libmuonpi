@@ -1,4 +1,5 @@
 #include "muonpi/http_server.h"
+#include "muonpi/http_response.h"
 #include "muonpi/base64.h"
 #include "muonpi/log.h"
 #include "muonpi/scopeguard.h"
