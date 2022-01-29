@@ -276,7 +276,8 @@ auto data_series<T>::max() const -> T
 template <typename T>
 auto data_series<T>::sum() const -> T
 {
-    return 0.0;
+    std::shared_lock lock { m_mutex };
+    return std::accumulate(std::begin(m_data), std::end(m_data), 0.0);
 }
 
 template <typename T>
