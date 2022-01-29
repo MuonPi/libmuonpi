@@ -82,6 +82,18 @@ public:
     [[nodiscard]] auto current() const -> T;
 
     /**
+     * @brief min Gets the minimum value
+     * @return The minimum
+     */
+    [[nodiscard]] auto min() const -> T;
+
+    /**
+     * @brief max Gets the maximum value
+     * @return The maximum
+     */
+    [[nodiscard]] auto max() const -> T;
+
+    /**
      * @brief n Get the number of entries entered into this data series
      * @return Number of entries
      */
@@ -216,6 +228,18 @@ template <typename T, bool Sample>
 auto data_series<T, Sample>::current() const -> T
 {
     return m_data.back();
+}
+
+template <typename T, bool Sample>
+auto data_series<T, Sample>::min() const -> T
+{
+    return 0.0;
+}
+
+template <typename T, bool Sample>
+auto data_series<T, Sample>::max() const -> T
+{
+    return 0.0;
 }
 
 template <typename T, bool Sample>
