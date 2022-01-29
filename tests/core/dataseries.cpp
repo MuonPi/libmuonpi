@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(fill_test)
     series.add(0.5);
 
     BOOST_TEST(series.mean(data_s::mean_t::arithmetic) == 1.0);
-    BOOST_TEST(series.mean(data_s::mean_t::geometric) == 0.955273);
+    BOOST_TEST(series.mean(data_s::mean_t::geometric) == 0.917314);
     BOOST_TEST(series.mean(data_s::mean_t::harmonic) == 0.833333);
     BOOST_TEST(series.median() == 1.0);
     BOOST_TEST(series.stddev() == 0.387298);
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(fill_test)
     series.add(0.5);
 
     BOOST_TEST(series.mean(data_s::mean_t::arithmetic) == 1.0);
-    BOOST_TEST(series.mean(data_s::mean_t::geometric) == 0.955273);
+    BOOST_TEST(series.mean(data_s::mean_t::geometric) == 0.917314);
     BOOST_TEST(series.mean(data_s::mean_t::harmonic) == 0.833333);
     BOOST_TEST(series.median() == 1.0);
     BOOST_TEST(series.stddev() == 0.40824829);
