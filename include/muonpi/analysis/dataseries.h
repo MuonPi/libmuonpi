@@ -244,7 +244,17 @@ auto data_series<T>::current() const -> T
 template <typename T>
 auto data_series<T>::min() const -> T
 {
-    return 0.0;
+    std::shared_lock lock { m_mutex };
+    if (m_data.empty()) {
+        return 0.0;
+    }
+    T min { std::numeric_limits<T>::max() };
+    for (const auto& v: m_data) {
+        if (v < min) {
+            min = v;
+        }
+    }
+    return min;
 }
 
 template <typename T>
