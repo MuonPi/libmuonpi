@@ -65,17 +65,6 @@ namespace gpio {
      * The state of an output pin.
      */
     struct state_t {
-        /*
-        // Note: The state_t struct does not work if the possible states are defined through this enum.
-        // The reason is, that the enum values are not implicitely convertible to int 
-        // such that one can use brace-initialization with eg. state_t{Low}
-        // which is deemed a mandatory feature
-        enum {
-            Undefined = -1,
-            Low = 0,
-            High = 1
-        } state;
-        */
         static constexpr int Undefined { -1 };
         static constexpr int Low { 0 };
         static constexpr int High { 1 };
