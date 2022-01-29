@@ -17,10 +17,9 @@ namespace muonpi {
 /**
  * @brief The rate_measurement class
  * @param T the sampletime in milliseconds
- * @param Sample whether the statistics should be handled like a sample or a complete dataset
  */
-template <typename T, bool Sample = false>
-class LIBMUONPI_PUBLIC rate_measurement : public data_series<T, Sample> {
+template <typename T>
+class LIBMUONPI_PUBLIC rate_measurement : public data_series<T> {
 public:
     explicit rate_measurement(std::size_t n, std::chrono::seconds t) noexcept;
     /**
@@ -51,31 +50,31 @@ private:
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 
-template <typename T, bool Sample>
-rate_measurement<T, Sample>::rate_measurement(std::size_t n, std::chrono::seconds t) noexcept
-    : data_series<T, Sample>(n)
+template <typename T>
+rate_measurement<T>::rate_measurement(std::size_t n, std::chrono::seconds t) noexcept
+    : data_series<T>(n)
     , m_t { t }
 {
 }
 
-template <typename T, bool Sample>
-void rate_measurement<T, Sample>::increase_counter()
+template <typename T>
+void rate_measurement<T>::increase_counter()
 {
     m_current_n++;
 }
 
-template <typename T, bool Sample>
-auto rate_measurement<T, Sample>::step() -> bool
+template <typename T>
+auto rate_measurement<T>::step() -> bool
 {
     return step(std::chrono::system_clock::now());
 }
 
-template <typename T, bool Sample>
-auto rate_measurement<T, Sample>::step(std::chrono::system_clock::time_point now) -> bool
+template <typename T>
+auto rate_measurement<T>::step(std::chrono::system_clock::time_point now) -> bool
 {
     if ((now - m_last) >= m_t) {
         m_last = now;
-        data_series<T, Sample>::add(static_cast<T>(m_current_n) / static_cast<T>(m_t.count()));
+        data_series<T>::add(static_cast<T>(m_current_n) / static_cast<T>(m_t.count()));
         m_current_n = 0;
         return true;
     }
