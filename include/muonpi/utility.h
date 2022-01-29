@@ -64,7 +64,7 @@ public:
     /**
      * @brief operator [] Access one field in the message
      * @param i The index of the field
-     * @return The string contained in the field
+     * @return The string contained in the field, an empty string for invalid indices
      */
     [[nodiscard]] auto operator[](std::size_t i) const -> std::string;
 

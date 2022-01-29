@@ -76,13 +76,12 @@ auto thread_runner::state() -> State
 auto thread_runner::run() -> int
 {
     set_state(State::Initialising);
-    State& state { m_state };
     bool clean { false };
-    const scope_guard state_guard { [&state, &clean] {
+    const scope_guard state_guard { [&] {
         if (clean) {
-            state = State::Stopped;
+            set_state(State::Stopped);
         } else {
-            state = State::Error;
+            set_state(State::Error);
         }
     } };
 
