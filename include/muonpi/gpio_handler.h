@@ -78,6 +78,7 @@ namespace gpio {
         [[nodiscard]] constexpr auto operator~() const noexcept -> state_t;
         [[nodiscard]] constexpr auto operator==(state_t other) const noexcept -> bool;
         [[nodiscard]] constexpr auto operator!=(state_t other) const noexcept -> bool;
+        [[nodiscard]] constexpr auto operator!() const noexcept -> state_t;
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         [[nodiscard]] constexpr explicit operator T() const noexcept;
@@ -269,6 +270,31 @@ private:
 
 
 // Implementation part
+constexpr auto gpio::state_t::operator~() const noexcept -> gpio::state_t
+{
+    if (state == High) {
+		return gpio::state_t{Low};
+	} else if (state == Low) {
+		return gpio::state_t{High};
+	}
+	return gpio::state_t{Undefined};
+}
+
+constexpr auto gpio::state_t::operator==(gpio::state_t other) const noexcept -> bool
+{
+    return other.state == state;
+}
+
+constexpr auto gpio::state_t::operator!=(gpio::state_t other) const noexcept -> bool
+{
+    return other.state != state;
+}
+
+constexpr auto gpio::state_t::operator!() const noexcept -> gpio::state_t
+{
+    return ~(*this);
+}
+
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
 constexpr gpio::state_t::state_t( const T& a_state ) noexcept
 : state( ( (static_cast<int>( a_state ) < Low) || (static_cast<int>( a_state ) > High) )?Undefined:static_cast<int>( a_state ) )
