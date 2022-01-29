@@ -13,29 +13,48 @@
 
 namespace muonpi::http {
 
+/**
+ * @brief The path_handler struct
+ */
 struct LIBMUONPI_PUBLIC path_handler {
-    std::function<bool(std::string_view path)> matches {};
-    std::function<response_type(request_type& req, const std::queue<std::string>& path)> handle {};
-    std::string name {};
-    bool requires_auth { false };
-    std::function<bool(request_type& req, std::string_view username, std::string_view password)> authenticate {};
-    std::vector<path_handler> children {};
+
+    std::function<bool(std::string_view path)> matches {}; //<! Function to determine whether the current path of the request matches this handler
+    std::function<response_type(request_type& req, const std::queue<std::string>& path)> handle {}; //<! The registered handler function which gets called by the server
+    std::string name {}; //<! The name of this handler
+    bool requires_auth { false }; //<! Whether this handler requires authentication
+    std::function<bool(request_type& req, std::string_view username, std::string_view password)> authenticate {}; //<! The authentication handler to use
+    std::vector<path_handler> children {}; //<! Child handlers of this handler.
 };
 
+/**
+ * @brief The http_server class
+ */
 class LIBMUONPI_PUBLIC http_server : public thread_runner {
 public:
+    /**
+     * @brief The configuration struct
+     */
     struct configuration {
-        int port {};
-        std::string address {};
-        bool ssl {};
-        std::string cert {};
-        std::string privkey {};
-        std::string fullchain {};
+        int port {}; //<! The port on which to listen
+        std::string address {}; //<! The bind address to use
+
+        bool ssl {}; //<! whether to use ssl or not.
+        std::string cert {}; //<! The certificate file to use
+        std::string privkey {}; //<! The private key to use
+        std::string fullchain {}; //<! The full keychain to use
     };
 
+    /**
+     * @brief http_server
+     * @param config The configuration to use
+     */
     explicit http_server(configuration config);
 
-    void add_handler(path_handler han);
+    /**
+     * @brief add_handler Add a path handler to the server
+     * @param handler The handler to add
+     */
+    void add_handler(path_handler handler);
 
 protected:
     [[nodiscard]] auto custom_run() -> int override;
