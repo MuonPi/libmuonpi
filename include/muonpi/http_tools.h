@@ -36,6 +36,11 @@ using http_verb = beast::http::verb;
 using http_field = beast::http::field;
 using http_status = beast::http::status;
 
+/**
+ * @brief fail Prints a boost error code as an error message in the logging system
+ * @param ec The boost error code
+ * @param what A description of the error
+ */
 void fail(beast::error_code ec, const std::string& what);
 
 namespace detail {

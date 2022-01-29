@@ -96,6 +96,7 @@ template <typename Stream>
     // Set SNI Hostname (many hosts need this to handshake successfully)
     if (!SSL_set_tlsext_host_name(stream.native_handle(), destination.host.c_str())) {
         beast::error_code ec { static_cast<int>(::ERR_get_error()), net::error::get_ssl_category() };
+        fail(ec, "request handshake");
         throw beast::system_error { ec };
     }
 
@@ -126,6 +127,7 @@ template <typename Stream>
     }
 
     if (ec) {
+        fail(ec, "request shutdown");
         throw beast::system_error { ec };
     }
 
@@ -166,6 +168,7 @@ auto http_request(const destination_t& destination, const std::string& body, con
     // not_connected happens sometimes
     // so don't bother reporting it.
     if (ec && ec != beast::errc::not_connected) {
+        fail(ec, "request shutdown");
         throw beast::system_error { ec };
     }
 
