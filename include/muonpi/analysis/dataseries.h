@@ -279,7 +279,7 @@ auto data_series<T, Sample>::private_mean(const mean_t& type) const -> T
         return {};
     }
     if (type == mean_t::geometric) {
-        return std::pow(std::accumulate(m_data.begin(), m_data.end(), 0.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
+        return std::pow(std::accumulate(m_data.begin(), m_data.end(), 1.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
     }
     if (type == mean_t::harmonic) {
         return static_cast<T>(n()) / std::accumulate(m_data.begin(), m_data.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
