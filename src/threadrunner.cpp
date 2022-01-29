@@ -76,19 +76,18 @@ auto thread_runner::state() -> State
 auto thread_runner::run() -> int
 {
     set_state(State::Initialising);
-    State& state { m_state };
     bool clean { false };
-    const scope_guard state_guard { [&state, &clean] {
+    const scope_guard state_guard { [&] {
         if (clean) {
-            state = State::Stopped;
+            set_state(State::Stopped);
         } else {
-            state = State::Error;
+            set_state(State::Error);
         }
     } };
 
     try {
         log::debug("thread") << "Starting '" << m_name << '\'';
-        int pre_result { pre_run() };
+        const auto pre_result { pre_run() };
         if (pre_result != 0) {
             return pre_result;
         }
