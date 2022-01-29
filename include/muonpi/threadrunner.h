@@ -64,7 +64,7 @@ public:
     [[nodiscard]] auto state_string() -> std::string;
 
     /**
-     * @brief start Starts the thread asynchronuosly
+     * @brief start Starts the thread asynchronuosly. When using this function you need to also call join() OR wait().
      */
     void start();
 
