@@ -140,7 +140,7 @@ auto gpio_handler::set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, 
         throw std::runtime_error { "Line in use" };
     }
 
-    int ret = gpiod_line_request_output_flags(line, m_consumer.c_str(), get_flags(bias), initial_state);
+    int ret = gpiod_line_request_output_flags(line, m_consumer.c_str(), get_flags(bias), static_cast<int>(initial_state));
 
     if (ret < 0) {
         log::error() << "Request gpio line " << pin << " as output failed: " << std::strerror(errno);
@@ -152,7 +152,7 @@ auto gpio_handler::set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, 
         if (l == nullptr) {
             return false;
         }
-        int r = gpiod_line_set_value(l, state);
+        int r = gpiod_line_set_value(l, static_cast<int>(state));
         if (r < 0) {
             log::error() << "Setting state of gpio line " << pin << " failed: " << std::strerror(errno);
             return false;

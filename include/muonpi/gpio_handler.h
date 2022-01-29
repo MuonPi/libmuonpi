@@ -91,7 +91,7 @@ namespace gpio {
         [[nodiscard]] constexpr auto operator!=(state_t other) const noexcept -> bool;
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-        [[nodiscard]] constexpr operator T() const noexcept;
+        [[nodiscard]] constexpr explicit operator T() const noexcept;
 	};
 
     // +++ convenience definitions
