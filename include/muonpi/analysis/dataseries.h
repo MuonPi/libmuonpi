@@ -290,7 +290,7 @@ auto data_series<T>::private_mean(const mean_t& type) const -> T
         return static_cast<T>(n()) / std::accumulate(m_data.begin(), m_data.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
     }
     if (type == mean_t::quadratic) {
-        return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0) / static_cast<T>(n()));
+        return std::sqrt(std::inner_product(m_data.begin(), m_data.end(), m_data.begin(), 0.0) / static_cast<T>(n()));
     }
     return std::accumulate(m_data.begin(), m_data.end(), 0.0) / static_cast<T>(n());
 }
