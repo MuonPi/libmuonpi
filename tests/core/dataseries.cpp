@@ -2,6 +2,8 @@
 
 #include "muonpi/analysis/dataseries.h"
 
+#include <numeric>
+
 namespace utf = boost::unit_test;
 
 BOOST_AUTO_TEST_SUITE(core_data_series_test, * utf::tolerance(0.00001))
@@ -42,8 +44,8 @@ BOOST_AUTO_TEST_CASE(fill_test)
     BOOST_TEST(series.mean(data_s::mean_t::harmonic) == 1.0);
     BOOST_TEST(series.mean(data_s::mean_t::quadratic) == 1.0);
     BOOST_TEST(series.median() == 1.0);
-    BOOST_TEST(series.stddev() == 0.0);
-    BOOST_TEST(series.variance() == 0.0);
+    BOOST_TEST(series.stddev() == std::numeric_limits<double>::infinity());
+    BOOST_TEST(series.variance() == std::numeric_limits<double>::infinity());
     BOOST_TEST(series.current() == 1.0);
     BOOST_TEST(series.min() == 1.0);
     BOOST_TEST(series.max() == 1.0);
@@ -115,8 +117,8 @@ BOOST_AUTO_TEST_CASE(fill_test)
     BOOST_TEST(series.mean(data_s::mean_t::harmonic) == 1.0);
     BOOST_TEST(series.mean(data_s::mean_t::quadratic) == 1.0);
     BOOST_TEST(series.median() == 1.0);
-    BOOST_TEST(series.stddev() == 0.0);
-    BOOST_TEST(series.variance() == 0.0);
+    BOOST_TEST(series.stddev() == std::numeric_limits<double>::infinity());
+    BOOST_TEST(series.variance() == std::numeric_limits<double>::infinity());
     BOOST_TEST(series.current() == 1.0);
     BOOST_TEST(series.min() == 1.0);
     BOOST_TEST(series.max() == 1.0);
