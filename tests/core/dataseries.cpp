@@ -22,6 +22,7 @@ BOOST_AUTO_TEST_CASE(empty_test)
     BOOST_TEST(series.current() == 0.0);
     BOOST_TEST(series.min() == 0.0);
     BOOST_TEST(series.max() == 0.0);
+    BOOST_TEST(series.sum() == 0.0);
 }
 
 BOOST_AUTO_TEST_CASE(fill_test)
@@ -42,6 +43,7 @@ BOOST_AUTO_TEST_CASE(fill_test)
     BOOST_TEST(series.current() == 1.0);
     BOOST_TEST(series.min() == 1.0);
     BOOST_TEST(series.max() == 1.0);
+    BOOST_TEST(series.sum() == 1.0);
 
     series.add(1.0);
     series.add(1.0);
@@ -64,6 +66,7 @@ BOOST_AUTO_TEST_CASE(fill_test)
     BOOST_TEST(series.current() == 0.5);
     BOOST_TEST(series.min() == 0.5);
     BOOST_TEST(series.max() == 1.5);
+    BOOST_TEST(series.sum() == 10.0);
 
 }
 

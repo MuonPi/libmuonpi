@@ -94,6 +94,12 @@ public:
     [[nodiscard]] auto max() const -> T;
 
     /**
+     * @brief sum Gets the sum of all values
+     * @return The sum
+     */
+    [[nodiscard]] auto sum() const -> T;
+
+    /**
      * @brief n Get the number of entries entered into this data series
      * @return Number of entries
      */
@@ -238,6 +244,12 @@ auto data_series<T, Sample>::min() const -> T
 
 template <typename T, bool Sample>
 auto data_series<T, Sample>::max() const -> T
+{
+    return 0.0;
+}
+
+template <typename T, bool Sample>
+auto data_series<T, Sample>::sum() const -> T
 {
     return 0.0;
 }
