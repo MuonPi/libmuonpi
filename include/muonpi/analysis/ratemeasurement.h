@@ -72,9 +72,10 @@ auto rate_measurement<T>::step() -> bool
 template <typename T>
 auto rate_measurement<T>::step(std::chrono::system_clock::time_point now) -> bool
 {
-    if ((now - m_last) >= m_t) {
+    const auto diff {now - m_last};
+    if (diff >= m_t) {
         m_last = now;
-        data_series<T>::add(static_cast<T>(m_current_n) / static_cast<T>(m_t.count()));
+        data_series<T>::add(static_cast<T>(m_current_n) * 1.0e6 / static_cast<T>(std::chrono::duration_cast<std::chrono::microseconds>(diff).count()));
         m_current_n = 0;
         return true;
     }
