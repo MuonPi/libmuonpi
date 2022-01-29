@@ -194,6 +194,9 @@ void thread_runner::set_state(State state)
 
 auto thread_runner::wait_for(State state, std::chrono::milliseconds duration) -> bool
 {
+    if (m_state == state) {
+        return true;
+    }
     std::chrono::steady_clock::time_point start { std::chrono::steady_clock::now() };
     auto waited { std::chrono::steady_clock::now() - start };
     while (waited < duration) {
