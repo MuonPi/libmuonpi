@@ -36,6 +36,7 @@ set(CORE_TEST_SOURCE_FILES
     "${PROJECT_TEST_SRC_DIR}/core/main.cpp"
     "${PROJECT_TEST_SRC_DIR}/core/utilities.cpp"
     "${PROJECT_TEST_SRC_DIR}/core/threadrunner.cpp"
+    "${PROJECT_TEST_SRC_DIR}/core/dataseries.cpp"
     "${PROJECT_TEST_SRC_DIR}/core/gnss.cpp"
     )
 add_executable(core-test ${CORE_TEST_SOURCE_FILES})
