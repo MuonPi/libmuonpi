@@ -21,7 +21,7 @@ namespace muonpi {
  * @param T The type of data points to process
  * @param Sample whether this should behave like a sample or a complete dataset (true for sample)
  */
-template <typename T, bool Sample = false>
+template <typename T>
 class LIBMUONPI_PUBLIC data_series {
     static_assert(std::is_arithmetic<T>::value);
 
@@ -65,13 +65,16 @@ public:
 
     /**
      * @brief stddev Calculates the standard deviation of all values. This value gets cached between data entries.
+     * For small sample sizes of n <= 10, the factor will be 1/n, for sizes larger than that, 1/(n-1).
+     * The standard deviation of sample sizes n = 1 is infinity.
      * @return The standard deviation
      */
     [[nodiscard]] auto stddev() const -> T;
 
     /**
      * @brief variance Calculates the variance of all values. This value gets cached between data entries.
-     * Depending on the template parameter given with Sample, this calculates the variance of a sample
+     * For small sample sizes of n <= 10, the factor will be 1/n, for sizes larger than that, 1/(n-1).
+     * The variance of sample sizes n = 1 is infinity.
      * @return The variance
      */
     [[nodiscard]] auto variance() const -> T;
@@ -161,14 +164,14 @@ private:
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 
-template <typename T, bool Sample>
-data_series<T, Sample>::data_series(std::size_t n) noexcept
+template <typename T>
+data_series<T>::data_series(std::size_t n) noexcept
     : m_n { n }
 {
 }
 
-template <typename T, bool Sample>
-void data_series<T, Sample>::add(T value)
+template <typename T>
+void data_series<T>::add(T value)
 {
     std::unique_lock<std::shared_mutex> lock { m_mutex };
     m_data.emplace_back(value);
@@ -180,21 +183,21 @@ void data_series<T, Sample>::add(T value)
     mark_dirty();
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::data() const -> const std::list<T>&
+template <typename T>
+auto data_series<T>::data() const -> const std::list<T>&
 {
     std::shared_lock lock { m_mutex };
     return m_data;
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::n() const -> std::size_t
+template <typename T>
+auto data_series<T>::n() const -> std::size_t
 {
     return m_data.size();
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::mean(const mean_t& type) const -> T
+template <typename T>
+auto data_series<T>::mean(const mean_t& type) const -> T
 {
     if (type == mean_t::geometric) {
         return m_geometric_mean.get();
@@ -208,56 +211,56 @@ auto data_series<T, Sample>::mean(const mean_t& type) const -> T
     return m_arithmetic_mean.get();
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::rms() const -> T
+template <typename T>
+auto data_series<T>::rms() const -> T
 {
     return mean(mean_t::quadratic);
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::median() const -> T
+template <typename T>
+auto data_series<T>::median() const -> T
 {
     return m_median.get();
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::stddev() const -> T
+template <typename T>
+auto data_series<T>::stddev() const -> T
 {
     return m_stddev.get();
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::variance() const -> T
+template <typename T>
+auto data_series<T>::variance() const -> T
 {
     return m_variance.get();
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::current() const -> T
+template <typename T>
+auto data_series<T>::current() const -> T
 {
     return m_data.back();
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::min() const -> T
+template <typename T>
+auto data_series<T>::min() const -> T
 {
     return 0.0;
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::max() const -> T
+template <typename T>
+auto data_series<T>::max() const -> T
 {
     return 0.0;
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::sum() const -> T
+template <typename T>
+auto data_series<T>::sum() const -> T
 {
     return 0.0;
 }
 
-template <typename T, bool Sample>
-void data_series<T, Sample>::reset()
+template <typename T>
+void data_series<T>::reset()
 {
     std::unique_lock lock { m_mutex };
     m_data.clear();
@@ -265,16 +268,16 @@ void data_series<T, Sample>::reset()
     mark_dirty();
 }
 
-template <typename T, bool Sample>
-void data_series<T, Sample>::reset(std::size_t n)
+template <typename T>
+void data_series<T>::reset(std::size_t n)
 {
     m_n = n;
     reset();
 }
 
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::private_mean(const mean_t& type) const -> T
+template <typename T>
+auto data_series<T>::private_mean(const mean_t& type) const -> T
 {
     std::shared_lock lock { m_mutex };
     if (m_data.empty()) {
@@ -292,8 +295,8 @@ auto data_series<T, Sample>::private_mean(const mean_t& type) const -> T
     return std::accumulate(m_data.begin(), m_data.end(), 0.0) / static_cast<T>(n());
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::private_median() const -> T
+template <typename T>
+auto data_series<T>::private_median() const -> T
 {
     std::shared_lock lock { m_mutex };
     if (m_data.empty()) {
@@ -312,24 +315,30 @@ auto data_series<T, Sample>::private_median() const -> T
     return sorted.at(n() / 2);
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::private_stddev() const -> T
+template <typename T>
+auto data_series<T>::private_stddev() const -> T
 {
     std::shared_lock lock { m_mutex };
     if (m_data.empty()) {
         return {};
+    }
+    if (n() == 1) {
+        return std::numeric_limits<double>::infinity();
     }
     return std::sqrt(variance());
 }
 
-template <typename T, bool Sample>
-auto data_series<T, Sample>::private_variance() const -> T
+template <typename T>
+auto data_series<T>::private_variance() const -> T
 {
     std::shared_lock lock { m_mutex };
     if (m_data.empty()) {
         return {};
     }
-    const auto denominator { Sample ? (n() - 1.0) : n() };
+    if (n() == 1) {
+        return std::numeric_limits<double>::infinity();
+    }
+    const auto denominator { (n() > 10) ? (n() - 1.0) : n() };
     const auto m { mean() };
 
     return 1.0 / (denominator)*std::inner_product(
