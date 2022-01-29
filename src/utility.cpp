@@ -85,7 +85,7 @@ auto message_parser::empty() const -> bool
 auto message_parser::operator[](std::size_t i) const -> std::string
 {
     if (i >= size()) {
-        return std::string{};
+        return std::string {};
     }
     return std::string { m_fields[i].first, m_fields[i].second };
 }
