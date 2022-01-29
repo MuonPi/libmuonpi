@@ -39,7 +39,7 @@ auto main() -> int
 		// read state of the pin with the provided lambda function
 		muonpi::gpio::state_t state = gpio_read_fn();
 		// set state of other pin with this state
-		bool ok = led_set_fn(state);
+		bool ok = led_set_fn(!state);
 		if (!ok) {
 			std::cout<<" error setting LED\n";
 		}

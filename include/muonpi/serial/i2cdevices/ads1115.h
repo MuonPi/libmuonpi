@@ -12,8 +12,8 @@
 
 namespace muonpi::serial::devices {
 
-// ADC ADS1x13/4/5 sampling readout delay
-constexpr unsigned int READ_WAIT_DELAY_US_INIT { 10 };
+// ADC ADS1x13/4/5 initial polling readout period
+constexpr std::chrono::microseconds READ_WAIT_DELAY_INIT { 10 };
 
 /* ADS1115: 4(2) ch, 16 bit ADC  */
 
@@ -95,7 +95,7 @@ public:
     auto getVoltage(unsigned int channel) -> double;
     void getVoltage(unsigned int channel, double& voltage);
     void getVoltage(unsigned int channel, std::int16_t& adc, double& voltage);
-    void setDiffMode(bool mode) { fDiffMode = mode; }
+    void setDiffMode(bool mode) { m_diff_mode = mode; }
     auto setDataReadyPinMode() -> bool;
     [[nodiscard]] auto getReadWaitDelay() const -> unsigned int;
     auto setContinuousSampling(bool cont_sampling = true) -> bool;
@@ -105,17 +105,17 @@ public:
     void registerConversionReadyCallback(std::function<void(Sample)> fn);
 
 protected:
-    CFG_PGA fPga[4] { PGA4V, PGA4V, PGA4V, PGA4V };
-    std::uint8_t fRate { 0x00 };
-    std::uint8_t fCurrentChannel { 0 };
-    std::uint8_t fSelectedChannel { 0 };
-    unsigned int fReadWaitDelay { READ_WAIT_DELAY_US_INIT }; ///< conversion wait time in us
-    bool fAGC[4] { false, false, false, false }; ///< software agc which switches over to a better pga setting if voltage too low/high
-    bool fDiffMode { false }; ///< measure differential input signals (true) or single ended (false=default)
-    CONV_MODE fConvMode { CONV_MODE::UNKNOWN };
-    Sample fLastSample[4] { InvalidSample, InvalidSample, InvalidSample, InvalidSample };
+    CFG_PGA m_pga[4] { PGA4V, PGA4V, PGA4V, PGA4V };
+    std::uint8_t m_rate { 0x00 };
+    std::uint8_t m_current_channel { 0 };
+    std::uint8_t m_selected_channel { 0 };
+    std::chrono::microseconds m_poll_period { READ_WAIT_DELAY_INIT }; ///< conversion wait time in us
+    bool m_agc[4] { false, false, false, false }; ///< software agc which switches over to a better pga setting if voltage too low/high
+    bool m_diff_mode { false }; ///< measure differential input signals (true) or single ended (false=default)
+    CONV_MODE m_conv_mode { CONV_MODE::UNKNOWN };
+    Sample m_last_sample[4] { InvalidSample, InvalidSample, InvalidSample, InvalidSample };
 
-    std::mutex fMutex;
+    std::mutex m_mutex;
 
     virtual void init();
     auto writeConfig(bool startNewConversion = false) -> bool;
@@ -123,7 +123,7 @@ protected:
     auto readConversionResult(std::int16_t& dataword) -> bool;
     static constexpr auto lsb_voltage(const CFG_PGA pga_setting) -> float { return (PGAGAINS[pga_setting] / MAX_ADC_VALUE); }
     void waitConversionFinished(bool& error);
-    std::function<void(Sample)> fConvReadyFn {};
+    std::function<void(Sample)> m_conv_ready_fn {};
 
 private:
     static constexpr float PGAGAINS[8] { 6.144, 4.096, 2.048, 1.024, 0.512, 0.256, 0.256, 0.256 };
