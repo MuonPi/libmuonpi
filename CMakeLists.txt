@@ -48,6 +48,7 @@ if (LIBMUONPI_TESTS)
 set(USE_BOOST_COMPONENTS ${USE_BOOST_COMPONENTS} unit_test_framework)
 endif ()
 
+find_library(DL dl REQUIRED)
 
 find_package(
   Boost 1.67

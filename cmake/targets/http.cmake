@@ -19,7 +19,6 @@ if (LIBMUONPI_BUILD_HTTP) # libraries specific to the REST library
         )
 
 
-    find_library(DL dl REQUIRED)
 
     add_library(muonpi-http SHARED ${HTTP_SOURCE_FILES} ${HTTP_HEADER_FILES})
     add_dependencies(muonpi-http muonpi-core)

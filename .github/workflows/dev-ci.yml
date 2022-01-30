@@ -15,7 +15,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
+    - name: install dependencies
+      run: sudo apt install -y libboost-all-dev libmosquitto-dev libgpiod-dev libdl libssl-dev
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBMUONPI_BUILD_HTTP:BOOL=ON -DLIBMUONPI_BUILD_LINK:BOOL=ON -DLIBMUONPI_BUILD_DETECTOR:BOOL=ON -DLIBMUONPI_TESTS:BOOL=ON
 
