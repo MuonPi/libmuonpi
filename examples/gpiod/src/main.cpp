@@ -18,13 +18,13 @@ auto main() -> int
             <<"\nchip num lines: "<<chip.num_lines
             <<"\nlines:\n";
     unsigned int gpio_index { 0 };
-	for (auto line: chip.lines) {
+    for (const auto& line: chip.lines) {
         std::cout << gpio_index++ << "\t: " << line.name << " " << line.consumer << "\n";
     }
     std::cout<<'\n';
 
-    std::function<bool(muonpi::gpio::state_t)> led_set_fn { gpio.set_pin_output( 19, muonpi::gpio::state_t::Low, muonpi::gpio::bias_t::OpenSource ) };
-    std::function<muonpi::gpio::state_t()> gpio_read_fn { gpio.get_pin_input( 23, muonpi::gpio::bias_t::Disabled ) };
+    auto led_set_fn { gpio.set_pin_output( 19, muonpi::gpio::state_t{muonpi::gpio::state_t::Low}, muonpi::gpio::bias_t::OpenSource ) };
+    auto gpio_read_fn { gpio.get_pin_input( 23, muonpi::gpio::bias_t::Disabled ) };
 
     muonpi::gpio::pins_t pins {
         muonpi::gpio::settings_t{5, muonpi::gpio::edge_t::Falling, muonpi::gpio::bias_t::Disabled},
@@ -36,13 +36,13 @@ auto main() -> int
             <<evt.pin
             <<": "<<((evt.edge==muonpi::gpio::edge_t::Rising)?"Rising":"Falling")
             <<": "<<std::chrono::duration_cast<std::chrono::microseconds>(evt.time.time_since_epoch()).count()<<"\n";
-		// read state of the pin with the provided lambda function
-		muonpi::gpio::state_t state = gpio_read_fn();
-		// set state of other pin with this state, but invert
-		bool ok = led_set_fn(!state);
-		if (!ok) {
-			std::cout<<" error setting LED\n";
-		}
+        // read state of the pin with the provided lambda function
+        muonpi::gpio::state_t state = gpio_read_fn();
+        // set state of other pin with this state, but invert
+        bool ok = led_set_fn(!state);
+        if (!ok) {
+            std::cout<<" error setting LED\n";
+        }
     } };
 
     if (gpio.set_pin_interrupt(pins, callback))

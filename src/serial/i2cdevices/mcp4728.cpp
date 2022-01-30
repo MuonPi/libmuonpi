@@ -190,9 +190,8 @@ auto MCP4728::read_channel(uint8_t channel, bool eeprom) -> std::optional<DacCha
     }
     if (eeprom) {
         return std::optional<DacChannel> { fChannelSettingEep[channel] };
-    } else {
-        return std::optional<DacChannel> { fChannelSetting[channel] };
     }
+    return std::optional<DacChannel> { fChannelSetting[channel] };
 }
 
 auto MCP4728::code2voltage(const DacChannel& channelData) -> float
