@@ -130,7 +130,6 @@ auto thread_runner::run() -> int
 
 void thread_runner::exec()
 {
-
     std::promise<int> promise {};
     m_run_future = promise.get_future();
     int value = run();

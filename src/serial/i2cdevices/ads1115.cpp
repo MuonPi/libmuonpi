@@ -198,29 +198,7 @@ auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
 
     stop_timer();
 
-    Sample sample {
-        std::chrono::steady_clock::now(),
-        conv_result,
-        adcToVoltage(conv_result, m_pga[m_current_channel]),
-        lsb_voltage(m_pga[m_current_channel]),
-        m_current_channel
-    };
-    if (m_conv_ready_fn && sample != InvalidSample) {
-        m_conv_ready_fn(sample);
-    }
-
-    if (m_agc[m_current_channel]) {
-        int eadc = std::abs(conv_result);
-        if (eadc > HI_RANGE_LIMIT && m_pga[m_current_channel] > PGA6V) {
-            m_pga[m_current_channel] = CFG_PGA(m_pga[m_current_channel] - 1);
-            // if (fDebugLevel > 1) printf("ADC input high...setting PGA to level %d\n", m_pga[m_current_channel]);
-        } else if (eadc < LO_RANGE_LIMIT && m_pga[m_current_channel] < PGA256MV) {
-            m_pga[m_current_channel] = CFG_PGA(m_pga[m_current_channel] + 1);
-            // if (fDebugLevel > 1) printf("ADC input low...setting PGA to level %d\n", m_pga[m_current_channel]);
-        }
-    }
-    m_last_sample[m_current_channel] = sample;
-    return sample;
+    return read_sample(conv_result);
 }
 
 auto ADS1115::triggerConversion(unsigned int channel) -> bool
@@ -249,29 +227,7 @@ auto ADS1115::conversionFinished() -> ADS1115::Sample
     stop_timer();
     start_timer();
 
-    Sample sample {
-        std::chrono::steady_clock::now(),
-        conv_result,
-        adcToVoltage(conv_result, m_pga[m_current_channel]),
-        lsb_voltage(m_pga[m_current_channel]),
-        m_current_channel
-    };
-    if (m_conv_ready_fn && sample != InvalidSample) {
-        m_conv_ready_fn(sample);
-    }
-
-    if (m_agc[m_current_channel]) {
-        int eadc = std::abs(conv_result);
-        if (eadc > HI_RANGE_LIMIT && m_pga[m_current_channel] > PGA6V) {
-            m_pga[m_current_channel] = CFG_PGA(m_pga[m_current_channel] - 1);
-            // if (fDebugLevel > 1) printf("ADC input high...setting PGA to level %d\n", fPga[m_current_channel]);
-        } else if (eadc < LO_RANGE_LIMIT && m_pga[m_current_channel] < PGA256MV) {
-            m_pga[m_current_channel] = CFG_PGA(m_pga[m_current_channel] + 1);
-            // if (fDebugLevel > 1) printf("ADC input low...setting PGA to level %d\n", fPga[m_current_channel]);
-        }
-    }
-    m_last_sample[m_current_channel] = sample;
-    return sample;
+    return read_sample(conv_result);
 }
 
 auto ADS1115::readADC(unsigned int channel) -> std::int16_t
@@ -388,6 +344,31 @@ void ADS1115::setAGC(std::uint8_t channel, bool state)
 auto ADS1115::getAGC(std::uint8_t channel) const -> bool
 {
     return m_agc[channel & 0x03];
+}
+
+auto ADS1115::read_sample(int16_t conv_result) -> Sample
+{
+    Sample sample {
+        std::chrono::steady_clock::now(),
+        conv_result,
+        adcToVoltage(conv_result, m_pga[m_current_channel]),
+        lsb_voltage(m_pga[m_current_channel]),
+        m_current_channel
+    };
+    if (m_conv_ready_fn && sample != InvalidSample) {
+        m_conv_ready_fn(sample);
+    }
+
+    if (m_agc[m_current_channel]) {
+        int eadc = std::abs(conv_result);
+        if (eadc > HI_RANGE_LIMIT && m_pga[m_current_channel] > PGA6V) {
+            m_pga[m_current_channel] = CFG_PGA(m_pga[m_current_channel] - 1);
+        } else if (eadc < LO_RANGE_LIMIT && m_pga[m_current_channel] < PGA256MV) {
+            m_pga[m_current_channel] = CFG_PGA(m_pga[m_current_channel] + 1);
+        }
+    }
+    m_last_sample[m_current_channel] = sample;
+    return sample;
 }
 
 } // namespace muonpi::serial::devices
