@@ -78,7 +78,10 @@ namespace gpio {
          * @brief state_t construct a state_t object. Explicitly not marked explicit.
          * @param a_state The state to represent
          */
-        constexpr state_t(T a_state) noexcept;
+        constexpr state_t(T a_state) noexcept
+            : state{ std::clamp(static_cast<int>(a_state), Undefined, High) }
+        {
+        }
 
         /**
          * @brief operator == Compares to a different state object
@@ -310,12 +313,6 @@ constexpr auto gpio::state_t::operator!() const noexcept -> gpio::state_t
         return gpio::state_t { High };
     }
     return gpio::state_t { Undefined };
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
-constexpr gpio::state_t::state_t(T a_state) noexcept
-    : state{ std::clamp(static_cast<int>(a_state), Undefined, High) }
-{
 }
 
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
