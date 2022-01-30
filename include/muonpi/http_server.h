@@ -17,7 +17,6 @@ namespace muonpi::http {
  * @brief The path_handler struct
  */
 struct LIBMUONPI_PUBLIC path_handler {
-
     std::function<bool(std::string_view path)> matches {}; //<! Function to determine whether the current path of the request matches this handler
     std::function<response_type(request_type& req, const std::queue<std::string>& path)> handle {}; //<! The registered handler function which gets called by the server
     std::string name {}; //<! The name of this handler

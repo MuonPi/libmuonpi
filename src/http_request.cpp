@@ -50,7 +50,6 @@ void load_root_ca(ssl::context& ctx)
 template <typename Stream>
 [[nodiscard]] auto create_request(Stream& stream, const destination_t& destination, const std::string& body, const std::vector<field_t>& fields) -> response_type
 {
-
     // Set up an HTTP GET request message
     request_type req { destination.method, destination.target, destination.version };
     req.set(http_field::host, destination.host);

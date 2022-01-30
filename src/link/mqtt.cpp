@@ -93,8 +93,6 @@ auto mqtt::step() -> int
 
 void mqtt::callback_connected(int result)
 {
-    if (result == 0) {
-    }
     if (!m_connect_future.valid()) {
         return;
     }

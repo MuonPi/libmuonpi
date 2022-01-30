@@ -11,5 +11,4 @@ auto main() -> int
     muonpi::log::critical(5)<<"Critical!";
 
     muonpi::log::info()<<"This will not be executed.";
-
 }

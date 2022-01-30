@@ -20,7 +20,6 @@ auto main() -> int
     log::info() << "scanning bus " << bus.address() <<" for devices...";
     
     for ( std::uint8_t addr = 4; addr < 0x7c; ++addr ) {
-
         auto& dev = bus.open<serial::i2c_device>( addr );
 
         if ( dev.is_open() && dev.present() ) {
