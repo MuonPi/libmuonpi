@@ -12,7 +12,7 @@ namespace muonpi::serial::devices {
 LM75::LM75(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
-    set_title("LM75");
+    set_name("LM75");
 }
 
 LM75::~LM75() = default;

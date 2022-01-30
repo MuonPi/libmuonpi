@@ -12,7 +12,7 @@ namespace muonpi::serial::devices {
 PCA9536::PCA9536(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
-    set_title("PCA9536");
+    set_name("PCA9536");
 }
 
 auto PCA9536::setOutputPorts(std::uint8_t portMask) -> bool
@@ -36,16 +36,15 @@ auto PCA9536::setOutputState(std::uint8_t portMask) -> bool
     return true;
 }
 
-auto PCA9536::getInputState(std::uint8_t* state) -> bool
+auto PCA9536::getInputState() -> std::optional<std::uint8_t>
 {
     std::uint8_t inport = 0x00;
     start_timer();
     if (1 != read(REG::INPUT, &inport, 1)) {
-        return false;
+        return std::nullopt;
     }
     stop_timer();
-    *state = inport & 0x0f;
-    return true;
+    return std::optional<std::uint8_t>{ inport & 0x0f };
 }
 
 auto PCA9536::present() -> bool

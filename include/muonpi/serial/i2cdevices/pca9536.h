@@ -3,6 +3,8 @@
 #include "muonpi/serial/i2cbus.h"
 #include "muonpi/serial/i2cdevice.h"
 
+#include <optional>
+
 namespace muonpi::serial::devices {
 
 /* PCA9536  */
@@ -21,7 +23,7 @@ public:
 
     [[nodiscard]] auto setOutputPorts(std::uint8_t portMask) -> bool;
     [[nodiscard]] auto setOutputState(std::uint8_t portMask) -> bool;
-    [[nodiscard]] auto getInputState(std::uint8_t* state) -> bool; // TODO: Don't use output parameters and bool return value. Use std::optional<std::uint8_t> or similar instead. Especially don't use pointers as output parameter
+    [[nodiscard]] auto getInputState() -> std::optional<std::uint8_t>;
 
     [[nodiscard]] auto present() -> bool override;
     [[nodiscard]] auto identify() -> bool override;

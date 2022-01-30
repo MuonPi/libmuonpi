@@ -136,17 +136,22 @@ auto i2c_device::locked() const -> bool
 
 auto i2c_device::last_interval() const -> double
 {
-    return m_last_interval;
+    return 1e-3 * m_last_duration.count();
 }
 
-void i2c_device::set_title(std::string title)
+auto i2c_device::last_access_duration() const -> std::chrono::microseconds
 {
-    m_title = std::move(title);
+    return m_last_duration;
 }
 
-auto i2c_device::title() const -> std::string
+void i2c_device::set_name(std::string name)
 {
-    return m_title;
+    m_name = std::move(name);
+}
+
+auto i2c_device::name() const -> std::string
+{
+    return m_name;
 }
 
 auto i2c_device::read(std::uint8_t* buffer, std::size_t bytes) -> int
@@ -279,6 +284,7 @@ void i2c_device::start_timer()
 
 void i2c_device::stop_timer()
 {
-    m_last_interval = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - m_start).count()) * 1e-3;
+    m_last_duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - m_start);
 }
+
 } // namespace muonpi::serial

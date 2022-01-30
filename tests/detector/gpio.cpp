@@ -50,3 +50,18 @@ BOOST_AUTO_TEST_CASE( test_gpio_state )
 	BOOST_TEST( (bool_state == muonpi::gpio::state_t::Low) );
 }
 BOOST_AUTO_TEST_SUITE_END()
+
+struct fixture_gpio_handler {
+    muonpi::gpio_handler gpio {"/dev/gpiochip0", "libmuonpi-test"};
+};
+
+BOOST_FIXTURE_TEST_SUITE( test_gpio_access, fixture_gpio_handler )
+
+BOOST_AUTO_TEST_CASE( test_gpio_access_init )
+{
+	auto chip = gpio.get_chip_info();
+	BOOST_TEST( (!chip.name.empty()) );
+	BOOST_TEST( (chip.num_lines > 0) );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
