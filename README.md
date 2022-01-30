@@ -1,3 +1,5 @@
+[![CodeFactor](https://www.codefactor.io/repository/github/muonpi/libmuonpi/badge)](https://www.codefactor.io/repository/github/muonpi/libmuonpi)
+
 # libmuonpi
 A support library for the muonpi project.
 
