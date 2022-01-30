@@ -287,4 +287,12 @@ void i2c_device::stop_timer()
     m_last_duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - m_start);
 }
 
+auto i2c_device::setup_timer() -> scope_guard
+{
+    start_timer();
+    return scope_guard{[&]{
+            stop_timer();
+        }};
+}
+
 } // namespace muonpi::serial

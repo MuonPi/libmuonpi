@@ -1,6 +1,8 @@
 #ifndef MUONPI_SERIAL_I2CDEVICE_H
 #define MUONPI_SERIAL_I2CDEVICE_H
 
+#include "muonpi/scopeguard.h"
+
 #include <chrono>
 #include <cinttypes> // std::uint8_t, etc
 #include <cstdio>
@@ -80,6 +82,8 @@ protected:
 
     void start_timer();
     void stop_timer();
+
+    [[nodiscard]] auto setup_timer() -> scope_guard;
 
 private:
     i2c_bus& m_bus;
