@@ -198,7 +198,7 @@ auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
 
     stop_timer();
 
-    return read_sample(conv_result);
+    return generate_sample(conv_result);
 }
 
 auto ADS1115::triggerConversion(unsigned int channel) -> bool
@@ -227,7 +227,7 @@ auto ADS1115::conversionFinished() -> ADS1115::Sample
     stop_timer();
     start_timer();
 
-    return read_sample(conv_result);
+    return generate_sample(conv_result);
 }
 
 auto ADS1115::readADC(unsigned int channel) -> std::int16_t
@@ -346,7 +346,7 @@ auto ADS1115::getAGC(std::uint8_t channel) const -> bool
     return m_agc[channel & 0x03];
 }
 
-auto ADS1115::read_sample(int16_t conv_result) -> Sample
+auto ADS1115::generate_sample(int16_t conv_result) -> Sample
 {
     Sample sample {
         std::chrono::steady_clock::now(),
