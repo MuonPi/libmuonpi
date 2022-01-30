@@ -72,14 +72,36 @@ namespace gpio {
         int state { Undefined }; ///<! the logical state
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-        constexpr explicit state_t(T a_state) noexcept;
+        /**
+         * @brief state_t construct a state_t object. Explicitly not marked explicit.
+         * @param a_state The state to represent
+         */
+        constexpr state_t(T a_state) noexcept;
 
-        [[nodiscard]] constexpr auto operator~() const noexcept -> state_t;
+        /**
+         * @brief operator == Compares to a different state object
+         * @param other
+         * @return
+         */
         [[nodiscard]] constexpr auto operator==(state_t other) const noexcept -> bool;
+
+        /**
+         * @brief operator != Compares to a different state object
+         * @param other
+         * @return
+         */
         [[nodiscard]] constexpr auto operator!=(state_t other) const noexcept -> bool;
+
+        /**
+         * @brief operator ! logically Invert the state
+         * @return
+         */
         [[nodiscard]] constexpr auto operator!() const noexcept -> state_t;
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+        /**
+         * @brief operator T Convert the state object to an integral type
+         */
         [[nodiscard]] constexpr explicit operator T() const noexcept;
     };
 
@@ -268,16 +290,6 @@ private:
 };
 
 // Implementation part
-constexpr auto gpio::state_t::operator~() const noexcept -> gpio::state_t
-{
-    if (state == High) {
-        return gpio::state_t { Low };
-    } else if (state == Low) {
-        return gpio::state_t { High };
-    }
-    return gpio::state_t { Undefined };
-}
-
 constexpr auto gpio::state_t::operator==(gpio::state_t other) const noexcept -> bool
 {
     return other.state == state;
@@ -290,7 +302,12 @@ constexpr auto gpio::state_t::operator!=(gpio::state_t other) const noexcept -> 
 
 constexpr auto gpio::state_t::operator!() const noexcept -> gpio::state_t
 {
-    return ~(*this);
+    if (state == High) {
+        return gpio::state_t { Low };
+    } else if (state == Low) {
+        return gpio::state_t { High };
+    }
+    return gpio::state_t { Undefined };
 }
 
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
