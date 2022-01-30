@@ -23,7 +23,18 @@ jobs:
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-    - name: Test
+    - name: Test core
       working-directory: ${{github.workspace}}/build/tests
-      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure --verbose
-      
+      run: ./core-test -l all -r short -s --detect_fp_exceptions
+
+    - name: Test http
+      working-directory: ${{github.workspace}}/build/tests
+      run: ./http-test -l all -r short -s --detect_fp_exceptions
+
+    - name: Test link
+      working-directory: ${{github.workspace}}/build/tests
+      run: ./link-test -l all -r short -s --detect_fp_exceptions
+
+    - name: Test detector
+      working-directory: ${{github.workspace}}/build/tests
+      run: ./detector-test -l all -r short -s --detect_fp_exceptions
