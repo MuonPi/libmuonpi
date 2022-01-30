@@ -10,7 +10,7 @@ struct fixture_gpio_handler {
 
 BOOST_TEST_GLOBAL_FIXTURE(fixture_gpio_handler);
 
-BOOST_FIXTURE_TEST_SUITE( test_gpio_access )
+BOOST_AUTO_TEST_SUITE( test_gpio_access )
 
 
 BOOST_AUTO_TEST_CASE( test_gpio_access_init )
