@@ -133,28 +133,25 @@ auto ADS1115::writeConfig(bool startNewConversion) -> bool
     return true;
 }
 
-void ADS1115::waitConversionFinished(bool& error)
+auto ADS1115::wait_conversion_finished() -> bool
 {
-    std::uint16_t conf_reg { 0 };
     // Wait for the conversion to complete, this requires bit 15 to change from 0->1
-    int nloops = 0;
-    while ((conf_reg & 0x8000) == 0 && nloops * m_poll_period.count() / 1000 < 1000) // readBuf[0] contains 8 MSBs of config register, AND with 10000000 to select bit 15
-    {
+    const std::size_t n_max { 1'000'000UL / m_poll_period.count() };
+
+    for (std::size_t i { 0 }; i < n_max; i++) {
+        std::uint16_t conf_reg { 0 };
         std::this_thread::sleep_for(m_poll_period);
-        if (read(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) == 0) {
-            error = true;
-            return;
+        if (read(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) != 1) {
+            return false;
         }
-        nloops++;
+        if ((conf_reg & 0x8000) > 0) {
+            if (i > 1) {
+                m_poll_period += std::chrono::microseconds((i - 1) * m_poll_period.count() / 10);
+            }
+            return true;
+        }
     }
-    if (nloops * m_poll_period.count() / 1000 >= 1000) {
-        error = true;
-        return;
-    }
-    if (nloops > 1) {
-        m_poll_period += std::chrono::microseconds((nloops - 1) * m_poll_period.count() / 10);
-    }
-    error = false;
+    return false;
 }
 
 auto ADS1115::readConversionResult(std::int16_t& dataword) -> bool
@@ -174,7 +171,6 @@ auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
 {
     // if ( fConvMode != CONV_MODE::SINGLE ) return InvalidSample;
     std::lock_guard<std::mutex> lock(m_mutex);
-    std::int16_t conv_result { 0 }; // Stores the 16 bit value of our ADC conversion
 
     m_conv_mode = CONV_MODE::SINGLE;
     m_selected_channel = channel;
@@ -187,11 +183,11 @@ auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
         return InvalidSample;
     }
 
-    bool err { false };
-    waitConversionFinished(err);
-    if (err) {
+    if (!wait_conversion_finished()) {
         return InvalidSample;
     }
+
+    std::int16_t conv_result { 0 }; // Stores the 16 bit value of our ADC conversion
 
     if (!readConversionResult(conv_result)) {
         return InvalidSample;
@@ -203,15 +199,17 @@ auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
 auto ADS1115::triggerConversion(unsigned int channel) -> bool
 {
     // triggering a conversion makes only sense in single shot mode
-    if (m_conv_mode == CONV_MODE::SINGLE) {
-        try {
-            std::thread sampler(&ADS1115::getSample, this, channel);
-            sampler.detach();
-            return true;
-        } catch (...) {
-        }
+    if (m_conv_mode != CONV_MODE::SINGLE) {
+        return false;
     }
-    return false;
+    try {
+        auto future {std::async(std::launch::async, [&]{
+            getSample(channel);
+        })};
+        return future.valid();
+    } catch (...) {
+        return false;
+    }
 }
 
 auto ADS1115::conversionFinished() -> ADS1115::Sample

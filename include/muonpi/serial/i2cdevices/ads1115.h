@@ -122,7 +122,15 @@ protected:
     auto setCompQueue(std::uint8_t bitpattern) -> bool;
     auto readConversionResult(std::int16_t& dataword) -> bool;
     static constexpr auto lsb_voltage(const CFG_PGA pga_setting) -> float { return (PGAGAINS[pga_setting] / MAX_ADC_VALUE); }
-    void waitConversionFinished(bool& error);
+
+    /**
+     * @brief wait_conversion_finished polls for the conversion to be done.
+     * This is indicated by bit 15 of the config register to change from 0 to 1.
+     * Polls in discrete time intervals of m_poll_period
+     * @return false in case of timeout or read failure.
+     */
+    [[nodiscard]] auto wait_conversion_finished() -> bool;
+
     std::function<void(Sample)> m_conv_ready_fn {};
 
 private:
