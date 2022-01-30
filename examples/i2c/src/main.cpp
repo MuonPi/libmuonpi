@@ -57,7 +57,8 @@ auto main() -> int
         <<" : ch0=" << std::dec << adc.getVoltage( 0 )
         <<" ch1=" << std::dec << adc.getVoltage( 1 )
         <<" ch2=" << std::dec << adc.getVoltage( 2 )
-        <<" ch3=" << std::dec << adc.getVoltage( 3 );
+        <<" ch3=" << std::dec << adc.getVoltage( 3 )
+        <<"; ro-time="<<1e-3*adc.last_access_duration().count()<<"ms";
     } else {
         log::error()<<"error identifying ADS1115 at 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( adc_addr );
     }
