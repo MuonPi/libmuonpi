@@ -136,7 +136,7 @@ auto ADS1115::writeConfig(bool startNewConversion) -> bool
 auto ADS1115::wait_conversion_finished() -> bool
 {
     // Wait for the conversion to complete, this requires bit 15 to change from 0->1
-    const std::size_t n_max { 1'000'000UL / m_poll_period.count() };
+    const std::size_t n_max { static_cast<std::size_t>(1'000'000UL / m_poll_period.count()) };
 
     for (std::size_t i { 0 }; i < n_max; i++) {
         std::uint16_t conf_reg { 0 };
