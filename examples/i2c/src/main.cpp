@@ -24,7 +24,7 @@ auto main() -> int
 		serial::i2c_device& dev = bus.open<serial::i2c_device>( addr );
 
 		if ( dev.is_open() && dev.present() ) {
-			log::info() << "found " << dev.title() << " at 0x" 
+			log::info() << "found " << dev.name() << " at 0x" 
 			<< std::hex << std::setw(2) << std::setfill('0') 
 			<< static_cast<int>( addr );
 		} else {

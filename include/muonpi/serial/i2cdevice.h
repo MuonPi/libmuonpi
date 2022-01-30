@@ -53,9 +53,10 @@ public:
     [[nodiscard]] auto locked() const -> bool;
 
     [[nodiscard]] auto last_interval() const -> double;
+    [[nodiscard]] auto last_access_duration() const -> std::chrono::microseconds;
 
-    void set_title(std::string title);
-    [[nodiscard]] auto title() const -> std::string;
+    void set_name(std::string name);
+    [[nodiscard]] auto name() const -> std::string;
 
     [[nodiscard]] auto read(std::uint8_t* buffer, std::size_t bytes = 1) -> int;
 
@@ -94,9 +95,9 @@ private:
     std::size_t m_tx_bytes {};
 
     std::size_t m_io_errors {};
-    double m_last_interval {}; // the last time measurement's result is stored here
+    std::chrono::microseconds m_last_duration {}; // the last time measurement's result is stored here
 
-    std::string m_title { "I2C device" };
+    std::string m_name { "I2C device" };
     std::uint8_t m_flags {};
 
     std::chrono::system_clock::time_point m_start {};

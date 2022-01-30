@@ -12,7 +12,7 @@ namespace muonpi::serial::devices {
 PCA9536::PCA9536(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
-    set_title("PCA9536");
+    set_name("PCA9536");
 }
 
 auto PCA9536::setOutputPorts(std::uint8_t portMask) -> bool

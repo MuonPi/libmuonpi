@@ -13,7 +13,7 @@ namespace muonpi::serial::devices {
 MIC184::MIC184(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
-    set_title("MIC184");
+    set_name("MIC184");
 }
 
 MIC184::~MIC184() = default;

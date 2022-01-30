@@ -16,7 +16,7 @@ constexpr std::size_t PAGESIZE { 8 };
 EEPROM24AA02::EEPROM24AA02(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
-    set_title("24AA02");
+    set_name("24AA02");
 }
 
 auto EEPROM24AA02::read(std::uint8_t start_addr, std::uint8_t* buffer, std::size_t bytes) -> int
@@ -110,7 +110,7 @@ auto EEPROM24AA02::identify() -> bool
     // additionaly check, whether it could be a 24AA02UID,
     // i.e. if the last 6 bytes contain 2 bytes of vendor/device code and 4 bytes of unique id
     if (buf[0] == 0x29 && buf[1] == 0x41) {
-        set_title("24AA02UID");
+        set_name("24AA02UID");
     }
     return true;
 }

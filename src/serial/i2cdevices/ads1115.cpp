@@ -29,7 +29,7 @@ auto ADS1115::adcToVoltage(std::int16_t adc, const CFG_PGA pga_setting) -> float
 ADS1115::ADS1115(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
-    set_title("ADS1115");
+    set_name("ADS1115");
     init();
 }
 

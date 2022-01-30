@@ -14,7 +14,7 @@ constexpr auto DataValidityTimeout { std::chrono::milliseconds(100) };
 MCP4728::MCP4728(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
-    set_title("MCP4728");
+    set_name("MCP4728");
 }
 
 auto MCP4728::set_voltage(unsigned int channel, float voltage) -> bool
