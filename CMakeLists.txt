@@ -10,11 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # rationale for disabling this warning: https://stackoverflow.com/questions/48149323/what-does-the-gcc-warning-project-parameter-passing-for-x-changed-in-gcc-7-1-m/48149400#48149400
-    add_compile_options(-Wno-psabi)
-endif ()
-
 
 option(LIBMUONPI_BUILD_SANITIZERS "Build sanitizers into the libraries" OFF)
 option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" ON)
@@ -71,6 +66,11 @@ find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
 
 if(STD_CPP_FS)
     set(PROJECT_INCLUDE_LIBS ${PROJECT_INCLUDE_LIBS} stdc++fs)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # rationale for disabling this warning: https://stackoverflow.com/questions/48149323/what-does-the-gcc-warning-project-parameter-passing-for-x-changed-in-gcc-7-1-m/48149400#48149400
+        add_compile_options(-Wno-psabi)
+    endif ()
+
 endif()
 # --- necessary for compatability with older compilers
 
