@@ -10,7 +10,7 @@ struct fixture_gpio_handler {
     void setup()
     {
         muonpi::log::system::setup(muonpi::log::Level::Info, [](int c){exit(c);}, std::cerr);
-        gpio = std::move( std::make_unique<muonpi::gpio_handler>("/dev/gpiochip0", "libmuonpi-test") );
+        gpio = std::make_unique<muonpi::gpio_handler>("/dev/gpiochip0", "libmuonpi-test");
     }
 
     void teardown()
