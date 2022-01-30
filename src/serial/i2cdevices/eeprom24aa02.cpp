@@ -36,7 +36,7 @@ auto EEPROM24AA02::writeByte(std::uint8_t addr, std::uint8_t data) -> bool
     // TODO: Don't use c-style arrays. Use std::array instead.
     uint8_t writeBuf[2] { addr, data }; // Buffer to store the 2 bytes that we write to the I2C device
 
-    start_timer();
+    scope_guard timer_guard { setup_timer() };
 
     // Write address and data byte
     if (write(writeBuf, 2) != 2) {
@@ -47,7 +47,6 @@ auto EEPROM24AA02::writeByte(std::uint8_t addr, std::uint8_t data) -> bool
     // TODO: move the write to another thread to continue code execution in the calling thread
     // but block any access to the eeprom during write cycle
     std::this_thread::sleep_for(EEP_WRITE_IDLE_TIME);
-    stop_timer();
     return true;
 }
 
