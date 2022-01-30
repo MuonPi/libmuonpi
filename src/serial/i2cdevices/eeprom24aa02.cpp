@@ -1,4 +1,5 @@
 #include "muonpi/serial/i2cdevices/eeprom24aa02.h"
+#include "muonpi/scopeguard.h"
 #include <chrono>
 #include <cstdint>
 #include <thread>
@@ -21,10 +22,8 @@ EEPROM24AA02::EEPROM24AA02(i2c_bus& bus, std::uint8_t address)
 
 auto EEPROM24AA02::read(std::uint8_t start_addr, std::uint8_t* buffer, std::size_t bytes) -> int
 {
-    start_timer();
-    int nbytes = i2c_device::read(start_addr, buffer, bytes);
-    stop_timer();
-    return nbytes;
+    scope_guard timer_guard { setup_timer() };
+    return i2c_device::read(start_addr, buffer, bytes);
 }
 
 auto EEPROM24AA02::read_byte(std::uint8_t addr, std::uint8_t* value) -> bool
@@ -54,6 +53,7 @@ auto EEPROM24AA02::writeByte(uint8_t addr, uint8_t data) -> bool
 
 auto EEPROM24AA02::write(std::uint8_t addr, std::uint8_t* buffer, std::size_t bytes) -> int
 {
+    scope_guard timer_guard { setup_timer() };
     if (bytes == 1) {
         if (writeByte(addr, *buffer)) {
             return 1;
@@ -61,11 +61,10 @@ auto EEPROM24AA02::write(std::uint8_t addr, std::uint8_t* buffer, std::size_t by
         return 0;
     }
     int total_written { 0 };
-    start_timer();
-    for (uint16_t i = 0; i < bytes;) {
-        uint8_t currAddr = addr + i;
+    for (std::size_t i = 0; i < bytes;) {
+        std::uint8_t currAddr = addr + i;
         // determine, how many bytes left on current page
-        uint8_t pageRemainder = PAGESIZE - currAddr % PAGESIZE;
+        std::uint8_t pageRemainder = PAGESIZE - currAddr % PAGESIZE;
         if (currAddr + pageRemainder >= bytes) {
             pageRemainder = bytes - currAddr;
         }
@@ -74,7 +73,6 @@ auto EEPROM24AA02::write(std::uint8_t addr, std::uint8_t* buffer, std::size_t by
         i += pageRemainder;
         total_written += n;
     }
-    stop_timer();
     return total_written;
 }
 

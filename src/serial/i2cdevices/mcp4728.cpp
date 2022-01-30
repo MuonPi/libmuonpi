@@ -1,4 +1,5 @@
 #include "muonpi/serial/i2cdevices/mcp4728.h"
+#include "muonpi/scopeguard.h"
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -69,35 +70,36 @@ auto MCP4728::set_value(uint8_t channel, uint16_t value, CFG_GAIN gain, bool toE
     return write_channel(channel, dacChannel);
 }
 
-auto MCP4728::write_channel(uint8_t channel, const DacChannel& channelData) -> bool
+auto MCP4728::write_channel(std::uint8_t channel, const DacChannel& channelData) -> bool
 {
     if (channelData.value > 0xfff) {
         // error number of bits exceeding 12
         return false;
     }
-    start_timer();
+
+    scope_guard timer_guard { setup_timer() };
+    
     if (!waitEepReady()) {
         return false;
     }
 
     channel = channel & 0x03;
-    uint8_t buf[3]; // TODO: Do not use c-style arrays. Use std::array instead.
+    std::uint8_t buf[3]; // TODO: Do not use c-style arrays. Use std::array instead.
     if (channelData.eeprom) {
         buf[0] = COMMAND::DAC_EEP_SINGLE_WRITE << 3;
     } else {
         buf[0] = COMMAND::DAC_MULTI_WRITE << 3;
     }
     buf[0] |= (channel << 1); // 01000/01011 (multiwrite/singlewrite command) DAC1 DAC0 (channel) UDAC bit = 1
-    buf[1] = ((uint8_t)channelData.vref) << 7; // Vref PD1 PD0 Gx (gain) D11 D10 D9 D8
+    buf[1] = ((std::uint8_t)channelData.vref) << 7; // Vref PD1 PD0 Gx (gain) D11 D10 D9 D8
     buf[1] |= (channelData.pd & 0x03) << 5;
-    buf[1] |= (uint8_t)((channelData.value & 0xf00) >> 8);
-    buf[1] |= (uint8_t)(channelData.gain & 0x01) << 4;
-    buf[2] = (uint8_t)(channelData.value & 0xff); // D7 D6 D5 D4 D3 D2 D1 D0
+    buf[1] |= (std::uint8_t)((channelData.value & 0xf00) >> 8);
+    buf[1] |= (std::uint8_t)(channelData.gain & 0x01) << 4;
+    buf[2] = (std::uint8_t)(channelData.value & 0xff); // D7 D6 D5 D4 D3 D2 D1 D0
     if (write(buf, 3) != 3) {
         // somehow did not write exact same amount of bytes as it should
         return false;
     }
-    stop_timer();
 
     if (channelData.eeprom) {
         fChannelSettingEep[channel] = channelData;
@@ -111,9 +113,10 @@ auto MCP4728::write_channel(uint8_t channel, const DacChannel& channelData) -> b
 
 auto MCP4728::store_settings() -> bool
 {
-    start_timer();
-    const uint8_t startchannel { 0 };
-    uint8_t buf[9]; // TODO: Do not use c-style arrays. Use std::array instead.
+    scope_guard timer_guard { setup_timer() };
+
+    const std::uint8_t startchannel { 0 };
+    std::uint8_t buf[9]; // TODO: Do not use c-style arrays. Use std::array instead.
 
     if (!waitEepReady()) {
         return false;
@@ -121,19 +124,18 @@ auto MCP4728::store_settings() -> bool
 
     buf[0] = COMMAND::DAC_EEP_SEQ_WRITE << 3;
     buf[0] |= (startchannel << 1); // command DAC1 DAC0 UDAC
-    for (uint8_t channel = 0; channel < 4; channel++) {
-        buf[channel * 2 + 1] = ((uint8_t)fChannelSetting[channel].vref) << 7; // Vref PD1 PD0 Gx (gain) D11 D10 D9 D8
+    for (size_t channel = 0; channel < 4; channel++) {
+        buf[channel * 2 + 1] = ((std::uint8_t)fChannelSetting[channel].vref) << 7; // Vref PD1 PD0 Gx (gain) D11 D10 D9 D8
         buf[channel * 2 + 1] |= (fChannelSetting[channel].pd & 0x03) << 5;
-        buf[channel * 2 + 1] |= (uint8_t)((fChannelSetting[channel].value & 0xf00) >> 8);
-        buf[channel * 2 + 1] |= (uint8_t)(fChannelSetting[channel].gain & 0x01) << 4;
-        buf[channel * 2 + 2] = (uint8_t)(fChannelSetting[channel].value & 0xff); // D7 D6 D5 D4 D3 D2 D1 D0
+        buf[channel * 2 + 1] |= (std::uint8_t)((fChannelSetting[channel].value & 0xf00) >> 8);
+        buf[channel * 2 + 1] |= (std::uint8_t)(fChannelSetting[channel].gain & 0x01) << 4;
+        buf[channel * 2 + 2] = (std::uint8_t)(fChannelSetting[channel].value & 0xff); // D7 D6 D5 D4 D3 D2 D1 D0
     }
 
     if (write(buf, 9) != 9) {
         // somehow did not write exact same amount of bytes as it should
         return false;
     }
-    stop_timer();
     // force a register update next time anything is read
     fLastRegisterUpdate = {};
 
@@ -162,8 +164,10 @@ auto MCP4728::waitEepReady() -> bool
 
 auto MCP4728::read_registers() -> bool
 {
-    uint8_t buf[24];
-    start_timer();
+    std::uint8_t buf[24];
+
+    scope_guard timer_guard { setup_timer() };
+
     // perform a register update only if the buffered content is too old
     if ((std::chrono::steady_clock::now() - fLastRegisterUpdate) < DataValidityTimeout) {
         return true;
@@ -172,13 +176,12 @@ auto MCP4728::read_registers() -> bool
     if (24 != read(buf, 24)) {
         return false;
     }
-    stop_timer();
     parse_channel_data(buf);
     fLastRegisterUpdate = std::chrono::steady_clock::now();
     return true;
 }
 
-auto MCP4728::read_channel(uint8_t channel, bool eeprom) -> std::optional<DacChannel>
+auto MCP4728::read_channel(std::uint8_t channel, bool eeprom) -> std::optional<DacChannel>
 {
     if (channel > 3) {
         // error: channel index exceeding 3
@@ -224,13 +227,14 @@ auto MCP4728::identify() -> bool
 
 auto MCP4728::set_vref(unsigned int channel, CFG_VREF vref_setting) -> bool
 {
-    start_timer();
+    scope_guard timer_guard { setup_timer() };
+
     if (!waitEepReady()) {
         return false;
     }
 
     channel = channel & 0x03;
-    uint8_t databyte { 0 };
+    std::uint8_t databyte { 0 };
     databyte = COMMAND::VREF_WRITE >> 1;
     for (std::size_t ch = 0; ch < 4; ch++) {
         if (ch == channel) {
@@ -245,7 +249,6 @@ auto MCP4728::set_vref(unsigned int channel, CFG_VREF vref_setting) -> bool
         // somehow did not write exact same amount of bytes as it should
         return false;
     }
-    stop_timer();
 
     fChannelSetting[channel].vref = vref_setting;
     return true;

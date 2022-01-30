@@ -1,4 +1,5 @@
 #include "muonpi/serial/i2cdevices/lm75.h"
+#include "muonpi/scopeguard.h"
 #include <cstdint>
 #include <iomanip>
 #include <iostream>

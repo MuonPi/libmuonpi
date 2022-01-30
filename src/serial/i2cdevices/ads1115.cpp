@@ -1,4 +1,5 @@
 #include "muonpi/serial/i2cdevices/ads1115.h"
+#include "muonpi/scopeguard.h"
 #include <future>
 #include <iomanip>
 #include <iostream>
@@ -178,7 +179,7 @@ auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
     m_conv_mode = CONV_MODE::SINGLE;
     m_selected_channel = channel;
 
-    start_timer();
+    scope_guard timer_guard { setup_timer() };
 
     // Write the current config to the ADS1115
     // and begin a single conversion
@@ -195,8 +196,6 @@ auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
     if (!readConversionResult(conv_result)) {
         return InvalidSample;
     }
-
-    stop_timer();
 
     return generate_sample(conv_result);
 }

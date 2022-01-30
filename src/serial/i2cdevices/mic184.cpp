@@ -1,4 +1,5 @@
 #include "muonpi/serial/i2cdevices/mic184.h"
+#include "muonpi/scopeguard.h"
 #include <chrono>
 #include <cstdint>
 #include <iomanip>
@@ -18,27 +19,23 @@ MIC184::MIC184(i2c_bus& bus, std::uint8_t address)
 
 MIC184::~MIC184() = default;
 
-auto MIC184::readRaw() -> int16_t
+auto MIC184::readRaw() -> std::int16_t
 {
-    start_timer();
+    scope_guard timer_guard { setup_timer() };
 
-    uint16_t dataword { 0 };
+    std::uint16_t dataword { 0 };
     // Read the temp register
-    if (read(static_cast<uint8_t>(REG::TEMP), &dataword) == 0) {
+    if (read(static_cast<std::uint8_t>(REG::TEMP), &dataword) == 0) {
         // there was an error
         return INT16_MIN;
     }
 
-    const auto val = static_cast<int16_t>(dataword);
-
-    stop_timer();
-
-    return val;
+    return static_cast<std::int16_t>(dataword);
 }
 
 auto MIC184::get_temperature() -> float
 {
-    int16_t dataword = readRaw();
+    std::int16_t dataword = readRaw();
     auto temp = static_cast<float>(dataword >> 8);
     temp += static_cast<float>(dataword & 0xff) / 256.;
     return temp;
