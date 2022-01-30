@@ -13,7 +13,8 @@ add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
 
 option(LIBMUONPI_BUILD_SANITIZERS "Build sanitizers into the libraries" OFF)
 option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" ON)
-option(LIBMUONPI_TESTS "Build and run unit tests" OFF)
+option(LIBMUONPI_TESTS "Build unit tests" OFF)
+option(LIBMUONPI_HARDWARE_TESTS "Build unit tests which depend on specific hardware" OFF)
 option(LIBMUONPI_BUILD_CLANG_TIDY "Run clang-tidy" OFF)
 
 if (LIBMUONPI_BUILD_CLANG_TIDY)

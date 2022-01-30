@@ -55,6 +55,16 @@ target_link_libraries(detector-test ${PROJECT_INCLUDE_LIBS} muonpi-detector muon
 add_test(detector-test detector-test)
 endif ()
 
+if (LIBMUONPI_HARDWARE_TESTS)
+    set(HARDWARE_TEST_SOURCE_FILES
+    "${PROJECT_TEST_SRC_DIR}/hardware/main.cpp"
+    "${PROJECT_TEST_SRC_DIR}/hardware/gpio.cpp"
+    )
+add_executable(hardware-test ${HARDWARE_TEST_SOURCE_FILES})
+target_link_libraries(hardware-test ${PROJECT_INCLUDE_LIBS} muonpi-detector muonpi-core gpiod atomic)
+add_test(hardware-test hardware-test)
+endif ()
+
 if (LIBMUONPI_BUILD_HTTP)
 set(HTTP_TEST_SOURCE_FILES
     "${PROJECT_TEST_SRC_DIR}/http/main.cpp"
