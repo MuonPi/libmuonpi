@@ -6,6 +6,17 @@
 
 struct fixture_gpio_handler {
     inline static muonpi::gpio_handler gpio {"/dev/gpiochip0", "libmuonpi-test"};
+
+    void setup()
+    {
+        muonpi::log::system::setup(muonpi::log::Level::Info, [](int c){exit(c);}, std::cerr);
+    }
+
+    void teardown()
+    {
+        gpio.stop();
+        gpio.join();
+    }
 };
 
 BOOST_TEST_GLOBAL_FIXTURE(fixture_gpio_handler);
