@@ -38,7 +38,7 @@ auto main() -> int
             <<": "<<std::chrono::duration_cast<std::chrono::microseconds>(evt.time.time_since_epoch()).count()<<"\n";
         // read state of the pin with the provided lambda function
         muonpi::gpio::state_t state = gpio_read_fn();
-        // set state of other pin with this state
+        // set state of other pin with this state, but invert
         bool ok = led_set_fn(!state);
         if (!ok) {
             std::cout<<" error setting LED\n";
