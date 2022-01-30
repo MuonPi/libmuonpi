@@ -69,7 +69,6 @@ namespace gpio {
         static constexpr int Low { 0 };
         static constexpr int High { 1 };
 
-
         constexpr state_t() noexcept = default;
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
@@ -331,7 +330,6 @@ constexpr auto gpio::state_t::operator!=(gpio::state_t other) const noexcept -> 
     return other.m_state != m_state;
 }
 
-
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
 constexpr auto gpio::state_t::operator=(T other) noexcept -> const state_t&
 {
@@ -356,7 +354,7 @@ constexpr auto gpio::state_t::operator!() const noexcept -> gpio::state_t
 {
     switch (m_state) {
     case High:
-        return gpio::state_t{ Low };
+        return gpio::state_t { Low };
         break;
     case Low:
         return gpio::state_t { High };

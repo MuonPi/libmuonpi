@@ -21,7 +21,7 @@ auto main() -> int
 	
 	for ( std::uint8_t addr = 4; addr < 0x7c; ++addr ) {
 
-		serial::i2c_device& dev = bus.open<serial::i2c_device>( addr );
+		auto& dev = bus.open<serial::i2c_device>( addr );
 
 		if ( dev.is_open() && dev.present() ) {
 			log::info() << "found " << dev.name() << " at 0x" 
@@ -39,7 +39,7 @@ auto main() -> int
 		// found the specific device at the expected position, so close the previously created generic
 		// i2c_device and reopen as temp sensor device
 		bus.close( tempsens_addr );
-		serial::devices::MIC184& tempsensor = bus.open<serial::devices::MIC184>( tempsens_addr );
+		auto& tempsensor = bus.open<serial::devices::MIC184>( tempsens_addr );
 		log::info()<<"identified MIC184 at 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( tempsens_addr ) <<" : temp=" << std::dec << tempsensor.get_temperature();
 	} else {
 		log::error()<<"error identifying MIC184 at 0x" 
@@ -52,7 +52,7 @@ auto main() -> int
 		// found the specific device at the expected position, so close the previously created generic
 		// i2c_device and reopen as adc device
 		bus.close( adc_addr );
-		serial::devices::ADS1115& adc = bus.open<serial::devices::ADS1115>( adc_addr );
+		auto& adc = bus.open<serial::devices::ADS1115>( adc_addr );
 		log::info()<<"identified ADS1115 at 0x" 
 		<< std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( adc_addr ) 
 		<<" : ch0=" << std::dec << adc.getVoltage( 0 )
@@ -69,7 +69,7 @@ auto main() -> int
 		// found the specific device at the expected position, so close the previously created generic
 		// i2c_device and reopen as PCA9536 device
 		bus.close( i2c_extender_addr );
-		serial::devices::PCA9536& pca = bus.open<serial::devices::PCA9536>( i2c_extender_addr );
+		auto& pca = bus.open<serial::devices::PCA9536>( i2c_extender_addr );
 		auto input_state { pca.getInputState() };
 		if ( !input_state ) {
 			log::error() << "reading PCA9536 input state register";
