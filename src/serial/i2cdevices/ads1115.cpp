@@ -200,15 +200,17 @@ auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
 auto ADS1115::triggerConversion(unsigned int channel) -> bool
 {
     // triggering a conversion makes only sense in single shot mode
-    if (m_conv_mode == CONV_MODE::SINGLE) {
-        try {
-            std::thread sampler(&ADS1115::getSample, this, channel);
-            sampler.detach();
-            return true;
-        } catch (...) {
-        }
+    if (m_conv_mode != CONV_MODE::SINGLE) {
+        return false;
     }
-    return false;
+    try {
+        auto future {std::async(std::launch::async, [&]{
+            getSample(channel);
+        })};
+        return future.valid();
+    } catch (...) {
+        return false;
+    }
 }
 
 auto ADS1115::conversionFinished() -> ADS1115::Sample
