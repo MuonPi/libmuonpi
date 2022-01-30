@@ -296,9 +296,10 @@ constexpr auto gpio::state_t::operator!() const noexcept -> gpio::state_t
 }
 
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
-constexpr gpio::state_t::state_t( const T& a_state ) noexcept
-: state( ( (static_cast<int>( a_state ) < Low) )?Undefined:static_cast<int>( static_cast<bool>(a_state) ) )
-{ }
+constexpr gpio::state_t::state_t(T a_state) noexcept
+    : state{ std::clamp(static_cast<int>(a_state), -1, 1) }
+{
+}
 
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
 constexpr gpio::state_t::operator T() const noexcept
