@@ -8,6 +8,8 @@ struct fixture_gpio_handler {
     inline static muonpi::gpio_handler gpio {"/dev/gpiochip0", "libmuonpi-test"};
 };
 
+BOOST_TEST_GLOBAL_FIXTURE(fixture_gpio_handler);
+
 BOOST_FIXTURE_TEST_SUITE( test_gpio_access )
 
 
