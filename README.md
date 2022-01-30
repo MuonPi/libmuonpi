@@ -1,3 +1,4 @@
+[![CodeFactor](https://www.codefactor.io/repository/github/muonpi/libmuonpi/badge)](https://www.codefactor.io/repository/github/muonpi/libmuonpi) [![development CI](https://github.com/MuonPi/libmuonpi/actions/workflows/dev-ci.yml/badge.svg)](https://github.com/MuonPi/libmuonpi/actions/workflows/dev-ci.yml)
 # libmuonpi
 A support library for the muonpi project.
 
