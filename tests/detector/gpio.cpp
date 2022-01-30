@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( test_gpio_state )
     BOOST_TEST( (bool_state == true) );
     BOOST_TEST( (bool_state == state_t::High) );
 
-    bool_state = !bool_state;
+    bool_state = static_cast<bool>(!state);
 
     BOOST_TEST( (bool_state == false) );
     BOOST_TEST( (bool_state == state_t::Low) );
