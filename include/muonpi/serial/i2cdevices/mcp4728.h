@@ -39,7 +39,7 @@ public:
     [[nodiscard]] auto set_voltage(unsigned int channel, float voltage) -> bool;
     [[nodiscard]] auto store_settings() -> bool;
     [[nodiscard]] auto write_channel(uint8_t channel, const DacChannel& channelData) -> bool;
-    [[nodiscard]] auto read_channel(uint8_t channel, bool eeprom=false) -> std::optional<DacChannel>;
+    [[nodiscard]] auto read_channel(uint8_t channel, bool eeprom = false) -> std::optional<DacChannel>;
     [[nodiscard]] auto set_vref(unsigned int channel, CFG_VREF vref_setting) -> bool;
     [[nodiscard]] auto set_vref(CFG_VREF vref_setting) -> bool;
 

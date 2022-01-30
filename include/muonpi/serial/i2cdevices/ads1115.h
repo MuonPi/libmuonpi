@@ -87,7 +87,7 @@ public:
     [[nodiscard]] auto getAGC(std::uint8_t channel) const -> bool;
     void setRate(unsigned int rate);
     [[nodiscard]] auto getRate() const -> unsigned int;
-    
+
     template <REG R>
     auto setThreshold(std::int16_t threshold) -> bool;
 
@@ -129,31 +129,29 @@ private:
     static constexpr float PGAGAINS[8] { 6.144, 4.096, 2.048, 1.024, 0.512, 0.256, 0.256, 0.256 };
 };
 
-
 template <ADS1115::REG R>
 auto ADS1115::setThreshold(std::int16_t threshold) -> bool
 {
-    static_assert( (R == ADS1115::REG::LO_THRESH) || (R == ADS1115::REG::HI_THRESH) , "setThreshold() of invalid register");
-    
+    static_assert((R == ADS1115::REG::LO_THRESH) || (R == ADS1115::REG::HI_THRESH), "setThreshold() of invalid register");
+
     start_timer();
     std::uint16_t reg_content { static_cast<std::uint16_t>(threshold) };
     if (write(static_cast<std::uint8_t>(R), &reg_content) != 1) {
         return false;
     }
-    
+
     reg_content = { 0 };
     // Read back the contents of the threshold register
     if (read(static_cast<std::uint8_t>(R), &reg_content) != 1) {
         return false;
     }
     std::int16_t readback_value { static_cast<std::int16_t>(reg_content) };
-    if ( readback_value != threshold ) {
+    if (readback_value != threshold) {
         return false;
     }
     stop_timer();
     return true;
 }
-
 
 } // namespace muonpi::serial::devices
 #endif // MUONPI_SERIAL_I2CDEVICES_ADS1115_H

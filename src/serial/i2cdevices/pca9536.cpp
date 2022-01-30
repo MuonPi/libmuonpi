@@ -44,7 +44,7 @@ auto PCA9536::getInputState() -> std::optional<std::uint8_t>
         return std::nullopt;
     }
     stop_timer();
-    return std::optional<std::uint8_t>{ inport & 0x0f };
+    return std::optional<std::uint8_t> { inport & 0x0f };
 }
 
 auto PCA9536::present() -> bool

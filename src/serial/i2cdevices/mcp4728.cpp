@@ -189,9 +189,9 @@ auto MCP4728::read_channel(uint8_t channel, bool eeprom) -> std::optional<DacCha
         return std::nullopt;
     }
     if (eeprom) {
-        return std::optional<DacChannel>{ fChannelSettingEep[channel] };
+        return std::optional<DacChannel> { fChannelSettingEep[channel] };
     } else {
-        return std::optional<DacChannel>{ fChannelSetting[channel] };
+        return std::optional<DacChannel> { fChannelSetting[channel] };
     }
 }
 

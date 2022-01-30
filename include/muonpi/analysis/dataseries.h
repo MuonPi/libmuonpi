@@ -55,8 +55,7 @@ public:
      * @brief rms calculathe the quadratic mean
      * @return the quadratic mean
      */
-    [[deprecated]]
-    [[nodiscard]] auto rms() const -> T;
+    [[deprecated]] [[nodiscard]] auto rms() const -> T;
     /**
      * @brief median Calculates the median of all values. This value gets cached between data entries.
      * @return The median
@@ -249,7 +248,7 @@ auto data_series<T>::min() const -> T
         return 0.0;
     }
     T min { std::numeric_limits<T>::max() };
-    for (const auto& v: m_data) {
+    for (const auto& v : m_data) {
         if (v < min) {
             min = v;
         }
@@ -265,7 +264,7 @@ auto data_series<T>::max() const -> T
         return 0.0;
     }
     T max { std::numeric_limits<T>::lowest() };
-    for (const auto& v: m_data) {
+    for (const auto& v : m_data) {
         if (v > max) {
             max = v;
         }
@@ -295,7 +294,6 @@ void data_series<T>::reset(std::size_t n)
     m_n = n;
     reset();
 }
-
 
 template <typename T>
 auto data_series<T>::private_mean(const mean_t& type) const -> T
@@ -365,7 +363,6 @@ auto data_series<T>::private_variance() const -> T
     return 1.0 / (denominator)*std::inner_product(
                m_data.begin(), m_data.end(), m_data.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
 }
-
 
 } // namespace muonpi
 

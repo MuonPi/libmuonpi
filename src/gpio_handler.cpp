@@ -145,25 +145,25 @@ auto gpio_handler::get_pin_input(gpio::pin_t pin, gpio::bias_t bias) -> std::fun
     auto* line = allocate_io_line(pin);
 
     if (gpiod_line_is_used(line)) {
-        log::error()<<"Line "<<pin<<" is in use";
-        throw std::runtime_error{"Line in use"};
+        log::error() << "Line " << pin << " is in use";
+        throw std::runtime_error { "Line in use" };
     }
 
-    int ret = gpiod_line_request_input_flags( line, m_consumer.c_str(), get_flags(bias) );
+    int ret = gpiod_line_request_input_flags(line, m_consumer.c_str(), get_flags(bias));
 
-    if ( ret < 0 ) {
-        log::error()<<"Request gpio line " << pin << " as input failed: " << std::strerror(errno);
-        throw std::runtime_error{"Line request failed"};
+    if (ret < 0) {
+        log::error() << "Request gpio line " << pin << " as input failed: " << std::strerror(errno);
+        throw std::runtime_error { "Line request failed" };
     }
 
-    return [pin, this](){
+    return [pin, this]() {
         auto* l = allocate_io_line(pin);
         if (l == nullptr) {
             return gpio::state_t { gpio::state_t::Undefined };
         }
-        int r = gpiod_line_get_value( l );
-        if ( r < 0 ) {
-            log::error()<<"Setting state of gpio line " << pin << " failed: " << std::strerror(errno);
+        int r = gpiod_line_get_value(l);
+        if (r < 0) {
+            log::error() << "Setting state of gpio line " << pin << " failed: " << std::strerror(errno);
             return gpio::state_t { gpio::state_t::Undefined };
         }
         return static_cast<gpio::state_t>(r);

@@ -68,15 +68,14 @@ private:
     response_type m_response;
 };
 
-
 auto content_type::html() noexcept -> content_type
 {
-    return content_type{"text/html"};
+    return content_type { "text/html" };
 }
 
 auto content_type::json() noexcept -> content_type
 {
-    return content_type{"text/json"};
+    return content_type { "text/json" };
 }
 
 template <beast::http::status Status>

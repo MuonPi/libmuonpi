@@ -16,8 +16,8 @@
 #include <map>
 #include <mutex>
 #include <queue>
-#include <vector>
 #include <type_traits>
+#include <vector>
 
 namespace muonpi {
 
@@ -71,9 +71,8 @@ namespace gpio {
 
         int state { Undefined }; ///<! the logical state
 
-        state_t() = default;
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-        constexpr state_t( const T& a_state ) noexcept;
+        constexpr explicit state_t(T a_state) noexcept;
 
         [[nodiscard]] constexpr auto operator~() const noexcept -> state_t;
         [[nodiscard]] constexpr auto operator==(state_t other) const noexcept -> bool;
@@ -82,7 +81,7 @@ namespace gpio {
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         [[nodiscard]] constexpr explicit operator T() const noexcept;
-	};
+    };
 
     // +++ convenience definitions
     using pin_t = unsigned int;
@@ -268,16 +267,15 @@ private:
     constexpr static float s_m { -s_max_timeout / (s_min_rate - s_max_rate) }; ///<! m*x+b
 };
 
-
 // Implementation part
 constexpr auto gpio::state_t::operator~() const noexcept -> gpio::state_t
 {
     if (state == High) {
-		return gpio::state_t{Low};
-	} else if (state == Low) {
-		return gpio::state_t{High};
-	}
-	return gpio::state_t{Undefined};
+        return gpio::state_t { Low };
+    } else if (state == Low) {
+        return gpio::state_t { High };
+    }
+    return gpio::state_t { Undefined };
 }
 
 constexpr auto gpio::state_t::operator==(gpio::state_t other) const noexcept -> bool
@@ -306,7 +304,6 @@ constexpr gpio::state_t::operator T() const noexcept
 {
     return static_cast<T>(state);
 }
-
 
 } // namespace muonpi
 

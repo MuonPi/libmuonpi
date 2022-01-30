@@ -42,33 +42,33 @@ void ADS1115::init()
 }
 
 void ADS1115::setPga(CFG_PGA pga)
-{ 
-    m_pga[0] = m_pga[1] = m_pga[2] = m_pga[3] = pga; 
+{
+    m_pga[0] = m_pga[1] = m_pga[2] = m_pga[3] = pga;
 }
 
-void ADS1115::setPga(unsigned int pga) 
-{ 
-    setPga( static_cast<CFG_PGA>(pga) ); 
-} 
+void ADS1115::setPga(unsigned int pga)
+{
+    setPga(static_cast<CFG_PGA>(pga));
+}
 
-void ADS1115::setPga(std::uint8_t channel, std::uint8_t pga) 
-{ 
+void ADS1115::setPga(std::uint8_t channel, std::uint8_t pga)
+{
     setPga(channel, static_cast<CFG_PGA>(pga));
 }
 
-auto ADS1115::getPga(int ch) const -> CFG_PGA 
-{ 
-    return m_pga[ch]; 
+auto ADS1115::getPga(int ch) const -> CFG_PGA
+{
+    return m_pga[ch];
 }
 
-void ADS1115::setRate(unsigned int rate) 
-{ 
-    m_rate = rate & 0x07; 
+void ADS1115::setRate(unsigned int rate)
+{
+    m_rate = rate & 0x07;
 }
 
-auto ADS1115::getRate() const -> unsigned int 
-{ 
-    return m_rate; 
+auto ADS1115::getRate() const -> unsigned int
+{
+    return m_rate;
 }
 
 void ADS1115::setPga(std::uint8_t channel, CFG_PGA pga)
@@ -151,7 +151,7 @@ void ADS1115::waitConversionFinished(bool& error)
         return;
     }
     if (nloops > 1) {
-        m_poll_period += std::chrono::microseconds( (nloops - 1) * m_poll_period.count() / 10 );
+        m_poll_period += std::chrono::microseconds((nloops - 1) * m_poll_period.count() / 10);
     }
     error = false;
 }
@@ -302,14 +302,14 @@ auto ADS1115::setDataReadyPinMode() -> bool
     return ok;
 }
 
-auto ADS1115::getReadWaitDelay() const -> unsigned int 
-{ 
-    return m_poll_period.count(); 
+auto ADS1115::getReadWaitDelay() const -> unsigned int
+{
+    return m_poll_period.count();
 }
 
-void ADS1115::registerConversionReadyCallback(std::function<void(Sample)> fn) 
-{ 
-    m_conv_ready_fn = std::move(fn); 
+void ADS1115::registerConversionReadyCallback(std::function<void(Sample)> fn)
+{
+    m_conv_ready_fn = std::move(fn);
 }
 
 auto ADS1115::setCompQueue(std::uint8_t bitpattern) -> bool
@@ -320,7 +320,7 @@ auto ADS1115::setCompQueue(std::uint8_t bitpattern) -> bool
     }
     conf_reg &= 0b11111100;
     conf_reg |= bitpattern & 0b00000011;
-    return ( write(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) == 1 );
+    return (write(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) == 1);
 }
 
 auto ADS1115::identify() -> bool
