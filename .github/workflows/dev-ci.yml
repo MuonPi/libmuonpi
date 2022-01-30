@@ -1,10 +1,10 @@
 name: development CI
 
 on:
-  push:
-    branches: [ dev ]
   pull_request:
     branches: [ dev, main ]
+  schedule:
+    - cron: 0 0 */2 * *
 
 env:
   BUILD_TYPE: Release
