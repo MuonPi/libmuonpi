@@ -26,11 +26,11 @@ public:
     // struct that characterizes one dac output channel
     // setting the eeprom flag enables access to the eeprom registers instead of the dac output registers
     struct DacChannel {
-        uint8_t pd = 0x00;
+        std::uint8_t pd = 0x00;
         CFG_GAIN gain = GAIN1;
         CFG_VREF vref = VREF_2V;
         bool eeprom = false;
-        uint16_t value = 0;
+        std::uint16_t value = 0;
     };
 
     MCP4728(i2c_bus& bus, std::uint8_t address);
@@ -38,8 +38,8 @@ public:
     [[nodiscard]] auto present() -> bool override;
     [[nodiscard]] auto set_voltage(unsigned int channel, float voltage) -> bool;
     [[nodiscard]] auto store_settings() -> bool;
-    [[nodiscard]] auto write_channel(uint8_t channel, const DacChannel& channelData) -> bool;
-    [[nodiscard]] auto read_channel(uint8_t channel, bool eeprom = false) -> std::optional<DacChannel>;
+    [[nodiscard]] auto write_channel(std::uint8_t channel, const DacChannel& channelData) -> bool;
+    [[nodiscard]] auto read_channel(std::uint8_t channel, bool eeprom = false) -> std::optional<DacChannel>;
     [[nodiscard]] auto set_vref(unsigned int channel, CFG_VREF vref_setting) -> bool;
     [[nodiscard]] auto set_vref(CFG_VREF vref_setting) -> bool;
 
@@ -49,7 +49,7 @@ public:
 
 private:
     static constexpr float fVddRefVoltage { 3.3 }; ///< voltage at which the device is powered
-    enum COMMAND : uint8_t {
+    enum COMMAND : std::uint8_t {
         DAC_FAST_WRITE = 0b00000000,
         DAC_MULTI_WRITE = 0b00001000,
         DAC_EEP_SEQ_WRITE = 0b00001010,
@@ -64,10 +64,10 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> fLastRegisterUpdate {};
     bool fBusy { false };
 
-    auto set_voltage(uint8_t channel, float voltage, bool toEEPROM) -> bool;
-    auto set_value(uint8_t channel, uint16_t value, CFG_GAIN gain = GAIN1, bool toEEPROM = false) -> bool;
+    auto set_voltage(std::uint8_t channel, float voltage, bool toEEPROM) -> bool;
+    auto set_value(std::uint8_t channel, std::uint16_t value, CFG_GAIN gain = GAIN1, bool toEEPROM = false) -> bool;
     auto read_registers() -> bool;
-    void parse_channel_data(const uint8_t* buf);
+    void parse_channel_data(const std::uint8_t* buf);
     void dump_registers();
     auto waitEepReady() -> bool;
 };

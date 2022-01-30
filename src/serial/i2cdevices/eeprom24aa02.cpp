@@ -31,7 +31,7 @@ auto EEPROM24AA02::read_byte(std::uint8_t addr, std::uint8_t* value) -> bool
     return (this->read(addr, value, static_cast<std::size_t>(1)) == 1);
 }
 
-auto EEPROM24AA02::writeByte(uint8_t addr, uint8_t data) -> bool
+auto EEPROM24AA02::writeByte(std::uint8_t addr, std::uint8_t data) -> bool
 {
     // TODO: Don't use c-style arrays. Use std::array instead.
     uint8_t writeBuf[2] { addr, data }; // Buffer to store the 2 bytes that we write to the I2C device
@@ -86,7 +86,7 @@ auto EEPROM24AA02::identify() -> bool
     }
 
     const unsigned int N { 256 };
-    uint8_t buf[N + 1];
+    std::uint8_t buf[N + 1];
     if (read(0x00, buf, N) != N) {
         // somehow did not read exact same amount of bytes as it should
         return false;

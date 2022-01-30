@@ -15,7 +15,7 @@ public:
     [[nodiscard]] auto read(std::uint8_t start_addr, std::uint8_t* buffer, std::size_t bytes = 1) -> int;
     [[nodiscard]] auto read_byte(std::uint8_t addr, std::uint8_t* value) -> bool;
 
-    [[nodiscard]] auto writeByte(uint8_t addr, uint8_t data) -> bool;
+    [[nodiscard]] auto writeByte(std::uint8_t addr, std::uint8_t data) -> bool;
     /** Write multiple bytes starting from given address into EEPROM memory.
      * @param addr First register address to write to
      * @param buffer Buffer to copy new data from

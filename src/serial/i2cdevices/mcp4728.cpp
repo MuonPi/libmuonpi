@@ -26,7 +26,7 @@ auto MCP4728::set_voltage(unsigned int channel, float voltage) -> bool
     return set_voltage(channel, voltage, false);
 }
 
-auto MCP4728::set_voltage(uint8_t channel, float voltage, bool toEEPROM) -> bool
+auto MCP4728::set_voltage(std::uint8_t channel, float voltage, bool toEEPROM) -> bool
 {
     if (voltage < 0 || channel > 3) {
         return false;
@@ -34,7 +34,7 @@ auto MCP4728::set_voltage(uint8_t channel, float voltage, bool toEEPROM) -> bool
     CFG_GAIN gain = GAIN1;
     // Vref=internal: Vout = (2.048V * Dn) / 4096 * Gx
     // Vref=Vdd: Vout = (Vdd * Dn) / 4096
-    uint16_t value { 0x0000 };
+    std::uint16_t value { 0x0000 };
     if (fChannelSetting[channel].vref == VREF_2V) {
         value = std::lround(voltage * 2000);
         if (value > 0xfff) {
@@ -52,7 +52,7 @@ auto MCP4728::set_voltage(uint8_t channel, float voltage, bool toEEPROM) -> bool
     return set_value(channel, value, gain, toEEPROM);
 }
 
-auto MCP4728::set_value(uint8_t channel, uint16_t value, CFG_GAIN gain, bool toEEPROM) -> bool
+auto MCP4728::set_value(std::uint8_t channel, std::uint16_t value, CFG_GAIN gain, bool toEEPROM) -> bool
 {
     if (value > 0xfff) {
         value = 0xfff;
@@ -217,7 +217,7 @@ auto MCP4728::identify() -> bool
     }
     // TODO: Use named constants.
     // TODO: Do not use c-style arrays. Use std::array instead.
-    uint8_t buf[24];
+    std::uint8_t buf[24];
     if (read(buf, 24) != 24) {
         return false;
     }
@@ -260,9 +260,9 @@ auto MCP4728::set_vref(CFG_VREF vref_setting) -> bool
     if (!waitEepReady()) {
         return false;
     }
-    uint8_t databyte { 0 };
+    std::uint8_t databyte { 0 };
     databyte = COMMAND::VREF_WRITE >> 1;
-    for (unsigned int ch = 0; ch < 4; ch++) {
+    for (std::size_t ch = 0; ch < 4; ch++) {
         databyte |= vref_setting;
         databyte = (databyte << 1);
     }
@@ -277,7 +277,7 @@ auto MCP4728::set_vref(CFG_VREF vref_setting) -> bool
     return true;
 }
 
-void MCP4728::parse_channel_data(const uint8_t* buf)
+void MCP4728::parse_channel_data(const std::uint8_t* buf)
 {
     for (unsigned int channel = 0; channel < 4; channel++) {
         // dac reg: offs = 1
@@ -305,12 +305,12 @@ void MCP4728::parse_channel_data(const uint8_t* buf)
 
 void MCP4728::dump_registers()
 {
-    uint8_t buf[24]; // TODO: Don't use c-style arrays. Use std::array instead.
+    std::uint8_t buf[24]; // TODO: Don't use c-style arrays. Use std::array instead.
     if (read(buf, 24) != 24) {
         // somehow did not read exact same amount of bytes as it should
         return;
     }
-    for (int ch = 0; ch < 4; ch++) {
+    for (std::size_t ch = 0; ch < 4; ch++) {
         std::cout << "DAC" << ch << ": " << std::setw(2) << std::setfill('0') << std::hex
                   << (int)buf[ch * 6] << " " << (int)buf[ch * 6 + 1] << " " << (int)buf[ch * 6 + 2]
                   << " (eep: " << (int)buf[ch * 6 + 3] << " " << (int)buf[ch * 6 + 4] << " " << (int)buf[ch * 6 + 5] << ")\n";

@@ -15,7 +15,7 @@ public:
     [[nodiscard]] auto identify() -> bool override;
 
 protected:
-    [[nodiscard]] auto readRaw() -> int16_t;
+    [[nodiscard]] auto readRaw() -> std::int16_t;
 
     enum REG : uint8_t {
         TEMP = 0x00,
