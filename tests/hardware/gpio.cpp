@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( test_gpio_access_init )
 
 BOOST_AUTO_TEST_CASE( test_gpio_access_read )
 {
-    std::function<muonpi::gpio::state_t()> gpio_read_fn { fixture_gpio_handler::gpio->get_pin_input( 23, muonpi::gpio::bias_t::Disabled ) };
+    auto gpio_read_fn { fixture_gpio_handler::gpio->get_pin_input( 23, muonpi::gpio::bias_t::Disabled ) };
     muonpi::gpio::state_t state { gpio_read_fn() };
     BOOST_TEST( (state != muonpi::gpio::state_t::Undefined) );
 }
