@@ -73,7 +73,6 @@ BOOST_AUTO_TEST_CASE(fill_test)
     BOOST_TEST(series.min() == 0.5);
     BOOST_TEST(series.max() == 1.5);
     BOOST_TEST(series.sum() == 10.0);
-
 }
 
 BOOST_AUTO_TEST_SUITE_END()

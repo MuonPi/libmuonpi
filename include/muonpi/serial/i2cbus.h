@@ -22,7 +22,6 @@
 namespace muonpi::serial {
 
 class i2c_bus {
-
 public:
     friend class i2c_device;
 

@@ -39,7 +39,6 @@ auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpi
 {
     auto it = m_callback.find(settings.pin);
     if (it == m_callback.end()) {
-
         auto* line = allocate_interrupt_line(settings.pin);
 
         if (gpiod_line_is_used(line)) {
@@ -231,7 +230,6 @@ auto gpio_handler::custom_run() -> int
         const int ret { gpiod_line_event_wait_bulk(&m_bulk_interrupt, &timeout, &event_bulk) };
 
         if (ret > 0) {
-
             for (std::size_t i { 0 }; i < event_bulk.num_lines; i++) {
                 gpiod_line_event line_event {};
                 const int result { gpiod_line_event_read(event_bulk.lines[i], &line_event) };

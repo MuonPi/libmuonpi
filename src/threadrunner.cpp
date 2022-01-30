@@ -94,9 +94,7 @@ auto thread_runner::run() -> int
 
         if ((m_thread != nullptr)) {
             auto handle { m_thread->native_handle() };
-            const auto result { pthread_setname_np(handle, m_name.c_str()) };
-            if (result != 0) {
-            }
+            pthread_setname_np(handle, m_name.c_str());
         }
         set_state(State::Running);
         if (m_use_custom_run) {
