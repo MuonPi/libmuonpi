@@ -69,19 +69,26 @@ namespace gpio {
         static constexpr int Low { 0 };
         static constexpr int High { 1 };
 
-        int state { Undefined }; ///<! the logical state
 
-        state_t() = default;
+        constexpr state_t() noexcept = default;
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         /**
          * @brief state_t construct a state_t object. Explicitly not marked explicit.
          * @param a_state The state to represent
          */
-        constexpr state_t(T a_state) noexcept
-            : state{ std::clamp(static_cast<int>(a_state), Undefined, High) }
+        constexpr explicit state_t(T a_state) noexcept
+            : m_state { std::clamp(static_cast<int>(a_state), Undefined, High) }
         {
         }
+
+        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+        /**
+         * @brief operator = assign a value to the state
+         * @param other
+         * @return
+         */
+        constexpr auto operator=(T other) noexcept -> const state_t&;
 
         /**
          * @brief operator == Compares to a different state object
@@ -97,6 +104,22 @@ namespace gpio {
          */
         [[nodiscard]] constexpr auto operator!=(state_t other) const noexcept -> bool;
 
+        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+        /**
+         * @brief operator == Compares to a different state object
+         * @param other
+         * @return
+         */
+        [[nodiscard]] constexpr auto operator==(T other) const noexcept -> bool;
+
+        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+        /**
+         * @brief operator != Compares to a different state object
+         * @param other
+         * @return
+         */
+        [[nodiscard]] constexpr auto operator!=(T other) const noexcept -> bool;
+
         /**
          * @brief operator ! logically Invert the state
          * @return
@@ -108,6 +131,9 @@ namespace gpio {
          * @brief operator T Convert the state object to an integral type
          */
         [[nodiscard]] constexpr explicit operator T() const noexcept;
+
+    private:
+        int m_state { Undefined }; ///<! the logical state
     };
 
     // +++ convenience definitions
@@ -297,20 +323,44 @@ private:
 // Implementation part
 constexpr auto gpio::state_t::operator==(gpio::state_t other) const noexcept -> bool
 {
-    return other.state == state;
+    return other.m_state == m_state;
 }
 
 constexpr auto gpio::state_t::operator!=(gpio::state_t other) const noexcept -> bool
 {
-    return other.state != state;
+    return other.m_state != m_state;
+}
+
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
+constexpr auto gpio::state_t::operator=(T other) noexcept -> const state_t&
+{
+    m_state = std::clamp(static_cast<int>(other), Undefined, High);
+
+    return *this;
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
+constexpr auto gpio::state_t::operator==(T other) const noexcept -> bool
+{
+    return static_cast<int>(other) == m_state;
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
+constexpr auto gpio::state_t::operator!=(T other) const noexcept -> bool
+{
+    return static_cast<int>(other) != m_state;
 }
 
 constexpr auto gpio::state_t::operator!() const noexcept -> gpio::state_t
 {
-    if (state == High) {
-        return gpio::state_t { Low };
-    } else if (state == Low) {
+    switch (m_state) {
+    case High:
+        return gpio::state_t{ Low };
+        break;
+    case Low:
         return gpio::state_t { High };
+        break;
     }
     return gpio::state_t { Undefined };
 }
@@ -318,7 +368,7 @@ constexpr auto gpio::state_t::operator!() const noexcept -> gpio::state_t
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
 constexpr gpio::state_t::operator T() const noexcept
 {
-    return static_cast<T>(state);
+    return static_cast<T>(m_state);
 }
 
 } // namespace muonpi
