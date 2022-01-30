@@ -70,13 +70,13 @@ auto main() -> int
 		// i2c_device and reopen as PCA9536 device
 		bus.close( i2c_extender_addr );
 		serial::devices::PCA9536& pca = bus.open<serial::devices::PCA9536>( i2c_extender_addr );
-		std::uint8_t input_state { 0 };
-		if ( !pca.getInputState( &input_state ) ) {
+		auto input_state { pca.getInputState() };
+		if ( !input_state ) {
 			log::error() << "reading PCA9536 input state register";
 		} else {
 			log::info()<<"identified PCA9536 at 0x"
 			<< std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( i2c_extender_addr ) 
-			<<" : inputs=0x" <<std::setw(1) << static_cast<int>(input_state) << std::dec;
+			<<" : inputs=0x" <<std::setw(1) << static_cast<int>(input_state.value()) << std::dec;
 		}
 	} else {
 		log::error()<<"error identifying PCA9536 at 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( i2c_extender_addr );
