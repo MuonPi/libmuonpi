@@ -71,6 +71,8 @@ namespace gpio {
 
         int state { Undefined }; ///<! the logical state
 
+        state_t() = default;
+
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         /**
          * @brief state_t construct a state_t object. Explicitly not marked explicit.
