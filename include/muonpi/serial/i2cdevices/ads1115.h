@@ -134,7 +134,7 @@ protected:
     std::function<void(Sample)> m_conv_ready_fn {};
 
 private:
-    [[nodiscard]] auto read_sample(std::int16_t conv_result) -> Sample;
+    [[nodiscard]] auto generate_sample(std::int16_t conv_result) -> Sample;
 
     static constexpr float PGAGAINS[8] { 6.144, 4.096, 2.048, 1.024, 0.512, 0.256, 0.256, 0.256 };
 };
