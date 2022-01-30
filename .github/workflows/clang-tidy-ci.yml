@@ -1,0 +1,27 @@
+name: clang-tidy CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ dev, main ]
+  push:
+    branches: [dev, main]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: install dependencies
+      run: sudo apt install -y libboost{,-system,-test,-stacktrace,-program-options}-dev libmosquitto-dev libgpiod-dev libssl-dev clang-tidy
+    
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBMUONPI_BUILD_HTTP:BOOL=ON -DLIBMUONPI_BUILD_LINK:BOOL=ON -DLIBMUONPI_BUILD_DETECTOR:BOOL=ON -DLIBMUONPI_BUILD_CLANG_TIDY:BOOL=ON -DLIBMUONPI_TESTS:BOOL=OFF -DLIBMUONPI_HARDWARE_TESTS:BOOL=OFF -DLIBMUONPI_BUILD_EXAMPLES:BOOL=ON -DLIBMUONPI_BUILD_SANITIZERS:BOOL=OFF
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
