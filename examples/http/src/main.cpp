@@ -1,4 +1,5 @@
 #include <muonpi/http_server.h>
+#include <muonpi/http_response.h>
 #include <muonpi/log.h>
 
 #include <iostream>
