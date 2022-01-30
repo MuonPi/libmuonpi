@@ -64,6 +64,8 @@ public:
 
     [[nodiscard]] auto read(std::uint8_t reg, std::uint8_t bit_mask) -> std::uint16_t;
 
+    [[nodiscard]] auto read(std::uint8_t reg, std::uint16_t bit_mask) -> std::uint32_t;
+
     [[nodiscard]] auto read(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes = 1) -> int;
 
     [[nodiscard]] auto read(std::uint8_t reg, std::uint16_t* buffer, std::size_t n_words = 1) -> int;

@@ -213,6 +213,15 @@ auto i2c_device::read(std::uint8_t reg, std::uint16_t* buffer, std::size_t n_wor
     return nread / 2;
 }
 
+auto i2c_device::read(std::uint8_t reg, std::uint16_t bit_mask) -> std::uint32_t
+{
+    uint16_t buffer {};
+    if (read(reg, &buffer, 1) != 1) {
+        return 0xFFFFFFFF;
+    }
+    return buffer & bit_mask;
+}
+
 auto i2c_device::write(std::uint8_t* buffer, std::size_t bytes) -> int
 {
     if (locked() || (m_handle <= 0)) {
