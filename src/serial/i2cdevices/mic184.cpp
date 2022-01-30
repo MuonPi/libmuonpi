@@ -142,7 +142,7 @@ auto MIC184::identify() -> bool
     write(static_cast<uint8_t>(REG::TOS), &tos_save);
     // finally, set config reg into original state
     if (write(static_cast<uint8_t>(REG::CONF), &conf_reg_save) != 0) {
-        fExternal = ((conf_reg_save & 0x20) != 0);
+        m_external = ((conf_reg_save & 0x20) != 0);
         return true;
     }
     return false;
@@ -180,11 +180,11 @@ auto MIC184::set_external(bool enable_external) -> bool
     if ((conf_reg & 0x20) != (conf_reg_save & 0x20)) {
         return false;
     }
-    fExternal = enable_external;
+    m_external = enable_external;
     // wait one cycle until a conversion in the new zone is ready
     std::this_thread::sleep_for(std::chrono::milliseconds(160));
     // and wait twice as long if external zone enabled (datasheet: tconv=160ms (int) and 320ms (ext))
-    if (fExternal) {
+    if (m_external) {
         std::this_thread::sleep_for(std::chrono::milliseconds(160));
     }
     return true;
@@ -192,7 +192,7 @@ auto MIC184::set_external(bool enable_external) -> bool
 
 auto MIC184::is_external() const -> bool
 {
-    return fExternal;
+    return m_external;
 }
 
 } // namespace muonpi::serial::devices

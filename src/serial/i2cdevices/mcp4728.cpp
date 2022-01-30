@@ -178,23 +178,21 @@ auto MCP4728::read_registers() -> bool
     return true;
 }
 
-auto MCP4728::read_channel(uint8_t channel, DacChannel& channelData) -> bool
+auto MCP4728::read_channel(uint8_t channel, bool eeprom) -> std::optional<DacChannel>
 {
     if (channel > 3) {
         // error: channel index exceeding 3
-        return false;
+        return std::nullopt;
     }
 
     if (!read_registers()) {
-        return false;
+        return std::nullopt;
     }
-    if (channelData.eeprom) {
-        channelData = fChannelSettingEep[channel];
+    if (eeprom) {
+        return std::optional<DacChannel>{ fChannelSettingEep[channel] };
     } else {
-        channelData = fChannelSetting[channel];
+        return std::optional<DacChannel>{ fChannelSetting[channel] };
     }
-
-    return true;
 }
 
 auto MCP4728::code2voltage(const DacChannel& channelData) -> float
@@ -235,7 +233,7 @@ auto MCP4728::set_vref(unsigned int channel, CFG_VREF vref_setting) -> bool
     channel = channel & 0x03;
     uint8_t databyte { 0 };
     databyte = COMMAND::VREF_WRITE >> 1;
-    for (unsigned int ch = 0; ch < 4; ch++) { // TODO: Use std::size_t instead of unsigned int
+    for (std::size_t ch = 0; ch < 4; ch++) {
         if (ch == channel) {
             databyte |= vref_setting;
         } else {

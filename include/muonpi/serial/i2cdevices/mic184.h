@@ -25,7 +25,7 @@ private:
         TOS = 0x03
     };
 
-    bool fExternal { false };
+    bool m_external { false };
 };
 
 } // namespace muonpi::serial::devices

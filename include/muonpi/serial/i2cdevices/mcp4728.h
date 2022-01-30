@@ -5,6 +5,7 @@
 #include "muonpi/serial/i2cdevice.h"
 
 #include <chrono>
+#include <optional>
 
 namespace muonpi::serial::devices {
 
@@ -38,7 +39,7 @@ public:
     [[nodiscard]] auto set_voltage(unsigned int channel, float voltage) -> bool;
     [[nodiscard]] auto store_settings() -> bool;
     [[nodiscard]] auto write_channel(uint8_t channel, const DacChannel& channelData) -> bool;
-    [[nodiscard]] auto read_channel(uint8_t channel, DacChannel& channelData) -> bool; // TODO: Do not use output parameters. Use std::optional<DacChannel> instead.
+    [[nodiscard]] auto read_channel(uint8_t channel, bool eeprom=false) -> std::optional<DacChannel>;
     [[nodiscard]] auto set_vref(unsigned int channel, CFG_VREF vref_setting) -> bool;
     [[nodiscard]] auto set_vref(CFG_VREF vref_setting) -> bool;
 
