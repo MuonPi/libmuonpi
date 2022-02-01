@@ -1,5 +1,4 @@
 #include "muonpi/serial/i2cdevices/ads1115.h"
-#include "muonpi/scopeguard.h"
 #include <future>
 #include <iomanip>
 #include <iostream>

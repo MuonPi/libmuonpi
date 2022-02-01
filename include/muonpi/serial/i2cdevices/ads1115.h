@@ -3,6 +3,7 @@
 
 #include "muonpi/serial/i2cbus.h"
 #include "muonpi/serial/i2cdevice.h"
+#include "muonpi/scopeguard.h"
 
 #include <chrono>
 #include <functional>
@@ -144,7 +145,7 @@ auto ADS1115::setThreshold(std::int16_t threshold) -> bool
 {
     static_assert((R == ADS1115::REG::LO_THRESH) || (R == ADS1115::REG::HI_THRESH), "setThreshold() of invalid register");
 
-    start_timer();
+    scope_guard timer_guard { setup_timer() };
     std::uint16_t reg_content { static_cast<std::uint16_t>(threshold) };
     if (write(static_cast<std::uint8_t>(R), &reg_content) != 1) {
         return false;
@@ -159,7 +160,6 @@ auto ADS1115::setThreshold(std::int16_t threshold) -> bool
     if (readback_value != threshold) {
         return false;
     }
-    stop_timer();
     return true;
 }
 
