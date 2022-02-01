@@ -12,18 +12,18 @@ class PCA9536 : public i2c_device {
     // the device supports reading the incoming logic levels of the pins if set to input in the configuration register (will probably not use this feature)
     // the device supports polarity inversion (by configuring the polarity inversion register) (will probably not use this feature)
 public:
-    enum CFG_PORT {
-        C0 = 0,
-        C1 = 2,
-        C3 = 4,
-        C4 = 8
+    enum PORT : std::uint8_t {
+        CH0 = 0,
+        CH1 = 2,
+        CH2 = 4,
+        CH3 = 8
     };
 
     PCA9536(i2c_bus& bus, std::uint8_t address);
 
-    [[nodiscard]] auto setOutputPorts(std::uint8_t portMask) -> bool;
-    [[nodiscard]] auto setOutputState(std::uint8_t portMask) -> bool;
-    [[nodiscard]] auto getInputState() -> std::optional<std::uint8_t>;
+    [[nodiscard]] auto set_direction_mask(std::uint8_t output_mask) -> bool;
+    [[nodiscard]] auto set_output_states(std::uint8_t state_mask) -> bool;
+    [[nodiscard]] auto get_input_states() -> std::optional<std::uint8_t>;
 
     [[nodiscard]] auto present() -> bool override;
     [[nodiscard]] auto identify() -> bool override;

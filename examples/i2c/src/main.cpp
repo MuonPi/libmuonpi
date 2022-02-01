@@ -70,7 +70,7 @@ auto main() -> int
         // i2c_device and reopen as PCA9536 device
         bus.close( i2c_extender_addr );
         auto& pca = bus.open<serial::devices::PCA9536>( i2c_extender_addr );
-        auto input_state { pca.getInputState() };
+        auto input_state { pca.get_input_states() };
         if ( !input_state ) {
             log::error() << "reading PCA9536 input state register";
         } else {

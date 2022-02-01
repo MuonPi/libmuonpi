@@ -1,4 +1,5 @@
 #include "muonpi/serial/i2cdevices/pca9536.h"
+#include "muonpi/scopeguard.h"
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -15,42 +16,39 @@ PCA9536::PCA9536(i2c_bus& bus, std::uint8_t address)
     set_name("PCA9536");
 }
 
-auto PCA9536::setOutputPorts(std::uint8_t portMask) -> bool
+auto PCA9536::set_direction_mask(std::uint8_t output_mask) -> bool
 {
-    std::uint8_t data = ~portMask;
-    start_timer();
+    std::uint8_t data = ~output_mask;
+    scope_guard timer_guard { setup_timer() };
     if (1 != write(REG::CONFIG, &data, 1)) {
         return false;
     }
-    stop_timer();
     return true;
 }
 
-auto PCA9536::setOutputState(std::uint8_t portMask) -> bool
+auto PCA9536::set_output_states(std::uint8_t state_mask) -> bool
 {
-    start_timer();
-    if (1 != write(REG::OUTPUT, &portMask, 1)) {
+    scope_guard timer_guard { setup_timer() };
+    if (1 != write(REG::OUTPUT, &state_mask, 1)) {
         return false;
     }
-    stop_timer();
     return true;
 }
 
-auto PCA9536::getInputState() -> std::optional<std::uint8_t>
+auto PCA9536::get_input_states() -> std::optional<std::uint8_t>
 {
-    std::uint8_t inport = 0x00;
-    start_timer();
+    std::uint8_t inport { 0x00 };
+    scope_guard timer_guard { setup_timer() };
     if (1 != read(REG::INPUT, &inport, 1)) {
         return std::nullopt;
     }
-    stop_timer();
     return std::optional<std::uint8_t> { inport & 0x0f };
 }
 
 auto PCA9536::present() -> bool
 {
-    std::uint8_t inport = 0x00;
-    // read input port
+    std::uint8_t inport { 0x00 };
+    // read input port pattern
     return (1 == read(REG::INPUT, &inport, 1));
 }
 
