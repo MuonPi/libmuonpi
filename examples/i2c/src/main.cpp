@@ -74,7 +74,7 @@ auto main() -> int
         if ( !input_state ) {
             log::error() << "reading PCA9536 input state register";
         } else {
-            log::info()<<"identified PCA9536 at 0x"
+            log::info()<<"identified "<<pca.name()<<" at 0x"
             << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( i2c_extender_addr ) 
             <<" : inputs=0x" <<std::setw(1) << static_cast<int>(input_state.value()) << std::dec;
         }
