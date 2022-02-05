@@ -72,7 +72,7 @@ public:
 
     static auto adcToVoltage(std::int16_t adc, CFG_PGA pga_setting) -> float;
 
-    explicit ADS1115(i2c_bus& bus, std::uint8_t address);
+    ADS1115(i2c_bus& bus, std::uint8_t address);
     ~ADS1115() override;
 
     [[nodiscard]] auto identify() -> bool override;

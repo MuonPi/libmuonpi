@@ -30,7 +30,7 @@ i2c_device::i2c_device(i2c_bus& bus)
     , m_handle { open(bus.address().c_str(), O_RDWR) }
 {
     if (m_handle > 0) {
-        // set_address( m_address );
+        // no address to set yet
     } else {
         set_flag(Flags::Failed);
     }

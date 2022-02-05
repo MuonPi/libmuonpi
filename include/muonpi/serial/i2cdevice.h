@@ -5,14 +5,12 @@
 
 #include <chrono>
 #include <cinttypes> // std::uint8_t, etc
-#include <cstdio>
 #include <fcntl.h> // open
 #include <iostream>
 #include <string>
 #include <sys/ioctl.h> // ioctl
-#include <sys/time.h> // for gettimeofday()
-#include <unistd.h>
 #include <vector>
+#include <set>
 
 namespace muonpi::serial {
 
@@ -29,7 +27,7 @@ public:
         Locked = 0x10
     };
 
-    explicit i2c_device(i2c_bus& bus, std::uint8_t address);
+    i2c_device(i2c_bus& bus, std::uint8_t address);
     explicit i2c_device(i2c_bus& bus);
 
     void set_address(std::uint8_t address);
@@ -59,6 +57,9 @@ public:
 
     void set_name(std::string name);
     [[nodiscard]] auto name() const -> std::string;
+    
+    [[nodiscard]] auto addresses_hint() const -> const std::set<std::uint8_t>&
+    { return m_addresses_hint; }
 
     [[nodiscard]] auto read(std::uint8_t* buffer, std::size_t bytes = 1) -> int;
 
@@ -86,6 +87,8 @@ protected:
     void stop_timer();
 
     [[nodiscard]] auto setup_timer() -> scope_guard;
+    
+    std::set<std::uint8_t> m_addresses_hint { };
 
 private:
     i2c_bus& m_bus;

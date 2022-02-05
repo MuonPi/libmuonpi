@@ -49,7 +49,7 @@ public:
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
     [[nodiscard]] auto identify_device(std::uint8_t address) -> bool;
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
-    [[nodiscard]] auto identify_devices(const std::set<uint8_t>& possible_addresses = std::set<uint8_t>()) -> std::set<std::uint8_t>;
+    [[nodiscard]] auto identify_devices(const std::set<std::uint8_t>& possible_addresses = std::set<std::uint8_t>()) -> std::set<std::uint8_t>;
 
     [[nodiscard]] auto is_open(std::uint8_t address) const -> bool;
 
@@ -92,16 +92,12 @@ auto i2c_bus::identify_device(std::uint8_t address) -> bool
 }
 
 template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool>>
-auto i2c_bus::identify_devices(const std::set<uint8_t>& possible_addresses) -> std::set<std::uint8_t>
+auto i2c_bus::identify_devices(const std::set<std::uint8_t>& possible_addresses) -> std::set<std::uint8_t>
 {
     std::set<std::uint8_t> found_addresses {};
 
     for (const auto address : possible_addresses) {
-        T dev { *this, address };
-        if (!dev.is_open() || !dev.present()) {
-            continue;
-        }
-        if (dev.identify()) {
+        if ( identify_device<T>(address) ) {
             found_addresses.insert(address);
         }
     }

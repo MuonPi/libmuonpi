@@ -15,6 +15,7 @@ MIC184::MIC184(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
     set_name("MIC184");
+    m_addresses_hint = { 0x4b };
 }
 
 MIC184::~MIC184() = default;
