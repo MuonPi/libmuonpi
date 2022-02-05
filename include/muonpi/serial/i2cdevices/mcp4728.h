@@ -59,8 +59,8 @@ private:
         GAIN_WRITE = 0b00011000,
         PD_WRITE = 0b00010100
     };
-    DacChannel fChannelSetting[4], fChannelSettingEep[4]; // TODO: Don't use C-style arrays. Use std::array instead.
-    // TODO: Don't declare multiple members in one statement
+    std::array<DacChannel, 4> fChannelSetting;
+    std::array<DacChannel, 4> fChannelSettingEep;
     std::chrono::time_point<std::chrono::steady_clock> fLastRegisterUpdate {};
     bool fBusy { false };
 
