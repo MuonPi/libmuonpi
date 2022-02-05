@@ -25,11 +25,10 @@ auto LM75::readRaw() -> std::int16_t
 
     std::uint16_t dataword { 0 };
     // Read the temp register
-    if (read(static_cast<std::uint8_t>(REG::TEMP), &dataword) == 0) {
+    if (read(static_cast<std::uint8_t>(REG::TEMP), &dataword) != 1) {
         // there was an error
         return INT16_MIN;
     }
-
     return static_cast<std::int16_t>(dataword);
 }
 
