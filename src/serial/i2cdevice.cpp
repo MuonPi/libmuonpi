@@ -178,7 +178,7 @@ auto i2c_device::read(std::uint8_t* buffer, std::size_t bytes) -> int
 
 auto i2c_device::read(std::uint8_t reg, std::uint8_t bit_mask) -> std::uint16_t
 {
-    uint8_t buffer {};
+    std::uint8_t buffer {};
     if (read(reg, &buffer, 1) != 1) {
         return 0xFFFF;
     }
@@ -220,7 +220,7 @@ auto i2c_device::read(std::uint8_t reg, std::uint16_t* buffer, std::size_t n_wor
 
 auto i2c_device::read(std::uint8_t reg, std::uint16_t bit_mask) -> std::uint32_t
 {
-    uint16_t buffer {};
+    std::uint16_t buffer {};
     if (read(reg, &buffer, 1) != 1) {
         return 0xFFFFFFFF;
     }
@@ -246,7 +246,7 @@ auto i2c_device::write(std::uint8_t* buffer, std::size_t bytes) -> int
 
 auto i2c_device::write(std::uint8_t reg, std::uint8_t bit_mask, std::uint8_t value) -> bool
 {
-    uint8_t buffer {};
+    std::uint8_t buffer {};
     if (read(reg, &buffer, 1) != 1) {
         return false;
     }
