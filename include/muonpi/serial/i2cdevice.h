@@ -57,9 +57,8 @@ public:
 
     void set_name(std::string name);
     [[nodiscard]] auto name() const -> std::string;
-    
-    [[nodiscard]] auto addresses_hint() const -> const std::set<std::uint8_t>&
-    { return m_addresses_hint; }
+
+    [[nodiscard]] auto addresses_hint() const -> const std::set<std::uint8_t>&;
 
     [[nodiscard]] auto read(std::uint8_t* buffer, std::size_t bytes = 1) -> int;
 
@@ -87,7 +86,7 @@ protected:
     void stop_timer();
 
     [[nodiscard]] auto setup_timer() -> scope_guard;
-    
+
     std::set<std::uint8_t> m_addresses_hint { };
 
 private:

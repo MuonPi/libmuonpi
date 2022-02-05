@@ -154,6 +154,11 @@ auto i2c_device::name() const -> std::string
     return m_name;
 }
 
+auto i2c_device::addresses_hint() const -> const std::set<std::uint8_t>&
+{ 
+    return m_addresses_hint; 
+}
+
 auto i2c_device::read(std::uint8_t* buffer, std::size_t bytes) -> int
 {
     if (locked() || (m_handle <= 0)) {
