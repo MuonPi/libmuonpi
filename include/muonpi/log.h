@@ -59,7 +59,7 @@ public:
         return *this;
     }
 
-    explicit logger(const std::string& component, int exit_code = 0)
+    logger(const std::string& component, int exit_code = 0)
         : m_exit_code { exit_code }
     {
         m_stream << to_string();
