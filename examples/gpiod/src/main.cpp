@@ -1,5 +1,5 @@
-#include <muonpi/log.h>
 #include <muonpi/gpio_handler.h>
+#include <muonpi/log.h>
 
 #include <iostream>
 
@@ -27,8 +27,8 @@ auto main() -> int
     auto gpio_read_fn { gpio.get_pin_input( 23, muonpi::gpio::bias_t::Disabled ) };
 
     muonpi::gpio::pins_t pins {
-        muonpi::gpio::settings_t{5, muonpi::gpio::edge_t::Falling, muonpi::gpio::bias_t::Disabled},
-        muonpi::gpio::settings_t{27, muonpi::gpio::edge_t::Rising, muonpi::gpio::bias_t::Disabled},
+        muonpi::gpio::pin_setting_t{5, muonpi::gpio::edge_t::Falling, muonpi::gpio::bias_t::Disabled},
+        muonpi::gpio::pin_setting_t{27, muonpi::gpio::edge_t::Rising, muonpi::gpio::bias_t::Disabled},
     };
 
     auto callback { [&](muonpi::gpio::event_t evt){

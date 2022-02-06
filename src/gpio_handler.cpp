@@ -35,7 +35,7 @@ gpio_handler::~gpio_handler()
     }
 }
 
-auto gpio_handler::set_pin_interrupt(const gpio::settings_t& settings, const gpio::callback_t& callback) -> bool
+auto gpio_handler::set_pin_interrupt(const gpio::pin_setting_t& settings, const gpio::callback_t& callback) -> bool
 {
     auto it = m_callback.find(settings.pin);
     if (it == m_callback.end()) {
