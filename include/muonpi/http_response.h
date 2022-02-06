@@ -20,12 +20,12 @@ struct content_type {
     /**
      * @brief html Get the content type string text/html
      */
-    [[nodiscard]] static auto html() noexcept -> content_type;
+    [[nodiscard]] inline static auto html() noexcept -> content_type;
 
     /**
      * @brief json Get the content type string text/json
      */
-    [[nodiscard]] static auto json() noexcept -> content_type;
+    [[nodiscard]] inline static auto json() noexcept -> content_type;
 
     std::string string {};
 };
