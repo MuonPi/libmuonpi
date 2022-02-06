@@ -10,15 +10,16 @@
 
 namespace muonpi::log {
 
-enum Level : int {
-    Emergency,
-    Alert,
-    Critical,
-    Error,
-    Info,
-    Warning,
-    Notice,
-    Debug
+enum Level : std::uint8_t {
+    Shutdown = 0b0000'0001,
+    Emergency = Shutdown | 0b0000'0010,
+    Alert = Shutdown | 0b0000'0100,
+    Critical = Shutdown | 0b0000'0110,
+    Error = 0b0001'0000,
+    Warning = 0b0010'0000,
+    Notice = 0b0011'0000,
+    Debug = 0b0100'0000,
+    Info = 0b1000'0000
 };
 
 /**
@@ -74,11 +75,11 @@ public:
 
     ~logger()
     {
-        if (L <= (Level::Info + system::level())) {
-            system::stream() << m_stream.str() + "\n"
-                             << std::flush;
+        if (((L & Level::Info) > 0) || (L <= system::level())) {
+            m_stream<<'\n';
+            system::stream() << m_stream.str() << std::flush;
         }
-        if (L <= Level::Critical) {
+        if constexpr ((L & Level::Shutdown) > 0) {
             system::callback(m_exit_code);
         }
     }
