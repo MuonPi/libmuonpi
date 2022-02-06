@@ -77,7 +77,7 @@ public:
     {
         if (((L & Level::Info) > 0) || (L <= system::level())) {
             m_stream<<'\n';
-            system::stream() << m_stream.str() << std::flush;
+            system::stream() << m_stream.rdbuf() << std::flush;
         }
         if constexpr ((L & Level::Shutdown) > 0) {
             system::callback(m_exit_code);
@@ -85,7 +85,7 @@ public:
     }
 
 private:
-    std::ostringstream m_stream {};
+    std::stringstream m_stream {};
     int m_exit_code { 0 };
 
     [[nodiscard]] constexpr static auto to_string() -> const char*
