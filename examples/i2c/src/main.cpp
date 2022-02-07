@@ -2,9 +2,9 @@
 #include <muonpi/serial/i2cbus.h>
 #include <muonpi/serial/i2cdevices.h>
 
-#include <iostream>
+#include <cstdint>
 #include <iomanip>
-#include <cinttypes>
+#include <iostream>
 
 using namespace muonpi;
 
