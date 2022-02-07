@@ -59,8 +59,8 @@ private:
         GAIN_WRITE = 0b00011000,
         PD_WRITE = 0b00010100
     };
-    std::array<DacChannel, 4> fChannelSetting;
-    std::array<DacChannel, 4> fChannelSettingEep;
+    std::array<DacChannel, 4> fChannelSetting { };
+    std::array<DacChannel, 4> fChannelSettingEep { };
     std::chrono::time_point<std::chrono::steady_clock> fLastRegisterUpdate {};
     bool fBusy { false };
 

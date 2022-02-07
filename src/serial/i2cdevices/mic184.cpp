@@ -26,7 +26,7 @@ auto MIC184::readRaw() -> std::int16_t
 
     std::uint16_t dataword { 0 };
     // Read the temp register
-    if (read(static_cast<std::uint8_t>(REG::TEMP), &dataword) == 0) {
+    if (read(static_cast<std::uint8_t>(REG::TEMP), &dataword) != 1) {
         // there was an error
         return INT16_MIN;
     }
@@ -37,9 +37,7 @@ auto MIC184::readRaw() -> std::int16_t
 auto MIC184::get_temperature() -> float
 {
     std::int16_t dataword = readRaw();
-    auto temp = static_cast<float>(dataword >> 8);
-    temp += static_cast<float>(dataword & 0xff) / 256.;
-    return temp;
+    return static_cast<float>(dataword) / 256.;
 }
 
 auto MIC184::identify() -> bool
@@ -60,7 +58,7 @@ auto MIC184::identify() -> bool
         return false;
     }
     // datasheet: the interrupt mask bit in conf register should be zero when device is in init state
-    if ((conf_reg_save & 0b01000000) != 0) {
+    if ((conf_reg_save & 0b01000000u) != 0) {
         return false;
     }
 
@@ -70,7 +68,7 @@ auto MIC184::identify() -> bool
         return false;
     }
     // the 5 LSBs should always read zero
-    if ((dataword & 0x1f) != 0) {
+    if ((dataword & 0x1fu) != 0) {
         return false;
     }
 
@@ -80,7 +78,7 @@ auto MIC184::identify() -> bool
         return false;
     }
     // the 7 MSBs should always read zero
-    if ((thyst_save & 0x7f) != 0) {
+    if ((thyst_save & 0x7fu) != 0) {
         return false;
     }
 
@@ -90,7 +88,7 @@ auto MIC184::identify() -> bool
         return false;
     }
     // the 7 MSBs should always read zero
-    if ((tos_save & 0x7f) != 0) {
+    if ((tos_save & 0x7fu) != 0) {
         return false;
     }
 
@@ -117,7 +115,7 @@ auto MIC184::identify() -> bool
     }
     // datasheet: MSB of conf reg should be set to one
     // this is considered an indication for MIC184
-    if ((conf_reg & 0x80) == 0) {
+    if ((conf_reg & 0x80u) == 0) {
         return false;
     }
 
@@ -143,7 +141,7 @@ auto MIC184::identify() -> bool
     // finally, set config reg into original state
     // and locally store the temp zone setting
     if (write(static_cast<std::uint8_t>(REG::CONF), &conf_reg_save) == 1) {
-        m_external = ((conf_reg_save & 0x20) != 0);
+        m_external = ((conf_reg_save & 0x20u) != 0);
         return true;
     }
     return false;
@@ -169,9 +167,9 @@ auto MIC184::set_external(bool enable_external) -> bool
         return false;
     }
     if (enable_external) {
-        conf_reg_save |= 0x20;
+        conf_reg_save |= 0x20u;
     } else {
-        conf_reg_save &= ~0x20;
+        conf_reg_save &= ~0x20u;
     }
     if (write(static_cast<std::uint8_t>(REG::CONF), &conf_reg_save) != 1) {
         return false;
@@ -179,7 +177,7 @@ auto MIC184::set_external(bool enable_external) -> bool
     if (read(static_cast<std::uint8_t>(REG::CONF), &conf_reg) != 1) {
         return false;
     }
-    if ((conf_reg & 0x20) != (conf_reg_save & 0x20)) {
+    if ((conf_reg & 0x20u) != (conf_reg_save & 0x20u)) {
         return false;
     }
     m_external = enable_external;

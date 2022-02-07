@@ -26,7 +26,7 @@ auto ADS1115::adcToVoltage(std::int16_t adc, const CFG_PGA pga_setting) -> float
     return (adc * lsb_voltage(pga_setting));
 }
 
-ADS1115::ADS1115(i2c_bus& bus, std::uint8_t address)
+ADS1115::ADS1115(i2c_bus& bus, std::uint8_t address) noexcept
     : i2c_device(bus, address)
 {
     set_name("ADS1115");
@@ -36,7 +36,7 @@ ADS1115::ADS1115(i2c_bus& bus, std::uint8_t address)
 ADS1115::~ADS1115()
     = default;
 
-void ADS1115::init()
+void ADS1115::init() noexcept
 {
     m_rate = CFG_RATES::SPS8;
 }
@@ -51,19 +51,19 @@ void ADS1115::setPga(unsigned int pga)
     setPga(static_cast<CFG_PGA>(pga));
 }
 
-void ADS1115::setPga(std::uint8_t channel, std::uint8_t pga)
+void ADS1115::setPga(const std::uint8_t channel, std::uint8_t pga)
 {
     setPga(channel, static_cast<CFG_PGA>(pga));
 }
 
-auto ADS1115::getPga(int ch) const -> CFG_PGA
+auto ADS1115::getPga(const std::uint8_t ch) const -> CFG_PGA
 {
-    return m_pga[ch];
+    return m_pga.at(ch);
 }
 
 void ADS1115::setRate(unsigned int rate)
 {
-    m_rate = rate & 0x07;
+    m_rate = rate & 0x07u;
 }
 
 auto ADS1115::getRate() const -> unsigned int
@@ -71,15 +71,12 @@ auto ADS1115::getRate() const -> unsigned int
     return m_rate;
 }
 
-void ADS1115::setPga(std::uint8_t channel, CFG_PGA pga)
+void ADS1115::setPga(const std::uint8_t channel, CFG_PGA pga)
 {
-    if (channel > 3) {
-        return;
-    }
-    m_pga[channel] = pga;
+    m_pga.at(channel) = pga;
 }
 
-void ADS1115::setActiveChannel(std::uint8_t channel, bool differential_mode)
+void ADS1115::setActiveChannel(const std::uint8_t channel, bool differential_mode)
 {
     m_selected_channel = channel;
     m_diff_mode = differential_mode;
@@ -97,10 +94,10 @@ auto ADS1115::writeConfig(bool startNewConversion) -> bool
 
     // read in the current contents of config reg only if conv_mode is unknown
     if (m_conv_mode == CONV_MODE::UNKNOWN) {
-        if (read(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) == 0) {
+        if (read(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) != 1) {
             return false;
         }
-        if ((conf_reg & 0x0100) == 0) {
+        if ((conf_reg & 0x0100u) == 0u) {
             m_conv_mode = CONV_MODE::CONTINUOUS;
         } else {
             m_conv_mode = CONV_MODE::SINGLE;
@@ -110,22 +107,22 @@ auto ADS1115::writeConfig(bool startNewConversion) -> bool
     conf_reg = 0;
 
     if (m_conv_mode == CONV_MODE::SINGLE && startNewConversion) {
-        conf_reg = 0x8000; // set OS bit
+        conf_reg = 0x8000u; // set OS bit
     }
     if (!m_diff_mode) {
-        conf_reg |= 0x4000; // single ended mode channels
+        conf_reg |= 0x4000u; // single ended mode channels
     }
-    conf_reg |= (m_selected_channel & 0x03) << 12; // channel select
+    conf_reg |= (m_selected_channel & 0x03u) << 12u; // channel select
     if (m_conv_mode == CONV_MODE::SINGLE) {
-        conf_reg |= 0x0100; // single shot mode
+        conf_reg |= 0x0100u; // single shot mode
     }
-    conf_reg |= (static_cast<std::uint8_t>(m_pga[m_selected_channel]) & 0x07) << 9; // PGA gain select
+    conf_reg |= (static_cast<std::uint8_t>(m_pga.at(m_selected_channel)) & 0x07u) << 9u; // PGA gain select
 
     // This sets the 8 LSBs of the config register (bits 7-0)
-    conf_reg |= 0x00; // TODO: enable ALERT/RDY pin
-    conf_reg |= (m_rate & 0x07) << 5;
+    //conf_reg |= 0x00; // TODO: enable ALERT/RDY pin
+    conf_reg |= (m_rate & 0x07u) << 5u;
 
-    if (write(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) == 0) {
+    if (write(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) != 1) {
         return false;
     }
     m_current_channel = m_selected_channel;
@@ -143,7 +140,7 @@ auto ADS1115::wait_conversion_finished() -> bool
         if (read(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) != 1) {
             return false;
         }
-        if ((conf_reg & 0x8000) > 0) {
+        if ((conf_reg & 0x8000u) > 0) {
             if (i > 1) {
                 m_poll_period += std::chrono::microseconds((i - 1) * m_poll_period.count() / 10);
             }
@@ -157,7 +154,7 @@ auto ADS1115::readConversionResult(std::int16_t& dataword) -> bool
 {
     std::uint16_t data { 0 };
     // Read the contents of the conversion register into readBuf
-    if (read(static_cast<std::uint8_t>(REG::CONVERSION), &data) == 0) {
+    if (read(static_cast<std::uint8_t>(REG::CONVERSION), &data) != 1) {
         return false;
     }
 
@@ -166,7 +163,7 @@ auto ADS1115::readConversionResult(std::int16_t& dataword) -> bool
     return true;
 }
 
-auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
+auto ADS1115::getSample(const std::uint8_t channel) -> ADS1115::Sample
 {
     // if ( fConvMode != CONV_MODE::SINGLE ) return InvalidSample;
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -195,7 +192,7 @@ auto ADS1115::getSample(unsigned int channel) -> ADS1115::Sample
     return generate_sample(conv_result);
 }
 
-auto ADS1115::triggerConversion(unsigned int channel) -> bool
+auto ADS1115::triggerConversion(const std::uint8_t channel) -> bool
 {
     // triggering a conversion makes only sense in single shot mode
     if (m_conv_mode != CONV_MODE::SINGLE) {
@@ -226,7 +223,7 @@ auto ADS1115::conversionFinished() -> ADS1115::Sample
     return generate_sample(conv_result);
 }
 
-auto ADS1115::readADC(unsigned int channel) -> std::int16_t
+auto ADS1115::readADC(const std::uint8_t channel) -> std::int16_t
 {
     try {
         std::future<Sample> sample_future = std::async(&ADS1115::getSample, this, channel);
@@ -250,7 +247,7 @@ auto ADS1115::setDataReadyPinMode() -> bool
     // set COMP_QUE[1:0] to any value other than '11' (default value)
     bool ok = setThreshold<REG::LO_THRESH>(static_cast<std::int16_t>(0b0000000000000000));
     ok = ok && setThreshold<REG::HI_THRESH>(static_cast<std::int16_t>(0b1111111111111111));
-    ok = ok && setCompQueue(0x00);
+    ok = ok && setCompQueue(0x00u);
     return ok;
 }
 
@@ -270,8 +267,8 @@ auto ADS1115::setCompQueue(std::uint8_t bitpattern) -> bool
     if (read(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) != 1) {
         return false;
     }
-    conf_reg &= 0b11111100;
-    conf_reg |= bitpattern & 0b00000011;
+    conf_reg &= 0b11111100u;
+    conf_reg |= bitpattern & 0b00000011u;
     return (write(static_cast<std::uint8_t>(REG::CONFIG), &conf_reg) == 1);
 }
 
@@ -288,13 +285,13 @@ auto ADS1115::identify() -> bool
     if (read(static_cast<std::uint8_t>(REG::CONFIG), &dataword) == 0) {
         return false;
     }
-    if (((dataword & 0x8000) == 0) && ((dataword & 0x0100) != 0)) {
+    if (((dataword & 0x8000u) == 0) && ((dataword & 0x0100u) != 0)) {
         return false;
     }
     std::uint16_t dataword2 { 0 };
     // try to read at addr conf_reg+4 and compare with the previously read config register
     // both should be identical since only the 2 LSBs of the pointer register are evaluated by the ADS1115
-    if (read(static_cast<std::uint8_t>(REG::CONFIG) | 0x04, &dataword2) == 0) {
+    if (read(static_cast<std::uint8_t>(REG::CONFIG) | 0x04u, &dataword2) == 0) {
         return false;
     }
     if (dataword != dataword2) {
@@ -304,20 +301,20 @@ auto ADS1115::identify() -> bool
     return true;
 }
 
-auto ADS1115::getVoltage(unsigned int channel) -> double
+auto ADS1115::getVoltage(const std::uint8_t channel) -> double
 {
     double voltage {};
     getVoltage(channel, voltage);
     return voltage;
 }
 
-void ADS1115::getVoltage(unsigned int channel, double& voltage)
+void ADS1115::getVoltage(const std::uint8_t channel, double& voltage)
 {
     std::int16_t adc { 0 };
     getVoltage(channel, adc, voltage);
 }
 
-void ADS1115::getVoltage(unsigned int channel, std::int16_t& adc, double& voltage)
+void ADS1115::getVoltage(const std::uint8_t channel, std::int16_t& adc, double& voltage)
 {
     Sample sample = getSample(channel);
     adc = sample.value;
@@ -331,39 +328,36 @@ void ADS1115::setAGC(bool state)
 
 void ADS1115::setAGC(std::uint8_t channel, bool state)
 {
-    if (channel > 3) {
-        return;
-    }
-    m_agc[channel] = state;
+    m_agc.at(channel) = state;
 }
 
 auto ADS1115::getAGC(std::uint8_t channel) const -> bool
 {
-    return m_agc[channel & 0x03];
+    return m_agc.at(channel);
 }
 
-auto ADS1115::generate_sample(int16_t conv_result) -> Sample
+auto ADS1115::generate_sample(std::int16_t conv_result) -> Sample
 {
     Sample sample {
         std::chrono::steady_clock::now(),
         conv_result,
-        adcToVoltage(conv_result, m_pga[m_current_channel]),
-        lsb_voltage(m_pga[m_current_channel]),
+        adcToVoltage(conv_result, m_pga.at(m_current_channel)),
+        lsb_voltage(m_pga.at(m_current_channel)),
         m_current_channel
     };
     if (m_conv_ready_fn && sample != InvalidSample) {
         m_conv_ready_fn(sample);
     }
 
-    if (m_agc[m_current_channel]) {
+    if (m_agc.at(m_current_channel)) {
         int eadc = std::abs(conv_result);
-        if (eadc > HI_RANGE_LIMIT && m_pga[m_current_channel] > PGA6V) {
-            m_pga[m_current_channel] = CFG_PGA(m_pga[m_current_channel] - 1);
-        } else if (eadc < LO_RANGE_LIMIT && m_pga[m_current_channel] < PGA256MV) {
-            m_pga[m_current_channel] = CFG_PGA(m_pga[m_current_channel] + 1);
+        if (eadc > HI_RANGE_LIMIT && m_pga.at(m_current_channel) > PGA6V) {
+            m_pga.at(m_current_channel) = static_cast<CFG_PGA>(m_pga.at(m_current_channel) - 1);
+        } else if (eadc < LO_RANGE_LIMIT && m_pga.at(m_current_channel) < PGA256MV) {
+            m_pga.at(m_current_channel) = static_cast<CFG_PGA>(m_pga.at(m_current_channel) + 1);
         }
     }
-    m_last_sample[m_current_channel] = sample;
+    m_last_sample.at(m_current_channel) = sample;
     return sample;
 }
 

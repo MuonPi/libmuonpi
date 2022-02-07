@@ -1,5 +1,6 @@
 #include "muonpi/serial/i2cdevices/eeprom24aa02.h"
 #include "muonpi/scopeguard.h"
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <thread>
@@ -28,18 +29,17 @@ auto EEPROM24AA02::read(std::uint8_t start_addr, std::uint8_t* buffer, std::size
 
 auto EEPROM24AA02::read_byte(std::uint8_t addr, std::uint8_t* value) -> bool
 {
-    return (this->read(addr, value, static_cast<std::size_t>(1)) == 1);
+    return (this->read(addr, value, 1u) == 1);
 }
 
 auto EEPROM24AA02::writeByte(std::uint8_t addr, std::uint8_t data) -> bool
 {
-    // TODO: Don't use c-style arrays. Use std::array instead.
-    uint8_t writeBuf[2] { addr, data }; // Buffer to store the 2 bytes that we write to the I2C device
-
+    std::array<std::uint8_t, 2> writeBuf { addr, data };
+    
     scope_guard timer_guard { setup_timer() };
 
     // Write address and data byte
-    if (write(writeBuf, 2) != 2) {
+    if (write(writeBuf.data(), 2u) != 2) {
         return false;
     }
 
@@ -53,7 +53,7 @@ auto EEPROM24AA02::writeByte(std::uint8_t addr, std::uint8_t data) -> bool
 auto EEPROM24AA02::write(std::uint8_t addr, std::uint8_t* buffer, std::size_t bytes) -> int
 {
     scope_guard timer_guard { setup_timer() };
-    if (bytes == 1) {
+    if (bytes == 1u) {
         if (writeByte(addr, *buffer)) {
             return 1;
         }
@@ -84,21 +84,21 @@ auto EEPROM24AA02::identify() -> bool
         return false;
     }
 
-    const unsigned int N { 256 };
-    std::uint8_t buf[N + 1];
-    if (read(0x00, buf, N) != N) {
+    constexpr unsigned int N { 256 };
+    std::array<std::uint8_t, N+1> buf {};
+    if (read(0x00, buf.data(), N) != N) {
         // somehow did not read exact same amount of bytes as it should
         return false;
     }
-    if (read(0x01, buf, N) != N) {
+    if (read(0x01, buf.data(), N) != N) {
         // somehow did not read exact same amount of bytes as it should
         return false;
     }
-    if (read(0x00, buf, N + 1) != N + 1) {
+    if (read(0x00, buf.data(), N + 1) != N + 1) {
         // somehow did not read exact same amount of bytes as it should
         return false;
     }
-    if (read(0xfa, buf, 6) != 6) {
+    if (read(0xfa, buf.data(), 6u) != 6) {
         // somehow did not read exact same amount of bytes as it should
         return false;
     }
@@ -106,7 +106,7 @@ auto EEPROM24AA02::identify() -> bool
     // seems, we have a 24AA02 (or larger) at this point
     // additionaly check, whether it could be a 24AA02UID,
     // i.e. if the last 6 bytes contain 2 bytes of vendor/device code and 4 bytes of unique id
-    if (buf[0] == 0x29 && buf[1] == 0x41) {
+    if (buf[0] == 0x29u && buf[1] == 0x41u) {
         set_name("24AA02UID");
     }
     return true;

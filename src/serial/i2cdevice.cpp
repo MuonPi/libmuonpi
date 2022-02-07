@@ -5,6 +5,7 @@
 #include "muonpi/log.h"
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <fcntl.h> // open
 #include <iostream>
@@ -121,7 +122,9 @@ void i2c_device::set_flag(Flags flag)
 
 void i2c_device::unset_flag(Flags flag)
 {
-    m_flags &= ~static_cast<std::uint8_t>(flag);
+    // the following insane statement mutes the HIC++ standard "hicpp-signed-bitwise" violation warning from clang-tidy
+    // deatils on https://stackoverflow.com/questions/50399090/use-of-a-signed-integer-operand-with-a-binary-bitwise-operator-when-using-un
+    m_flags &= static_cast<std::uint8_t>(~static_cast<std::uint8_t>(flag));
 }
 
 void i2c_device::lock(bool locked)
@@ -198,21 +201,18 @@ auto i2c_device::read(std::uint8_t reg, std::uint16_t* buffer, std::size_t n_wor
     if (write(&reg, 1) != 1) {
         return -1;
     }
-    std::uint8_t* read_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), n_words * 2)) };
 
-    scope_guard free_guard { [&read_buffer] {
-        free(read_buffer);
-    } };
+    auto read_buffer = std::make_unique<std::uint8_t[]>(n_words * 2u);
 
-    int nread = read(read_buffer, n_words * 2);
+    int nread = read(read_buffer.get(), n_words * 2u);
 
     if (nread != static_cast<int>(n_words) * 2) {
         return -1;
     }
 
     for (std::size_t i { 0 }; i < n_words; ++i) {
-        buffer[i] = read_buffer[i * 2] << 8;
-        buffer[i] |= read_buffer[i * 2 + 1];
+        buffer[i] = read_buffer[i * 2u] << 8u;
+        buffer[i] |= read_buffer[i * 2u + 1];
     }
 
     return nread / 2;
@@ -257,33 +257,25 @@ auto i2c_device::write(std::uint8_t reg, std::uint8_t bit_mask, std::uint8_t val
 
 auto i2c_device::write(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes) -> int
 {
-    std::uint8_t* write_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), bytes + 1)) };
-
-    scope_guard free_guard { [&write_buffer] {
-        free(write_buffer);
-    } };
+    auto write_buffer = std::make_unique<std::uint8_t[]>( bytes + 1u );
 
     write_buffer[0] = reg;
 
-    std::memcpy(write_buffer + 1, buffer, bytes);
+    std::memcpy(write_buffer.get() + 1, buffer, bytes);
 
-    return write(write_buffer, bytes + 1) - 1;
+    return write(write_buffer.get(), bytes + 1) - 1;
 }
 
 auto i2c_device::write(std::uint8_t reg, const std::uint16_t* buffer, std::size_t length) -> int
 {
-    std::uint8_t* write_buffer { static_cast<std::uint8_t*>(calloc(sizeof(std::uint8_t), length * 2 + 1)) };
-
-    scope_guard free_guard { [&write_buffer] {
-        free(write_buffer);
-    } };
+    auto write_buffer = std::make_unique<std::uint8_t[]>( length * 2u + 1u );
 
     for (std::size_t i { 0 }; i < length; i++) {
-        write_buffer[i * 2] = buffer[i] >> 8;
-        write_buffer[i * 2 + 1] = buffer[i];
+        write_buffer[i * 2u] = buffer[i] >> 8u;
+        write_buffer[i * 2u + 1u] = buffer[i];
     }
 
-    int count = write(reg, write_buffer, length * 2);
+    int count = write(reg, write_buffer.get(), length * 2u);
 
     if (count < 0) {
         return -1;

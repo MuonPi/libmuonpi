@@ -138,13 +138,13 @@ namespace gpio {
     // +++ convenience definitions
     using pin_t = unsigned int;
     using time_t = std::chrono::system_clock::time_point;
-    struct settings_t {
+    struct pin_setting_t {
         gpio::pin_t pin;
         gpio::edge_t edge;
         gpio::bias_t bias;
     };
 
-    using pins_t = std::vector<settings_t>;
+    using pins_t = std::vector<pin_setting_t>;
     // --- convenience definitions
 
     /**
@@ -183,7 +183,7 @@ public:
      * @param callback The callback to invoke when the event is detected
      * @return True when the event has been registered
      */
-    [[nodiscard]] auto set_pin_interrupt(const gpio::settings_t& settings, const gpio::callback_t& callback) -> bool;
+    [[nodiscard]] auto set_pin_interrupt(const gpio::pin_setting_t& settings, const gpio::callback_t& callback) -> bool;
 
     /**
      * @brief set_pin_interrupt Add a callback to a number of pin definitions
@@ -191,7 +191,7 @@ public:
      * @param callback The callback to invoke on each event
      * @return True when all events have been registered
      */
-    [[nodiscard]] auto set_pin_interrupt(const gpio::pins_t& settings, const gpio::callback_t& callback) -> bool;
+    [[nodiscard]] auto set_pin_interrupt(const gpio::pins_t& pins, const gpio::callback_t& callback) -> bool;
 
     /**
      * @brief set_pin_output Configure a pin to function as an output pin
