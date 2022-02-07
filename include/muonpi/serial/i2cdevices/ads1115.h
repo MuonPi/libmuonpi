@@ -10,6 +10,7 @@
 #include <mutex>
 #include <thread>
 #include <utility>
+#include <array>
 
 namespace muonpi::serial::devices {
 
@@ -72,7 +73,7 @@ public:
 
     static auto adcToVoltage(std::int16_t adc, CFG_PGA pga_setting) -> float;
 
-    ADS1115(i2c_bus& bus, std::uint8_t address);
+    ADS1115(i2c_bus& bus, std::uint8_t address) noexcept;
     ~ADS1115() override;
 
     [[nodiscard]] auto identify() -> bool override;
@@ -80,45 +81,45 @@ public:
     void setActiveChannel(std::uint8_t channel, bool differential_mode = false);
     void setPga(CFG_PGA pga);
     void setPga(unsigned int pga);
-    void setPga(std::uint8_t channel, CFG_PGA pga);
-    void setPga(std::uint8_t channel, std::uint8_t pga);
-    [[nodiscard]] auto getPga(int ch) const -> CFG_PGA;
+    void setPga(const std::uint8_t channel, CFG_PGA pga);
+    void setPga(const std::uint8_t channel, std::uint8_t pga);
+    [[nodiscard]] auto getPga(const std::uint8_t ch) const -> CFG_PGA;
     void setAGC(bool state);
-    void setAGC(std::uint8_t channel, bool state);
-    [[nodiscard]] auto getAGC(std::uint8_t channel) const -> bool;
+    void setAGC(const std::uint8_t channel, bool state);
+    [[nodiscard]] auto getAGC(const std::uint8_t channel) const -> bool;
     void setRate(unsigned int rate);
     [[nodiscard]] auto getRate() const -> unsigned int;
 
     template <REG R>
     auto setThreshold(std::int16_t threshold) -> bool;
 
-    auto readADC(unsigned int channel) -> std::int16_t;
-    auto getVoltage(unsigned int channel) -> double;
-    void getVoltage(unsigned int channel, double& voltage);
-    void getVoltage(unsigned int channel, std::int16_t& adc, double& voltage);
+    auto readADC(const std::uint8_t channel) -> std::int16_t;
+    auto getVoltage(const std::uint8_t channel) -> double;
+    void getVoltage(const std::uint8_t channel, double& voltage);
+    void getVoltage(const std::uint8_t channel, std::int16_t& adc, double& voltage);
     void setDiffMode(bool mode) { m_diff_mode = mode; }
     auto setDataReadyPinMode() -> bool;
     [[nodiscard]] auto getReadWaitDelay() const -> unsigned int;
     auto setContinuousSampling(bool cont_sampling = true) -> bool;
-    auto triggerConversion(unsigned int channel) -> bool;
-    auto getSample(unsigned int channel) -> Sample;
+    auto triggerConversion(const std::uint8_t channel) -> bool;
+    auto getSample(const std::uint8_t channel) -> Sample;
     auto conversionFinished() -> Sample;
     void registerConversionReadyCallback(std::function<void(Sample)> fn);
 
 protected:
-    CFG_PGA m_pga[4] { PGA4V, PGA4V, PGA4V, PGA4V };
+    std::array<CFG_PGA,4> m_pga { PGA4V, PGA4V, PGA4V, PGA4V };
     std::uint8_t m_rate { 0x00 };
     std::uint8_t m_current_channel { 0 };
     std::uint8_t m_selected_channel { 0 };
     std::chrono::microseconds m_poll_period { READ_WAIT_DELAY_INIT }; ///< conversion wait time in us
-    bool m_agc[4] { false, false, false, false }; ///< software agc which switches over to a better pga setting if voltage too low/high
+    std::array<bool,4> m_agc { false, false, false, false }; ///< software agc which switches over to a better pga setting if voltage too low/high
     bool m_diff_mode { false }; ///< measure differential input signals (true) or single ended (false=default)
     CONV_MODE m_conv_mode { CONV_MODE::UNKNOWN };
-    Sample m_last_sample[4] { InvalidSample, InvalidSample, InvalidSample, InvalidSample };
+    std::array<Sample,4> m_last_sample { InvalidSample, InvalidSample, InvalidSample, InvalidSample };
 
     std::mutex m_mutex;
 
-    virtual void init();
+    void init() noexcept;
     auto writeConfig(bool startNewConversion = false) -> bool;
     auto setCompQueue(std::uint8_t bitpattern) -> bool;
     auto readConversionResult(std::int16_t& dataword) -> bool;
