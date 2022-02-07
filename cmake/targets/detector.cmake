@@ -23,6 +23,8 @@ if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/mcp4728.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/eeprom24aa02.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/io_extender.h"
+        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/pca9536.h"
+        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/pca9554.h"
         )
 
     find_library(LIBGPIOD gpiod REQUIRED)

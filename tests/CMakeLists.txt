@@ -59,6 +59,7 @@ if (LIBMUONPI_HARDWARE_TESTS)
     set(HARDWARE_TEST_SOURCE_FILES
     "${PROJECT_TEST_SRC_DIR}/hardware/main.cpp"
     "${PROJECT_TEST_SRC_DIR}/hardware/gpio.cpp"
+    "${PROJECT_TEST_SRC_DIR}/hardware/i2c.cpp"
     )
 add_executable(hardware-test ${HARDWARE_TEST_SOURCE_FILES})
 target_link_libraries(hardware-test ${PROJECT_INCLUDE_LIBS} muonpi-detector muonpi-core gpiod atomic)

@@ -33,9 +33,6 @@ private:
     };
 };
 
-typedef io_extender<4> PCA9536;
-typedef io_extender<8> PCA9554;
-
 
 /***************************
  * Implementation part
@@ -148,7 +145,6 @@ auto io_extender<BITS>::identify() -> bool
     }
     return true;
 }
-
 
 } // namespace muonpi::serial::devices
 #endif // MUONPI_SERIAL_I2CDEVICES_IOEXTENDER_H
