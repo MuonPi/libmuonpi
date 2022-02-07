@@ -6,6 +6,7 @@ if (LIBMUONPI_BUILD_HTTP) # libraries specific to the REST library
     set(HTTP_SOURCE_FILES
         "${PROJECT_SRC_DIR}/http_server.cpp"
         "${PROJECT_SRC_DIR}/http_request.cpp"
+        "${PROJECT_SRC_DIR}/http_response.cpp"
         "${PROJECT_SRC_DIR}/http_tools.cpp"
         )
 
