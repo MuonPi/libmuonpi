@@ -10,5 +10,6 @@
 #include "muonpi/serial/i2cdevices/io_extender.h"
 #include "muonpi/serial/i2cdevices/pca9536.h"
 #include "muonpi/serial/i2cdevices/pca9554.h"
+#include "muonpi/serial/i2cdevices/hmc5883.h"
 
 #endif // MUONPI_SERIAL_I2CDEVICES_H
