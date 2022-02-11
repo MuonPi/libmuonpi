@@ -19,6 +19,7 @@ EEPROM24AA02::EEPROM24AA02(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
     set_name("24AA02");
+    m_addresses_hint = { 0x50 };
 }
 
 auto EEPROM24AA02::read(std::uint8_t start_addr, std::uint8_t* buffer, std::size_t bytes) -> int

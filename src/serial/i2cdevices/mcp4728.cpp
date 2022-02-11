@@ -16,6 +16,7 @@ MCP4728::MCP4728(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
     set_name("MCP4728");
+    m_addresses_hint = { 0x60 };
 }
 
 auto MCP4728::set_voltage(unsigned int channel, float voltage) -> bool

@@ -30,6 +30,7 @@ ADS1115::ADS1115(i2c_bus& bus, std::uint8_t address) noexcept
     : i2c_device(bus, address)
 {
     set_name("ADS1115");
+    m_addresses_hint = { 0x48, 0x49, 0x4a, 0x4b };
     init();
 }
 

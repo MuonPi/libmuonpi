@@ -14,7 +14,7 @@ LM75::LM75(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
     set_name("LM75");
-    m_addresses_hint = { 0x4f };
+    m_addresses_hint = { 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f };
 }
 
 LM75::~LM75() = default;
