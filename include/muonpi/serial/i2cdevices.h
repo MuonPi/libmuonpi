@@ -3,7 +3,8 @@
 
 #include "muonpi/serial/i2cdevice.h"
 #include "muonpi/serial/i2cdevices/ads1115.h"
-#include "muonpi/serial/i2cdevices/eeprom24aa02.h"
+#include "muonpi/serial/i2cdevices/generic_eeprom.h"
+#include "muonpi/serial/i2cdevices/eeproms.h"
 #include "muonpi/serial/i2cdevices/lm75.h"
 #include "muonpi/serial/i2cdevices/mcp4728.h"
 #include "muonpi/serial/i2cdevices/mic184.h"
