@@ -11,17 +11,30 @@ class i2c_eeprom : public i2c_device {
 public:
     explicit i2c_eeprom(i2c_bus& bus, std::uint8_t base_address);
 
+    /** Read multiple bytes starting from given address from EEPROM memory.
+     * @param start_addr First register address to read from
+     * @param buffer Buffer to receive the data read from eeprom
+     * @param num_bytes Number of bytes to write
+     * @return Number of bytes actually read
+     * @note this is an overriding function to the one in the i2c_device base class in order to
+     * handle the i2c subaddress management correctly for EEPROMs with address mode 1. For those, the hi-byte
+     * of the address is encrypted as access to an i2c address different from the device's base address.
+     * example: a 512 byte device may provide the data through two i2c addresses 0x50 (he base address) and 0x51.
+     * Reading and writing data to these two addresses accesses the two 256-byte pages the memory is subdivided into.
+     */
     [[nodiscard]] auto read(std::uint16_t start_addr, std::uint8_t* buffer, std::size_t num_bytes = 1) -> int;
     /** Write multiple bytes starting from given address into EEPROM memory.
      * @param addr First register address to write to
      * @param buffer Buffer to copy new data from
-     * @param bytes Number of bytes to write
+     * @param num_bytes Number of bytes to write
      * @return Number of bytes actually written
      * @note this is an overriding function to the one in the i2c_device base class in order to
      * prevent sequential write operations crossing page boundaries of the EEPROM. This function conforms to
      * the page-wise sequential write (c.f. http://ww1.microchip.com/downloads/en/devicedoc/21709c.pdf  p.7).
      */
-    auto write(std::uint16_t addr, std::uint8_t* buffer, std::size_t num_bytes = 1) -> int; // TODO: method in base class is not virtual. Nor is this method marked override.
+    [[nodiscard]] auto write(std::uint16_t addr, std::uint8_t* buffer, std::size_t num_bytes = 1) -> int; 
+    // TODO: method in base class is not virtual. Nor is this method marked override.
+    // Reply: the method shall explicitely shadow the base class' method to never be used for memory access to the eeprom directly
 
     [[nodiscard]] auto identify() -> bool override;
     [[nodiscard]] static constexpr auto size() -> std::size_t { return EEPLENGTH; }
@@ -30,7 +43,7 @@ public:
 
 private:
     // hide all low level read/write functions from the i2c_device base class since they do not conform
-    // to the correct write sequence required by the eeprom and would lead to data corruption when used.
+    // to the correct read/write sequence required by the eeprom and would lead to data corruption when used.
     // they are replaced with methods in the public interface of this class with equal signature
     using i2c_device::read;
     using i2c_device::write;
@@ -108,7 +121,6 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint16_t start_addr
             case 1:
                 if ( address() != m_base_address + (currAddr >> 8) ) {
                     set_address( m_base_address + (currAddr >> 8) );
-                    std::cout<<"DEBUG: resetting i2c address to 0x"<<std::hex<<static_cast<int>(address())<<"\n";
                 }
                 n = i2c_device::read( static_cast<std::uint8_t>(currAddr & 0xff), &buffer[i], pageRemainder );
                 break;
@@ -129,16 +141,12 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint16_t start_addr
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
 auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::identify() -> bool
 {
-    if (flag_set(Flags::Failed)) {
-        return false;
-    }
-    if (!present()) {
+    if ( flag_set(Flags::Failed) || !present() ) {
         return false;
     }
 
-    constexpr unsigned int N { size() };
-    std::array<std::uint8_t, N> buf {};
-    if ( read( static_cast<std::uint16_t>(0x0000), buf.data(), N) != N ) {
+    std::array<std::uint8_t, EEPLENGTH> buf {};
+    if ( read( static_cast<std::uint16_t>(0x0000), buf.data(), EEPLENGTH) != EEPLENGTH ) {
         // somehow did not read exact same amount of bytes as it should
         return false;
     }
@@ -148,7 +156,7 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::identify() -> bool
             // somehow did not read exact same amount of bytes as it should
             return false;
         }
-        // seems, we have a 24AA02 (or larger) at this point
+        // seems, we have a 24AA02 at this point
         // additionaly check, whether it could be a 24AA02UID,
         // i.e. if the last 6 bytes contain 2 bytes of vendor/device code and 4 bytes of unique id
         if (buf[0] == 0x29u && buf[1] == 0x41u) {
