@@ -5,6 +5,11 @@
 
 namespace muonpi::serial::devices::eeproms {
 
+/* the following list of devices and the coresponding properties (size, address mode and page length)
+ * is taken and adapted from 
+ * https://github.com/CombiesGit/I2C_EEPROM
+ */
+
 //Atmel
 typedef i2c_eeprom<  128UL,1, 8> AT24C01; 
 typedef i2c_eeprom<  256UL,1, 8> AT24C02;

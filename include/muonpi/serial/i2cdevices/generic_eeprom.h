@@ -6,6 +6,19 @@
 
 namespace muonpi::serial::devices {
 
+/**
+ * @brief The i2c_eeprom class.
+ * Generic class template for i2c eeprom devices. The template parameters (and thus the properties assumed
+ * to vary between different device types) are:
+ * <p><ul>
+ * <li>EEPLENGTH: The total capacity in bytes of the eeprom
+ * <li>ADDRESSMODE: whether the device addressing is single-byte (ADDRESSMODE=1) or allows word addresses (ADDRESSMODE=2)
+ * <li>PAGELENGTH: The page size in bytes which can be written in one chunk
+ * </ul><p>
+ * @note The class overwrites the @link i2c_device base class' methods read() and write() in order to manage the paged access correctly.
+ * @note Devices with ADDRESSMODE=1 may occupy more than one i2c address on the bus. For this end, an additional member
+ * base_address keeps track of the primary address while the @link i2c_device#address property may change during read/write operations.
+ */
 template <std::size_t EEPLENGTH = 256, std::uint8_t ADDRESSMODE = 1, std::size_t PAGELENGTH = 8>
 class i2c_eeprom : public i2c_device {
 public:
@@ -37,8 +50,21 @@ public:
     // Reply: the method shall explicitely shadow the base class' method to never be used for memory access to the eeprom directly
 
     [[nodiscard]] auto identify() -> bool override;
+
+    /** the total capacity of the eeprom memory
+     * @return eeprom memory size in bytes
+     */
     [[nodiscard]] static constexpr auto size() -> std::size_t { return EEPLENGTH; }
+
+    /** the page size of the eeprom
+     * @return number of bytes per page
+     */
     [[nodiscard]] static constexpr auto page_size() -> std::size_t { return PAGELENGTH; }
+
+    /** the address mode of the eeprom
+     * <p> The address mode describes whether the access to memory locations is done through 8bit or 16bit addresses
+     * @return the address mode: 1=single byte addressing, 2=word addressing
+     */
     [[nodiscard]] static constexpr auto address_mode() -> std::uint8_t { return ADDRESSMODE; }
 
 private:
@@ -47,7 +73,7 @@ private:
     // they are replaced with methods in the public interface of this class with equal signature
     using i2c_device::read;
     using i2c_device::write;
-    std::uint8_t m_base_address { 0xff };
+    std::uint8_t m_base_address { 0xff }; ///<! the base address of the device on the bus
     static constexpr std::chrono::microseconds EEP_WRITE_IDLE_TIME { 5000 };
     static constexpr std::size_t MAX_READ_BLOCK_SIZE { 256 };
 };
@@ -145,6 +171,10 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::identify() -> bool
         return false;
     }
 
+    // identifying the device:
+    // read a data block with the size equal to the capacity of the eeprom in one chunk.
+    // if the number of bytes actually read is as expected, we may assume that we really have en eeprom
+    // with at least the specified size
     std::array<std::uint8_t, EEPLENGTH> buf {};
     if ( read( static_cast<std::uint16_t>(0x0000), buf.data(), EEPLENGTH) != EEPLENGTH ) {
         // somehow did not read exact same amount of bytes as it should
