@@ -153,8 +153,8 @@ i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::write(std::uint16_t addr, std::uin
 
         auto write_buffer = std::make_unique<std::uint8_t[]>( pageRemainder + 2u );
 
-        write_buffer[0] = { (currAddr >> 8) & 0xff };
-        write_buffer[1] = { currAddr & 0xff };
+        write_buffer[0] = static_cast<std::uint8_t>((currAddr >> 8) & 0xff);
+        write_buffer[1] = static_cast<std::uint8_t>(currAddr & 0xff);
 
         std::memcpy(write_buffer.get() + 2, &buffer[i], pageRemainder);
 
@@ -217,7 +217,7 @@ i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint16_t start_addr, std
         }
         
         // write 16bit address first
-        std::array<std::uint8_t, 2> addr_bytes { (currAddr >> 8) & 0xff, currAddr & 0xff  };
+        std::array<std::uint8_t, 2> addr_bytes { static_cast<std::uint8_t>((currAddr >> 8) & 0xff), static_cast<std::uint8_t>(currAddr & 0xff) };
         if ( i2c_device::write( addr_bytes.data(), 2u ) != 2 ) {
             return total_read;
         }
