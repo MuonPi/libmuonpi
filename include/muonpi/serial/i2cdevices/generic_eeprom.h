@@ -5,6 +5,7 @@
 #include "muonpi/serial/i2cdevice.h"
 #include <type_traits>
 #include <sstream>
+#include <cstring>
 
 namespace muonpi::serial::devices {
 
@@ -149,9 +150,17 @@ i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::write(std::uint16_t addr, std::uin
         if ( pageRemainder > num_bytes - total_written ) {
             pageRemainder = num_bytes - total_written;
         }
-        
-        const int n { i2c_device::write( static_cast<std::uint16_t>(currAddr), &buffer[i], pageRemainder ) };
-        
+
+        auto write_buffer = std::make_unique<std::uint8_t[]>( pageRemainder + 2u );
+
+        write_buffer[0] = { (currAddr >> 8) & 0xff };
+        write_buffer[1] = { currAddr & 0xff };
+
+        std::memcpy(write_buffer.get() + 2, &buffer[i], pageRemainder);
+
+        // write data block
+        const int n { write(write_buffer.get(), pageRemainder + 2) - 2 };
+
         if ( n < 0 ) return total_written;
         std::this_thread::sleep_for(EEP_WRITE_IDLE_TIME);
         i += n;
@@ -207,7 +216,13 @@ i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint16_t start_addr, std
             pageRemainder = num_bytes - total_read;
         }
         
-        const int n { i2c_device::read( static_cast<std::uint16_t>(currAddr), &buffer[i], pageRemainder ) };
+        // write 16bit address first
+        std::array<std::uint8_t, 2> addr_bytes { (currAddr >> 8) & 0xff, currAddr & 0xff  };
+        if ( i2c_device::write( addr_bytes.data(), 2u ) != 2 ) {
+            return total_read;
+        }
+        // read data block
+        const int n { i2c_device::read( &buffer[i], pageRemainder ) };
         
         if ( n < 0 ) return total_read;
         i += n;
@@ -244,7 +259,6 @@ i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint8_t start_addr, std:
     }
     return total_read;
 }
-
 
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
 auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::identify() -> bool
