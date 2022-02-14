@@ -52,7 +52,7 @@ public:
     void lock(bool locked = true);
     [[nodiscard]] auto locked() const -> bool;
 
-    [[nodiscard]] auto last_interval() const -> double;
+    [[deprecated]] [[nodiscard]] auto last_interval() const -> double;
     [[nodiscard]] auto last_access_duration() const -> std::chrono::microseconds;
 
     void set_name(std::string name);
