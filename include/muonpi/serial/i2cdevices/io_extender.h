@@ -41,7 +41,7 @@ template <std::size_t BITS>
 io_extender<BITS>::io_extender(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
-    static_assert( BITS==4 || BITS==8, "trying to instantiate io extender with undefined bit width" );
+    static_assert( BITS==4 || BITS==8, "trying to instantiate io extender with unsupported bit width" );
     set_name("undef io extender");
 }
 
