@@ -109,6 +109,7 @@ auto main() -> int
             log::info() << ostr.str();
             page++;
         }
+        log::info()<<"eeprom read duration: "<<eep.last_access_duration().count()<<"us";
         
     } else {
         log::error()<<"error identifying EEPROM at 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( eeprom_addr );
