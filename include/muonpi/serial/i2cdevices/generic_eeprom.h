@@ -17,13 +17,13 @@ namespace muonpi::serial::devices {
  * <li>ADDRESSMODE: whether the device addressing is single-byte (ADDRESSMODE=1) or allows word addresses (ADDRESSMODE=2)
  * <li>PAGELENGTH: The page size in bytes which can be written in one chunk
  * </ul><p>
- * @note The class overwrites the @link i2c_device base class' methods read() and write() in order to manage the paged access correctly.
- * This is intended behavior.
+ * @note The class overwrites the @link i2c_device base class' methods @link i2c_device#read and @link i2c_device#write 
+ * in order to manage the paged access correctly. This is intended behavior.
  * @note Devices with ADDRESSMODE=1 may occupy more than one i2c address on the bus. For this end, an additional member
  * base_address keeps track of the primary address while the @link i2c_device#address property may change during read/write operations.
  * @note This class provides two templated versions for either @link #read and @link #write methods 
  * for 8bit register and 16bit register access, respectively. Depending on the address mode (ADDRESSMODE template param),
- * only one of the two methods participates on overload resolution. In this way, there are only 16bit versions of read and write
+ * only one of the two methods participates in overload resolution. In this way, there are only 16bit versions of read and write
  * visible for devices instantiated as two-byte register access eeproms (address mode 2) for instance.
  */
 template <std::size_t EEPLENGTH = 256, std::uint8_t ADDRESSMODE = 1, std::size_t PAGELENGTH = 8>
@@ -99,10 +99,20 @@ public:
     [[nodiscard]] static constexpr auto page_size() -> std::size_t { return PAGELENGTH; }
 
     /** the address mode of the eeprom
-     * <p> The address mode describes whether the access to memory locations is done through 8bit or 16bit addresses
+     * <p> The address mode describes whether the access to memory locations is managed through 8bit or 16bit addresses
      * @return the address mode: 1=single byte addressing, 2=word addressing
      */
     [[nodiscard]] static constexpr auto address_mode() -> std::uint8_t { return ADDRESSMODE; }
+    
+    /** get the i2c base address of the device
+     * @return i2c base address which is occupied by the device
+     * @note eeproms with single-byte addressing (ADDRESSMODE=1) and capacities beyond a full 8bit-addressable range
+     * encode the hi-byte of the memory address as access to an i2c device address incremental to the base address.
+     * In this way, different 256-Byte pages are accessed through consecutive i2c device addresses. The first page
+     * is accessed through base_address, the second through (base_address+1) and so forth. Accesses through @link #read 
+     * and @link #write methods automatically take care for address switching.
+     */
+    [[nodiscard]] auto base_address() const -> std::uint8_t { return m_base_address; }
 
 private:
     std::uint8_t m_base_address { 0xff }; ///<! the base address of the device on the bus
