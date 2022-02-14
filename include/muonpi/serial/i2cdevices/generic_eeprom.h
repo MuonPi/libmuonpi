@@ -290,7 +290,7 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::identify() -> bool
         }
     } else {
         std::ostringstream ostr;
-        ostr << " " << EEPLENGTH << "B";
+        ostr << ' ' << EEPLENGTH << 'B';
         set_name( name() + ostr.str() );
     }
     return true;
