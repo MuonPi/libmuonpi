@@ -3,6 +3,8 @@
 
 #include "muonpi/serial/i2cbus.h"
 #include "muonpi/serial/i2cdevice.h"
+#include <type_traits>
+#include <sstream>
 
 namespace muonpi::serial::devices {
 
@@ -16,8 +18,13 @@ namespace muonpi::serial::devices {
  * <li>PAGELENGTH: The page size in bytes which can be written in one chunk
  * </ul><p>
  * @note The class overwrites the @link i2c_device base class' methods read() and write() in order to manage the paged access correctly.
+ * This is intended behavior.
  * @note Devices with ADDRESSMODE=1 may occupy more than one i2c address on the bus. For this end, an additional member
  * base_address keeps track of the primary address while the @link i2c_device#address property may change during read/write operations.
+ * @note This class provides two templated versions for either @link #read and @link #write methods 
+ * for 8bit register and 16bit register access, respectively. Depending on the address mode (ADDRESSMODE template param),
+ * only one of the two methods participates on overload resolution. In this way, there are only 16bit versions of read and write
+ * visible for devices instantiated as two-byte register access eeproms (address mode 2) for instance.
  */
 template <std::size_t EEPLENGTH = 256, std::uint8_t ADDRESSMODE = 1, std::size_t PAGELENGTH = 8>
 class i2c_eeprom : public i2c_device {
@@ -25,19 +32,34 @@ public:
     explicit i2c_eeprom(i2c_bus& bus, std::uint8_t base_address);
 
     /** Read multiple bytes starting from given address from EEPROM memory.
-     * @param start_addr First register address to read from
+     * @param start_addr First 16bit register address to read from
+     * @param buffer Buffer to receive the data read from eeprom
+     * @param num_bytes Number of bytes to write
+     * @return Number of bytes actually read
+     * @note this is an overriding function to the one in the i2c_device base class in order to
+     * handle the i2c subaddress management correctly for EEPROMs with address mode 2.
+     */
+    template <std::uint8_t AM = ADDRESSMODE>
+    [[nodiscard]] typename std::enable_if_t<AM==2, int>
+    read(std::uint16_t start_addr, std::uint8_t* buffer, std::size_t num_bytes = 1);
+
+    /** Read multiple bytes starting from given address from EEPROM memory.
+     * @param start_addr First 8bit register address to read from
      * @param buffer Buffer to receive the data read from eeprom
      * @param num_bytes Number of bytes to write
      * @return Number of bytes actually read
      * @note this is an overriding function to the one in the i2c_device base class in order to
      * handle the i2c subaddress management correctly for EEPROMs with address mode 1. For those, the hi-byte
      * of the address is encrypted as access to an i2c address different from the device's base address.
-     * example: a 512 byte device may provide the data through two i2c addresses 0x50 (he base address) and 0x51.
+     * example: a 512 byte device may provide the data through two i2c addresses 0x50 (the base address) and 0x51.
      * Reading and writing data to these two addresses accesses the two 256-byte pages the memory is subdivided into.
      */
-    [[nodiscard]] auto read(std::uint16_t start_addr, std::uint8_t* buffer, std::size_t num_bytes = 1) -> int;
+    template <std::uint8_t AM = ADDRESSMODE>
+    [[nodiscard]] typename std::enable_if_t<AM==1, int>
+    read(std::uint8_t start_addr, std::uint8_t* buffer, std::size_t num_bytes = 1);
+
     /** Write multiple bytes starting from given address into EEPROM memory.
-     * @param addr First register address to write to
+     * @param addr First 16bit register address to write to
      * @param buffer Buffer to copy new data from
      * @param num_bytes Number of bytes to write
      * @return Number of bytes actually written
@@ -45,9 +67,24 @@ public:
      * prevent sequential write operations crossing page boundaries of the EEPROM. This function conforms to
      * the page-wise sequential write (c.f. http://ww1.microchip.com/downloads/en/devicedoc/21709c.pdf  p.7).
      */
-    [[nodiscard]] auto write(std::uint16_t addr, std::uint8_t* buffer, std::size_t num_bytes = 1) -> int; 
+    template <std::uint8_t AM = ADDRESSMODE>
+    [[nodiscard]] typename std::enable_if_t<AM==2, int>
+    write(std::uint16_t addr, std::uint8_t* buffer, std::size_t num_bytes = 1);
     // TODO: method in base class is not virtual. Nor is this method marked override.
     // Reply: the method shall explicitely shadow the base class' method to never be used for memory access to the eeprom directly
+
+    /** Write multiple bytes starting from given address into EEPROM memory.
+     * @param addr First 8bit register address to write to
+     * @param buffer Buffer to copy new data from
+     * @param num_bytes Number of bytes to write
+     * @return Number of bytes actually written
+     * @note this is an overriding function to the one in the i2c_device base class in order to
+     * prevent sequential write operations crossing page boundaries of the EEPROM. This function conforms to
+     * the page-wise sequential write (c.f. http://ww1.microchip.com/downloads/en/devicedoc/21709c.pdf  p.7).
+     */
+    template <std::uint8_t AM = ADDRESSMODE>
+    [[nodiscard]] typename std::enable_if_t<AM==1, int>
+    write(std::uint8_t addr, std::uint8_t* buffer, std::size_t num_bytes = 1);
 
     [[nodiscard]] auto identify() -> bool override;
 
@@ -68,11 +105,6 @@ public:
     [[nodiscard]] static constexpr auto address_mode() -> std::uint8_t { return ADDRESSMODE; }
 
 private:
-    // hide all low level read/write functions from the i2c_device base class since they do not conform
-    // to the correct read/write sequence required by the eeprom and would lead to data corruption when used.
-    // they are replaced with methods in the public interface of this class with equal signature
-    using i2c_device::read;
-    using i2c_device::write;
     std::uint8_t m_base_address { 0xff }; ///<! the base address of the device on the bus
     static constexpr std::chrono::microseconds EEP_WRITE_IDLE_TIME { 5000 };
     static constexpr std::size_t MAX_READ_BLOCK_SIZE { 256 };
@@ -85,12 +117,16 @@ template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGT
 i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::i2c_eeprom(i2c_bus& bus, std::uint8_t base_address)
     : i2c_device(bus, base_address), m_base_address( base_address )
 {
+    static_assert( ADDRESSMODE == 1 || ADDRESSMODE == 2, "unknown address mode for eeprom (must be 1 or 2)" );
+    static_assert( EEPLENGTH <= 65536UL , "unsupported eeprom size (must be <=65536)" );
     set_name("EEPROM");
     m_addresses_hint = { 0x50 };
 }
 
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
-auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::write(std::uint16_t addr, std::uint8_t* buffer, std::size_t num_bytes) -> int
+template <std::uint8_t AM> 
+typename std::enable_if_t<AM==2, int>
+i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::write(std::uint16_t addr, std::uint8_t* buffer, std::size_t num_bytes)
 {
     int total_written { 0 };
 
@@ -104,20 +140,7 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::write(std::uint16_t addr, std
             pageRemainder = num_bytes - total_written;
         }
         
-        int n { 0 };
-        switch ( ADDRESSMODE ) {
-            case 1:
-                if ( address() != m_base_address + (currAddr >> 8) ) {
-                    set_address( m_base_address + (currAddr >> 8) );
-                }
-                n = i2c_device::write( static_cast<std::uint8_t>(currAddr & 0xff), &buffer[i], pageRemainder );
-                break;
-            case 2:
-                n = i2c_device::write( static_cast<std::uint16_t>(currAddr), &buffer[i], pageRemainder );
-                break;
-            default:
-                n = -1;
-        }
+        const int n { i2c_device::write( static_cast<std::uint16_t>(currAddr), &buffer[i], pageRemainder ) };
         
         if ( n < 0 ) return total_written;
         std::this_thread::sleep_for(EEP_WRITE_IDLE_TIME);
@@ -128,7 +151,39 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::write(std::uint16_t addr, std
 }
 
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
-auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint16_t start_addr, std::uint8_t* buffer, std::size_t num_bytes) -> int
+template <std::uint8_t AM> 
+typename std::enable_if_t<AM==1, int>
+i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::write(std::uint8_t addr, std::uint8_t* buffer, std::size_t num_bytes)
+{
+    int total_written { 0 };
+
+    scope_guard timer_guard { setup_timer() };
+
+    for (std::size_t i = 0; i < num_bytes;) {
+        std::size_t currAddr { addr + i };
+        // determine, how many bytes left on current page
+        std::size_t pageRemainder = PAGELENGTH - currAddr % PAGELENGTH;
+        if ( pageRemainder > num_bytes - total_written ) {
+            pageRemainder = num_bytes - total_written;
+        }
+        
+        if ( address() != m_base_address + (currAddr >> 8) ) {
+            set_address( m_base_address + (currAddr >> 8) );
+        }
+        const int n { i2c_device::write( static_cast<std::uint8_t>(currAddr & 0xff), &buffer[i], pageRemainder ) };
+        
+        if ( n < 0 ) return total_written;
+        std::this_thread::sleep_for(EEP_WRITE_IDLE_TIME);
+        i += n;
+        total_written += n;
+    }
+    return total_written;
+}
+
+template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
+template <std::uint8_t AM> 
+typename std::enable_if_t<AM==2, int>
+i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint16_t start_addr, std::uint8_t* buffer, std::size_t num_bytes)
 {
     int total_read { 0 };
 
@@ -142,20 +197,7 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint16_t start_addr
             pageRemainder = num_bytes - total_read;
         }
         
-        int n { 0 };
-        switch ( ADDRESSMODE ) {
-            case 1:
-                if ( address() != m_base_address + (currAddr >> 8) ) {
-                    set_address( m_base_address + (currAddr >> 8) );
-                }
-                n = i2c_device::read( static_cast<std::uint8_t>(currAddr & 0xff), &buffer[i], pageRemainder );
-                break;
-            case 2:
-                n = i2c_device::read( static_cast<std::uint16_t>(currAddr), &buffer[i], pageRemainder );
-                break;
-            default:
-                n = -1;
-        }
+        const int n { i2c_device::read( static_cast<std::uint16_t>(currAddr), &buffer[i], pageRemainder ) };
         
         if ( n < 0 ) return total_read;
         i += n;
@@ -163,6 +205,36 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint16_t start_addr
     }
     return total_read;
 }
+
+template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
+template <std::uint8_t AM> 
+typename std::enable_if_t<AM==1, int>
+i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::read(std::uint8_t start_addr, std::uint8_t* buffer, std::size_t num_bytes)
+{
+    int total_read { 0 };
+
+    scope_guard timer_guard { setup_timer() };
+
+    for (std::size_t i = 0; i < num_bytes;) {
+        std::size_t currAddr { start_addr + i };
+        // determine, how many bytes left on current page
+        std::size_t pageRemainder { MAX_READ_BLOCK_SIZE - currAddr % MAX_READ_BLOCK_SIZE };
+        if ( pageRemainder > num_bytes - total_read ) {
+            pageRemainder = num_bytes - total_read;
+        }
+        
+        if ( address() != m_base_address + (currAddr >> 8) ) {
+            set_address( m_base_address + (currAddr >> 8) );
+        }
+        const int n { i2c_device::read( static_cast<std::uint8_t>(currAddr & 0xff), &buffer[i], pageRemainder ) };
+        
+        if ( n < 0 ) return total_read;
+        i += n;
+        total_read += n;
+    }
+    return total_read;
+}
+
 
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
 auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::identify() -> bool
@@ -176,13 +248,13 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::identify() -> bool
     // if the number of bytes actually read is as expected, we may assume that we really have en eeprom
     // with at least the specified size
     std::array<std::uint8_t, EEPLENGTH> buf {};
-    if ( read( static_cast<std::uint16_t>(0x0000), buf.data(), EEPLENGTH) != EEPLENGTH ) {
+    if ( read( 0, buf.data(), EEPLENGTH) != EEPLENGTH ) {
         // somehow did not read exact same amount of bytes as it should
         return false;
     }
 
-    if ( size() == 256UL && address_mode() == 1 ) {
-        if (read( static_cast<std::uint8_t>(0xfa), buf.data(), 6u) != 6) {
+    if ( EEPLENGTH == 256UL && ADDRESSMODE == 1 ) {
+        if (read( 0xfa, buf.data(), 6u) != 6) {
             // somehow did not read exact same amount of bytes as it should
             return false;
         }
@@ -192,8 +264,11 @@ auto i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>::identify() -> bool
         if (buf[0] == 0x29u && buf[1] == 0x41u) {
             set_name(name()+" 24AA02UID");
         }
+    } else {
+        std::ostringstream ostr;
+        ostr << " " << EEPLENGTH << "B";
+        set_name( name() + ostr.str() );
     }
-
     return true;
 }
 
