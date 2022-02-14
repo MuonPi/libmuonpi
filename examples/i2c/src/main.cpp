@@ -98,9 +98,9 @@ auto main() -> int
         std::size_t page { 0 };
         while ( page < eep.size()/eep.page_size() ) {
             std::ostringstream ostr;
-            ostr << std::hex << std::setw((eep.address_mode()==1)?2:4) << std::setfill('0') << page*eep.page_size() << ':';
+            ostr << std::hex << std::setw((eep.size()<=0x100)?2:4) << std::setfill('0') << page*eep.page_size() << ':';
             std::array<std::uint8_t,eep.page_size()> page_buffer { };
-            if ( eep.read( static_cast<std::uint16_t>(page*eep.page_size()), page_buffer.data(), eep.page_size() ) != eep.page_size() ) {
+            if ( eep.read( page*eep.page_size(), page_buffer.data(), eep.page_size() ) != eep.page_size() ) {
                 log::error() <<"reading eeprom content";
             }
             for ( std::size_t page_addr { 0 };page_addr<eep.page_size();page_addr++ ) {
