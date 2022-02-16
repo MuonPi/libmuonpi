@@ -43,7 +43,8 @@ namespace muonpi::link {
  */
 class LIBMUONPI_PUBLIC mqtt : public thread_runner {
 public:
-    enum class Status {
+    enum class Status
+    {
         Invalid,
         Connected,
         Disconnected,

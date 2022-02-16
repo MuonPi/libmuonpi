@@ -16,11 +16,13 @@ class MCP4728 : public i2c_device {
     // functionality MCP4728 listens to I2C Generall Call Commands reset, wake-up, software update,
     // read address bits reset is "0x00 0x06" wake-up is "0x00 0x09"
 public:
-    enum CFG_GAIN {
+    enum CFG_GAIN
+    {
         GAIN1 = 0,
         GAIN2 = 1
     };
-    enum CFG_VREF {
+    enum CFG_VREF
+    {
         VREF_VDD = 0,
         VREF_2V  = 1
     };
@@ -53,7 +55,8 @@ public:
 
 private:
     static constexpr float fVddRefVoltage {3.3}; ///< voltage at which the device is powered
-    enum COMMAND : std::uint8_t {
+    enum COMMAND : std::uint8_t
+    {
         DAC_FAST_WRITE       = 0b00000000,
         DAC_MULTI_WRITE      = 0b00001000,
         DAC_EEP_SEQ_WRITE    = 0b00001010,

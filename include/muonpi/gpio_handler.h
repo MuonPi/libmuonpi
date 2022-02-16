@@ -39,7 +39,8 @@ struct chip_info {
  * @brief The bias_t enum.
  * bias settings for gpio pins.
  */
-enum bias_t : std::uint8_t {
+enum bias_t : std::uint8_t
+{
     Disabled   = 0x00,
     PullDown   = 0x01,
     PullUp     = 0x02,
@@ -52,7 +53,8 @@ enum bias_t : std::uint8_t {
  * @brief The edge_t enum.
  * The type of edge detection for interrupts
  */
-enum edge_t : std::uint8_t {
+enum edge_t : std::uint8_t
+{
     Rising  = 0x01,
     Falling = 0x02,
     Both    = Rising | Falling

@@ -42,19 +42,22 @@ public:
     static constexpr std::int16_t  MAX_ADC_VALUE {32767};
     static constexpr std::uint16_t FULL_SCALE_RANGE {65535};
 
-    enum CFG_CHANNEL {
+    enum CFG_CHANNEL
+    {
         CH0 = 0,
         CH1,
         CH2,
         CH3
     };
-    enum CFG_DIFF_CHANNEL {
+    enum CFG_DIFF_CHANNEL
+    {
         CH0_1 = 0,
         CH0_3,
         CH1_3,
         CH2_3
     };
-    enum CFG_PGA {
+    enum CFG_PGA
+    {
         PGA6V    = 0,
         PGA4V    = 1,
         PGA2V    = 2,
@@ -62,7 +65,8 @@ public:
         PGA512MV = 4,
         PGA256MV = 5
     };
-    enum CFG_RATES {
+    enum CFG_RATES
+    {
         SPS8   = 0x00,
         SPS16  = 0x01,
         SPS32  = 0x02,
@@ -72,13 +76,15 @@ public:
         SPS475 = 0x06,
         SPS860 = 0x07
     };
-    enum class CONV_MODE {
+    enum class CONV_MODE
+    {
         UNKNOWN,
         SINGLE,
         CONTINUOUS
     };
 
-    enum REG : std::uint8_t {
+    enum REG : std::uint8_t
+    {
         CONVERSION = 0x00,
         CONFIG     = 0x01,
         LO_THRESH  = 0x02,

@@ -18,7 +18,8 @@ class i2c_bus;
 
 class i2c_device {
 public:
-    enum class Flags : std::uint8_t {
+    enum class Flags : std::uint8_t
+    {
         None        = 0,
         Normal      = 0x01,
         Force       = 0x02,
