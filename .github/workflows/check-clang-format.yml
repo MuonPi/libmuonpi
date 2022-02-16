@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install dependencies
-      run: sudo apt install -y libboost{,-system,-test,-stacktrace,-program-options}-dev libmosquitto-dev libgpiod-dev libssl-dev clang-format
+      run: sudo apt install -y clang-format git
     - name: clang-format
       run: clang-format -style=file -i $(find include -type f)
     
