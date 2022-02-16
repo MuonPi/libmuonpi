@@ -2,44 +2,36 @@
 #define MUONPI_LINK_MQTT_H
 
 #include "muonpi/global.h"
-
 #include "muonpi/threadrunner.h"
 
 #include <chrono>
 #include <future>
 #include <map>
 #include <memory>
+#include <mosquitto.h>
 #include <queue>
 #include <regex>
 #include <string>
 #include <utility>
-
-#include <mosquitto.h>
 
 namespace muonpi::error {
 
 class LIBMUONPI_PUBLIC mqtt_could_not_subscribe : std::runtime_error {
 public:
     mqtt_could_not_subscribe(const std::string& name, const std::string& reason)
-        : std::runtime_error { "Could not subscribe to mqtt topic '" + name + "': " + reason }
-    {
-    }
+        : std::runtime_error {"Could not subscribe to mqtt topic '" + name + "': " + reason} {}
 };
 
 class LIBMUONPI_PUBLIC mqtt_could_not_publish : std::runtime_error {
 public:
     mqtt_could_not_publish(const std::string& name, const std::string& reason)
-        : std::runtime_error { "Could not publish mqtt topic '" + name + "': " + reason }
-    {
-    }
+        : std::runtime_error {"Could not publish mqtt topic '" + name + "': " + reason} {}
 };
 
 class LIBMUONPI_PUBLIC config_option_not_found : std::runtime_error {
 public:
     explicit config_option_not_found(const std::string& name)
-        : std::runtime_error { "Could not find configuration option '" + name + "'" }
-    {
-    }
+        : std::runtime_error {"Could not find configuration option '" + name + "'"} {}
 };
 
 } // namespace muonpi::error
@@ -61,23 +53,21 @@ public:
 
     struct configuration {
         std::string host {};
-        int port { 1883 };
+        int         port {1883};
         struct login_t {
             std::string username {};
             std::string password {};
         } login;
-        std::size_t max_retries { 10 };
-        std::chrono::seconds timeout { 3 };
-        int keepalive { 60 };
+        std::size_t          max_retries {10};
+        std::chrono::seconds timeout {3};
+        int                  keepalive {60};
     };
 
     struct message_t {
         message_t() = default;
         message_t(std::string a_topic, std::string a_content)
-            : topic { std::move(a_topic) }
-            , content { std::move(a_content) }
-        {
-        }
+            : topic {std::move(a_topic)}
+            , content {std::move(a_content)} {}
         std::string topic {};
         std::string content {};
     };
@@ -88,10 +78,8 @@ public:
     class publisher {
     public:
         publisher(mqtt* link, std::string topic)
-            : m_link { link }
-            , m_topic { std::move(topic) }
-        {
-        }
+            : m_link {link}
+            , m_topic {std::move(topic)} {}
 
         /**
          * @brief publish Publish a message
@@ -134,7 +122,7 @@ public:
     private:
         friend class mqtt;
 
-        mqtt* m_link { nullptr };
+        mqtt*       m_link {nullptr};
         std::string m_topic {};
     };
 
@@ -144,13 +132,10 @@ public:
     class subscriber {
     public:
         subscriber(mqtt* link, std::string topic)
-            : m_link { link }
-            , m_topic { std::move(topic) }
-        {
-        }
+            : m_link {link}
+            , m_topic {std::move(topic)} {}
 
-        ~subscriber()
-        {
+        ~subscriber() {
             m_link->unsubscribe(m_topic);
         }
 
@@ -173,8 +158,8 @@ public:
          */
         void push_message(const message_t& message);
 
-        mqtt* m_link { nullptr };
-        std::string m_topic {};
+        mqtt*                                              m_link {nullptr};
+        std::string                                        m_topic {};
         std::vector<std::function<void(const message_t&)>> m_callback;
     };
 
@@ -201,11 +186,14 @@ public:
     [[nodiscard]] auto subscribe(const std::string& topic) -> subscriber&;
 
     /**
-     * @brief wait_for Wait for a designated time until the status changes to the one set as the parameter
+     * @brief wait_for Wait for a designated time until the status changes to the one set as the
+     * parameter
      * @param status The status to wait for
      * @param duration The duration to wait for as a maximum
      */
-    [[nodiscard]] auto wait_for(Status status, std::chrono::milliseconds duration = std::chrono::seconds { 5 }) -> bool;
+    [[nodiscard]] auto wait_for(Status                    status,
+                                std::chrono::milliseconds duration = std::chrono::seconds {5})
+        -> bool;
 
 protected:
     /**
@@ -258,29 +246,29 @@ private:
     auto p_subscribe(const std::string& topic) -> bool;
 
     /**
-     * @brief init Initialise the mosquitto object. This is necessary since the mosquitto_lib_init() needs to be called before mosquitto_new().
+     * @brief init Initialise the mosquitto object. This is necessary since the mosquitto_lib_init()
+     * needs to be called before mosquitto_new().
      * @param client_id The client_id to use
      */
-    [[nodiscard]] inline auto init(const char* client_id) -> mosquitto*
-    {
+    [[nodiscard]] inline auto init(const char* client_id) -> mosquitto* {
         mosquitto_lib_init();
         return mosquitto_new(client_id, true, this);
     }
 
     configuration m_config {};
-    std::string m_station_id {};
-    mosquitto* m_mqtt { nullptr };
+    std::string   m_station_id {};
+    mosquitto*    m_mqtt {nullptr};
 
-    Status m_status { Status::Invalid };
+    Status m_status {Status::Invalid};
 
-    std::map<std::string, std::unique_ptr<publisher>> m_publishers {};
+    std::map<std::string, std::unique_ptr<publisher>>  m_publishers {};
     std::map<std::string, std::unique_ptr<subscriber>> m_subscribers {};
 
-    std::promise<bool> m_connect_promise {};
-    std::future<bool> m_connect_future {};
+    std::promise<bool>      m_connect_promise {};
+    std::future<bool>       m_connect_future {};
     std::condition_variable m_connect_condition {};
 
-    std::size_t m_tries { 0 };
+    std::size_t m_tries {0};
 
     /**
      * @brief callback_connected Gets called by mosquitto client
@@ -309,7 +297,8 @@ private:
 
     friend void wrapper_callback_connected(mosquitto* mqtt, void* object, int result);
     friend void wrapper_callback_disconnected(mosquitto* mqtt, void* object, int result);
-    friend void wrapper_callback_message(mosquitto* mqtt, void* object, const mosquitto_message* message);
+    friend void
+    wrapper_callback_message(mosquitto* mqtt, void* object, const mosquitto_message* message);
 };
 
 } // namespace muonpi::link

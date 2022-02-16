@@ -28,7 +28,7 @@ private:
         std::uint64_t system_time_last {};
     } m_cpu {};
 
-    bool m_first { true };
+    bool m_first {true};
 };
 } // namespace muonpi::supervision
 

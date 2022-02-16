@@ -43,8 +43,10 @@ public:
      * @param content The content type string
      * @param application_name The name of the application in the http header
      */
-    http_response(request_type& req, const content_type& content,
-        const std::string& application_name = "libmuonpi-" + Version::libmuonpi::string());
+    http_response(request_type&       req,
+                  const content_type& content,
+                  const std::string&  application_name = "libmuonpi-"
+                                                      + Version::libmuonpi::string());
 
     /**
      * @brief http_response
@@ -70,11 +72,10 @@ private:
 };
 
 template <beast::http::status Status>
-http_response<Status>::http_response(request_type& req,
-    const content_type& content,
-    const std::string& application_name)
-    : m_response { Status, req.version() }
-{
+http_response<Status>::http_response(request_type&       req,
+                                     const content_type& content,
+                                     const std::string&  application_name)
+    : m_response {Status, req.version()} {
     m_response.set(beast::http::field::server, application_name);
     m_response.set(beast::http::field::content_type, content.string);
     m_response.keep_alive(req.keep_alive());
@@ -82,21 +83,17 @@ http_response<Status>::http_response(request_type& req,
 
 template <beast::http::status Status>
 http_response<Status>::http_response(request_type& req)
-    : http_response<Status> { req, content_type::html() }
-{
-}
+    : http_response<Status> {req, content_type::html()} {}
 
 template <beast::http::status Status>
-auto http_response<Status>::commit(std::string body) -> response_type
-{
+auto http_response<Status>::commit(std::string body) -> response_type {
     m_response.body() = std::move(body);
     m_response.prepare_payload();
     return std::move(m_response);
 }
 
 template <beast::http::status Status>
-auto http_response<Status>::operator()(std::string body) -> response_type
-{
+auto http_response<Status>::operator()(std::string body) -> response_type {
     return std::move(commit(std::move(body)));
 }
 

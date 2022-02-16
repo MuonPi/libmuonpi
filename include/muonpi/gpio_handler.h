@@ -3,16 +3,14 @@
 
 #include "muonpi/analysis/ratemeasurement.h"
 #include "muonpi/global.h"
-#include "muonpi/threadrunner.h"
-
 #include "muonpi/log.h"
-
-#include <gpiod.h>
+#include "muonpi/threadrunner.h"
 
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <functional>
+#include <gpiod.h>
 #include <map>
 #include <mutex>
 #include <queue>
@@ -22,149 +20,148 @@
 namespace muonpi {
 
 namespace gpio {
+/**
+ * @brief The gpio_chip struct.
+ * Information about a gpio chip.
+ */
+struct chip_info {
+    std::string name;      ///<! The name of the chip as present in the kernel
+    std::string label;     ///<! The label of the chip as present in the kernel
+    std::size_t num_lines; ///<! The number of lines present in the chip
+    struct line_t {
+        std::string name;
+        std::string consumer;
+    };
+    std::vector<line_t> lines; ///<! The names of all lines reported in the chip
+};
+
+/**
+ * @brief The bias_t enum.
+ * bias settings for gpio pins.
+ */
+enum bias_t : std::uint8_t {
+    Disabled   = 0x00,
+    PullDown   = 0x01,
+    PullUp     = 0x02,
+    ActiveLow  = 0x04,
+    OpenDrain  = 0x08,
+    OpenSource = 0x10
+};
+
+/**
+ * @brief The edge_t enum.
+ * The type of edge detection for interrupts
+ */
+enum edge_t : std::uint8_t {
+    Rising  = 0x01,
+    Falling = 0x02,
+    Both    = Rising | Falling
+};
+
+/**
+ * @brief The state_t struct.
+ * The state of an output pin.
+ */
+struct state_t {
+    static constexpr int Undefined {-1};
+    static constexpr int Low {0};
+    static constexpr int High {1};
+
+    constexpr state_t() noexcept = default;
+
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
     /**
-     * @brief The gpio_chip struct.
-     * Information about a gpio chip.
+     * @brief state_t construct a state_t object. Explicitly not marked explicit.
+     * @param a_state The state to represent
      */
-    struct chip_info {
-        std::string name; ///<! The name of the chip as present in the kernel
-        std::string label; ///<! The label of the chip as present in the kernel
-        std::size_t num_lines; ///<! The number of lines present in the chip
-        struct line_t {
-            std::string name;
-            std::string consumer;
-        };
-        std::vector<line_t> lines; ///<! The names of all lines reported in the chip
-    };
+    constexpr explicit state_t(T a_state) noexcept
+        : m_state {std::clamp(static_cast<int>(a_state), Undefined, High)} {}
 
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
     /**
-     * @brief The bias_t enum.
-     * bias settings for gpio pins.
+     * @brief operator = assign a value to the state
+     * @param other
+     * @return
      */
-    enum bias_t : std::uint8_t {
-        Disabled = 0x00,
-        PullDown = 0x01,
-        PullUp = 0x02,
-        ActiveLow = 0x04,
-        OpenDrain = 0x08,
-        OpenSource = 0x10
-    };
-
-    /**
-     * @brief The edge_t enum.
-     * The type of edge detection for interrupts
-     */
-    enum edge_t : std::uint8_t {
-        Rising = 0x01,
-        Falling = 0x02,
-        Both = Rising | Falling
-    };
-
-    /**
-     * @brief The state_t struct.
-     * The state of an output pin.
-     */
-    struct state_t {
-        static constexpr int Undefined { -1 };
-        static constexpr int Low { 0 };
-        static constexpr int High { 1 };
-
-        constexpr state_t() noexcept = default;
-
-        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-        /**
-         * @brief state_t construct a state_t object. Explicitly not marked explicit.
-         * @param a_state The state to represent
-         */
-        constexpr explicit state_t(T a_state) noexcept
-            : m_state { std::clamp(static_cast<int>(a_state), Undefined, High) }
-        {
-        }
-
-        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-        /**
-         * @brief operator = assign a value to the state
-         * @param other
-         * @return
-         */
-        constexpr auto operator=(T other) noexcept -> const state_t&;
-
-        /**
-         * @brief operator == Compares to a different state object
-         * @param other
-         * @return
-         */
-        [[nodiscard]] constexpr auto operator==(state_t other) const noexcept -> bool;
-
-        /**
-         * @brief operator != Compares to a different state object
-         * @param other
-         * @return
-         */
-        [[nodiscard]] constexpr auto operator!=(state_t other) const noexcept -> bool;
-
-        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-        /**
-         * @brief operator == Compares to a different state object
-         * @param other
-         * @return
-         */
-        [[nodiscard]] constexpr auto operator==(T other) const noexcept -> bool;
-
-        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-        /**
-         * @brief operator != Compares to a different state object
-         * @param other
-         * @return
-         */
-        [[nodiscard]] constexpr auto operator!=(T other) const noexcept -> bool;
-
-        /**
-         * @brief operator ! logically Invert the state
-         * @return
-         */
-        [[nodiscard]] constexpr auto operator!() const noexcept -> state_t;
-
-        template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-        /**
-         * @brief operator T Convert the state object to an integral type
-         */
-        [[nodiscard]] constexpr explicit operator T() const noexcept;
-
-    private:
-        int m_state { Undefined }; ///<! the logical state
-    };
-
-    // +++ convenience definitions
-    using pin_t = unsigned int;
-    using time_t = std::chrono::system_clock::time_point;
-    struct pin_setting_t {
-        gpio::pin_t pin;
-        gpio::edge_t edge;
-        gpio::bias_t bias;
-    };
-
-    using pins_t = std::vector<pin_setting_t>;
-    // --- convenience definitions
+    constexpr auto operator=(T other) noexcept -> const state_t&;
 
     /**
-     * @brief The event_t struct.
-     * Convenience struct for the event queue
+     * @brief operator == Compares to a different state object
+     * @param other
+     * @return
      */
-    struct event_t {
-        gpio::pin_t pin {}; ///<! The pin offset of the event
-        gpio::edge_t edge; ///<! The type of detected edge
-        time_t time; ///<! The timestamp of the event
-    };
+    [[nodiscard]] constexpr auto operator==(state_t other) const noexcept -> bool;
 
-    using callback_t = std::function<void(event_t)>;
+    /**
+     * @brief operator != Compares to a different state object
+     * @param other
+     * @return
+     */
+    [[nodiscard]] constexpr auto operator!=(state_t other) const noexcept -> bool;
+
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    /**
+     * @brief operator == Compares to a different state object
+     * @param other
+     * @return
+     */
+    [[nodiscard]] constexpr auto operator==(T other) const noexcept -> bool;
+
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    /**
+     * @brief operator != Compares to a different state object
+     * @param other
+     * @return
+     */
+    [[nodiscard]] constexpr auto operator!=(T other) const noexcept -> bool;
+
+    /**
+     * @brief operator ! logically Invert the state
+     * @return
+     */
+    [[nodiscard]] constexpr auto operator!() const noexcept -> state_t;
+
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    /**
+     * @brief operator T Convert the state object to an integral type
+     */
+    [[nodiscard]] constexpr explicit operator T() const noexcept;
+
+private:
+    int m_state {Undefined}; ///<! the logical state
+};
+
+// +++ convenience definitions
+using pin_t  = unsigned int;
+using time_t = std::chrono::system_clock::time_point;
+struct pin_setting_t {
+    gpio::pin_t  pin;
+    gpio::edge_t edge;
+    gpio::bias_t bias;
+};
+
+using pins_t = std::vector<pin_setting_t>;
+// --- convenience definitions
+
+/**
+ * @brief The event_t struct.
+ * Convenience struct for the event queue
+ */
+struct event_t {
+    gpio::pin_t  pin {}; ///<! The pin offset of the event
+    gpio::edge_t edge;   ///<! The type of detected edge
+    time_t       time;   ///<! The timestamp of the event
+};
+
+using callback_t = std::function<void(event_t)>;
 } // namespace gpio
 
 /**
  * @brief The gpio_handler class.
  * Starts two threads: One to handle the actual gpio interface and
  * one to handle the callback invokation as well as rate limiting through timeout inhibition.
- * The callbacks do not delay the gpio reading thread, though they should still not take too long to excute.
+ * The callbacks do not delay the gpio reading thread, though they should still not take too long to
+ * excute.
  */
 class LIBMUONPI_PUBLIC gpio_handler : public thread_runner {
 public:
@@ -183,7 +180,8 @@ public:
      * @param callback The callback to invoke when the event is detected
      * @return True when the event has been registered
      */
-    [[nodiscard]] auto set_pin_interrupt(const gpio::pin_setting_t& settings, const gpio::callback_t& callback) -> bool;
+    [[nodiscard]] auto set_pin_interrupt(const gpio::pin_setting_t& settings,
+                                         const gpio::callback_t&    callback) -> bool;
 
     /**
      * @brief set_pin_interrupt Add a callback to a number of pin definitions
@@ -191,7 +189,8 @@ public:
      * @param callback The callback to invoke on each event
      * @return True when all events have been registered
      */
-    [[nodiscard]] auto set_pin_interrupt(const gpio::pins_t& pins, const gpio::callback_t& callback) -> bool;
+    [[nodiscard]] auto set_pin_interrupt(const gpio::pins_t& pins, const gpio::callback_t& callback)
+        -> bool;
 
     /**
      * @brief set_pin_output Configure a pin to function as an output pin
@@ -200,7 +199,10 @@ public:
      * @param bias The bias settings for the pin
      * @return A lambda which can be used to set the state of the pin.
      */
-    [[nodiscard]] auto set_pin_output(gpio::pin_t pin, gpio::state_t initial_state, gpio::bias_t bias = gpio::bias_t::Disabled) -> std::function<bool(gpio::state_t)>;
+    [[nodiscard]] auto set_pin_output(gpio::pin_t   pin,
+                                      gpio::state_t initial_state,
+                                      gpio::bias_t  bias = gpio::bias_t::Disabled)
+        -> std::function<bool(gpio::state_t)>;
 
     /**
      * @brief get_pin_input Configure a pin to function as an input pin
@@ -208,7 +210,8 @@ public:
      * @param bias The bias settings for the pin
      * @return A lambda which can be used to read the state of the pin.
      */
-    [[nodiscard]] auto get_pin_input(gpio::pin_t pin, gpio::bias_t bias = gpio::bias_t::Disabled) -> std::function<gpio::state_t()>;
+    [[nodiscard]] auto get_pin_input(gpio::pin_t pin, gpio::bias_t bias = gpio::bias_t::Disabled)
+        -> std::function<gpio::state_t()>;
 
     /**
      * @brief start_inhibit Stop all event processing.
@@ -259,7 +262,8 @@ private:
     [[nodiscard]] auto allocate_io_line(gpio::pin_t pin) -> gpiod_line*;
 
     /**
-     * @brief allocate_interrupt_line Allocates a line for interrupt, or returns the line if already allocated
+     * @brief allocate_interrupt_line Allocates a line for interrupt, or returns the line if already
+     * allocated
      * @param pin the pin number to use
      */
     [[nodiscard]] auto allocate_interrupt_line(gpio::pin_t pin) -> gpiod_line*;
@@ -276,34 +280,40 @@ private:
      */
     void reload_bulk_interrupt();
 
-    std::atomic<bool> m_bulk_dirty { true };
+    std::atomic<bool> m_bulk_dirty {true};
 
-    std::map<gpio::pin_t, std::map<gpio::edge_t, std::vector<gpio::callback_t>>> m_callback {}; ///<! All registered callbacks
+    std::map<gpio::pin_t, std::map<gpio::edge_t, std::vector<gpio::callback_t>>>
+        m_callback {}; ///<! All registered callbacks
 
-    std::atomic<bool> m_inhibit { false }; ///<! Inhibit the event processing execution
+    std::atomic<bool> m_inhibit {false}; ///<! Inhibit the event processing execution
 
-    std::condition_variable m_continue_inhibit {}; ///<! Continue to inhibit. Notify to stop inhibition
+    std::condition_variable
+        m_continue_inhibit {}; ///<! Continue to inhibit. Notify to stop inhibition
 
     std::string m_consumer; ///<! The consumer identifier to use
 
-    gpiod_chip* m_device { nullptr }; ///<! The device pointer
+    gpiod_chip* m_device {nullptr}; ///<! The device pointer
 
     std::map<gpio::pin_t, gpiod_line*> m_interrupt_lines {}; ///<! Registered interrupt lines
-    gpiod_line_bulk m_bulk_interrupt {}; ///<! The bulk interrupt object
-    std::map<gpio::pin_t, gpiod_line*> m_io_lines {}; ///<! Registered I/O lines
+    gpiod_line_bulk                    m_bulk_interrupt {};  ///<! The bulk interrupt object
+    std::map<gpio::pin_t, gpiod_line*> m_io_lines {};        ///<! Registered I/O lines
 
-    std::condition_variable m_events_available {}; ///<! Condition variable for thread synchronisation
+    std::condition_variable
+        m_events_available {}; ///<! Condition variable for thread synchronisation
 
     std::thread m_callback_thread {}; ///<! The thread which handles all callbacks
 
     std::condition_variable m_interrupt_condition {};
 
-    rate_measurement<float> m_event_rate { 100, std::chrono::seconds { 6 } }; ///<! Rate measurement object for the incoming event rate
+    rate_measurement<float> m_event_rate {
+        100,
+        std::chrono::seconds {6}}; ///<! Rate measurement object for the incoming event rate
 
-    std::atomic<std::chrono::system_clock::duration> m_inhibit_timeout { std::chrono::microseconds { 0 } }; ///<! dynamic timeout for the inhibition time
+    std::atomic<std::chrono::system_clock::duration> m_inhibit_timeout {
+        std::chrono::microseconds {0}}; ///<! dynamic timeout for the inhibition time
 
     struct private_event {
-        gpio::pin_t pin;
+        gpio::pin_t      pin;
         gpiod_line_event evt;
     };
 
@@ -311,61 +321,54 @@ private:
 
     gpio::chip_info m_chip {};
 
-    constexpr static float s_min_rate { 10.0F }; ///<! Minimum rate in Hz
-    constexpr static float s_max_rate { 100.0F }; ///<! Maximum rate in Hz
-    constexpr static float s_max_timeout { 100'000.0F }; ///<! Maximum timeout in us
+    constexpr static float s_min_rate {10.0F};         ///<! Minimum rate in Hz
+    constexpr static float s_max_rate {100.0F};        ///<! Maximum rate in Hz
+    constexpr static float s_max_timeout {100'000.0F}; ///<! Maximum timeout in us
 
-    constexpr static float s_b { s_max_timeout * s_min_rate / (s_min_rate - s_max_rate) }; ///<! m*x+b
-    constexpr static float s_m { -s_max_timeout / (s_min_rate - s_max_rate) }; ///<! m*x+b
+    constexpr static float s_b {s_max_timeout * s_min_rate / (s_min_rate - s_max_rate)}; ///<! m*x+b
+    constexpr static float s_m {-s_max_timeout / (s_min_rate - s_max_rate)};             ///<! m*x+b
 };
 
 // Implementation part
-constexpr auto gpio::state_t::operator==(gpio::state_t other) const noexcept -> bool
-{
+constexpr auto gpio::state_t::operator==(gpio::state_t other) const noexcept -> bool {
     return other.m_state == m_state;
 }
 
-constexpr auto gpio::state_t::operator!=(gpio::state_t other) const noexcept -> bool
-{
+constexpr auto gpio::state_t::operator!=(gpio::state_t other) const noexcept -> bool {
     return other.m_state != m_state;
 }
 
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
-constexpr auto gpio::state_t::operator=(T other) noexcept -> const state_t&
-{
+constexpr auto gpio::state_t::operator=(T other) noexcept -> const state_t& {
     m_state = std::clamp(static_cast<int>(other), Undefined, High);
 
     return *this;
 }
 
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
-constexpr auto gpio::state_t::operator==(T other) const noexcept -> bool
-{
+constexpr auto gpio::state_t::operator==(T other) const noexcept -> bool {
     return static_cast<int>(other) == m_state;
 }
 
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
-constexpr auto gpio::state_t::operator!=(T other) const noexcept -> bool
-{
+constexpr auto gpio::state_t::operator!=(T other) const noexcept -> bool {
     return static_cast<int>(other) != m_state;
 }
 
-constexpr auto gpio::state_t::operator!() const noexcept -> gpio::state_t
-{
+constexpr auto gpio::state_t::operator!() const noexcept -> gpio::state_t {
     switch (m_state) {
     case High:
-        return gpio::state_t { Low };
+        return gpio::state_t {Low};
         break;
     case Low:
-        return gpio::state_t { High };
+        return gpio::state_t {High};
         break;
     }
-    return gpio::state_t { Undefined };
+    return gpio::state_t {Undefined};
 }
 
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool>>
-constexpr gpio::state_t::operator T() const noexcept
-{
+constexpr gpio::state_t::operator T() const noexcept {
     return static_cast<T>(m_state);
 }
 
