@@ -13,9 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install dependencies
-      run: sudo apt install -y clang-format git
+      run: sudo apt install -y clang-format-11 git
     - name: clang-format
-      run: clang-format -style=file -i $(find include -type f)
+      run: clang-format-11 -style=file -i $(find include -type f)
     
     - name: check-changes
       run: bash -c '[ -z "$(git status --porcelain=v1 2>/dev/null)" ]'
