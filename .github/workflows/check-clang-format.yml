@@ -1,0 +1,21 @@
+name: check clang-format
+
+on:
+  pull_request:
+    branches: [ dev, main ]
+  push:
+    branches: [ dev, main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install dependencies
+      run: sudo apt install -y libboost{,-system,-test,-stacktrace,-program-options}-dev libmosquitto-dev libgpiod-dev libssl-dev clang-format
+    - name: clang-format
+      run: clang-format -style=file -i $(find include -type f)
+    
+    - name: check-changes
+      run: bash -c '[ -z "$(git status --porcelain=v1 2>/dev/null)" ]'
