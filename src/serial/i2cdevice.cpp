@@ -124,7 +124,7 @@ void i2c_device::unset_flag(Flags flag)
 {
     // the following insane statement mutes the HIC++ standard "hicpp-signed-bitwise" violation warning from clang-tidy
     // details on https://stackoverflow.com/questions/50399090/use-of-a-signed-integer-operand-with-a-binary-bitwise-operator-when-using-un
-    m_flags &= static_cast<std::uint8_t>(~static_cast<std::uint8_t>(flag));
+    m_flags &= ~static_cast<std::uint8_t>(flag); // NOLINT(hicpp-signed-bitwise)
 }
 
 void i2c_device::lock(bool locked)

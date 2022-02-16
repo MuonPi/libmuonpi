@@ -2,7 +2,6 @@
 #define MUONPI_SOURCE_BASE_H
 
 #include "muonpi/global.h"
-
 #include "muonpi/sink/base.h"
 #include "muonpi/threadrunner.h"
 
@@ -23,7 +22,8 @@ public:
     explicit base(sink::base<T>& sink);
 
     /**
-     * @brief ~base The destructor. If this gets called while the event loop is still running, it will tell the loop to finish and wait for it to be done.
+     * @brief ~base The destructor. If this gets called while the event loop is still running, it
+     * will tell the loop to finish and wait for it to be done.
      */
     virtual ~base();
 
@@ -40,16 +40,13 @@ private:
 
 template <typename T>
 base<T>::base(sink::base<T>& sink)
-    : m_sink { sink }
-{
-}
+    : m_sink {sink} {}
 
 template <typename T>
 base<T>::~base() = default;
 
 template <typename T>
-void base<T>::put(T item)
-{
+void base<T>::put(T item) {
     m_sink.get(std::move(item));
 }
 

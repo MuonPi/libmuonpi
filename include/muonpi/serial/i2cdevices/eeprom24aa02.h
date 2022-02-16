@@ -12,7 +12,8 @@ class EEPROM24AA02 : public i2c_device {
 public:
     explicit EEPROM24AA02(i2c_bus& bus, std::uint8_t address);
 
-    [[nodiscard]] auto read(std::uint8_t start_addr, std::uint8_t* buffer, std::size_t bytes = 1) -> int;
+    [[nodiscard]] auto read(std::uint8_t start_addr, std::uint8_t* buffer, std::size_t bytes = 1)
+        -> int;
     [[nodiscard]] auto read_byte(std::uint8_t addr, std::uint8_t* value) -> bool;
 
     [[nodiscard]] auto writeByte(std::uint8_t addr, std::uint8_t data) -> bool;
@@ -22,10 +23,12 @@ public:
      * @param bytes Number of bytes to write
      * @return Number of bytes actually written
      * @note this is an overriding function to the one in the i2c_device base class in order to
-     * prevent sequential write operations crossing page boundaries of the EEPROM. This function conforms to
-     * the page-wise sequential write (c.f. http://ww1.microchip.com/downloads/en/devicedoc/21709c.pdf  p.7).
+     * prevent sequential write operations crossing page boundaries of the EEPROM. This function
+     * conforms to the page-wise sequential write (c.f.
+     * http://ww1.microchip.com/downloads/en/devicedoc/21709c.pdf  p.7).
      */
-    auto write(std::uint8_t addr, std::uint8_t* buffer, std::size_t bytes = 1) -> int; // TODO: method in base class is not virtual. Nor is this method marked override.
+    auto write(std::uint8_t addr, std::uint8_t* buffer, std::size_t bytes = 1)
+        -> int; // TODO: method in base class is not virtual. Nor is this method marked override.
 
     [[nodiscard]] auto identify() -> bool override;
 

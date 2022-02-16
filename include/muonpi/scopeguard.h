@@ -14,7 +14,7 @@ public:
 
     scope_guard(scope_guard&& other) noexcept;
 
-    scope_guard() = delete;
+    scope_guard()                   = delete;
     scope_guard(const scope_guard&) = delete;
 
     auto operator=(scope_guard&&) -> scope_guard& = delete;
@@ -35,9 +35,7 @@ private:
 
 template <class F>
 scope_guard::scope_guard(const F& cleanup)
-    : m_cleanup { cleanup }
-{
-}
+    : m_cleanup {cleanup} {}
 
 } // namespace muonpi
 

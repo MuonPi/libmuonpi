@@ -35,9 +35,7 @@ auto LM75::readRaw() -> std::int16_t
 auto LM75::get_temperature() -> float
 {
     std::int16_t dataword = readRaw();
-    auto temp = static_cast<float>(dataword >> 8);
-    temp += static_cast<float>(dataword & 0xff) / 256.;
-    return temp;
+    return static_cast<float>(dataword) / 256.;
 }
 
 auto LM75::identify() -> bool
@@ -50,39 +48,39 @@ auto LM75::identify() -> bool
     }
     std::uint8_t conf_reg { 0 };
     // Read the config register
-    if (read(static_cast<std::uint8_t>(REG::CONF), &conf_reg) == 0) {
+    if (read(static_cast<std::uint8_t>(REG::CONF), &conf_reg) != 1) {
         return false;
     }
     // datasheet: 3 MSBs of conf register "should be kept as zeroes"
-    if ((conf_reg >> 5) != 0) {
+    if ((conf_reg >> 5u) != 0) {
         return false;
     }
 
     // read temp register
     std::uint16_t dataword { 0 };
-    if (read(static_cast<std::uint8_t>(REG::TEMP), &dataword) == 0) {
+    if (read(static_cast<std::uint8_t>(REG::TEMP), &dataword) != 1) {
         return false;
     }
     // the 5 LSBs should always read zero
-    if ((dataword & 0x1f) != 0) {
+    if ((dataword & 0x1fu) != 0) {
         return false;
     }
 
     // read Thyst register
-    if (read(static_cast<std::uint8_t>(REG::THYST), &dataword) == 0) {
+    if (read(static_cast<std::uint8_t>(REG::THYST), &dataword) != 1) {
         return false;
     }
     // the 7 MSBs should always read zero
-    if ((dataword & 0x7f) != 0) {
+    if ((dataword & 0x7fu) != 0) {
         return false;
     }
 
     // read Tos register
-    if (read(static_cast<std::uint8_t>(REG::TOS), &dataword) == 0) {
+    if (read(static_cast<std::uint8_t>(REG::TOS), &dataword) != 1) {
         return false;
     }
     // the 7 MSBs should always read zero
-    if ((dataword & 0x7f) != 0) {
+    if ((dataword & 0x7fu) != 0) {
         return false;
     }
 

@@ -5,7 +5,6 @@
 #include "muonpi/log.h"
 
 #include <boost/program_options.hpp>
-
 #include <fstream>
 
 namespace muonpi {
@@ -18,7 +17,8 @@ public:
         auto add_option(const std::string& name, T value) -> initialisation&;
 
         template <typename T>
-        auto add_option(const std::string& name, T value, const std::string& description) -> initialisation&;
+        auto add_option(const std::string& name, T value, const std::string& description)
+            -> initialisation&;
 
         auto add_option(const std::string& name, const std::string& description) -> initialisation&;
 
@@ -33,10 +33,10 @@ public:
 
         friend class config;
 
-        boost::program_options::variables_map& m_options;
-        boost::program_options::options_description m_desc;
+        boost::program_options::variables_map&                m_options;
+        boost::program_options::options_description           m_desc;
         boost::program_options::options_description_easy_init m_init;
-        static std::size_t s_instances;
+        static std::size_t                                    s_instances;
     };
 
     [[nodiscard]] auto setup(const std::string& description) -> initialisation;
@@ -51,8 +51,7 @@ private:
 };
 
 template <typename T>
-auto config::get(const std::string& name) -> T
-{
+auto config::get(const std::string& name) -> T {
     if (!is_set(name)) {
         log::error() << "Option '" << name << "' not set.";
         throw std::runtime_error("Option '" + name + "' not set.");
@@ -61,20 +60,21 @@ auto config::get(const std::string& name) -> T
 }
 
 template <typename T>
-auto config::initialisation::add_option(const std::string& name, T value) -> initialisation&
-{
+auto config::initialisation::add_option(const std::string& name, T value) -> initialisation& {
     m_init(name.c_str(), value);
     return *this;
 }
 
 template <typename T>
-auto config::initialisation::add_option(const std::string& name, T value, const std::string& description) -> initialisation&
-{
+auto config::initialisation::add_option(const std::string& name,
+                                        T                  value,
+                                        const std::string& description) -> initialisation& {
     m_init(name.c_str(), value, description.c_str());
     return *this;
 }
 
-auto operator<<(std::ostream& ostream, const config::initialisation& initialisation) -> std::ostream&;
+auto operator<<(std::ostream& ostream, const config::initialisation& initialisation)
+    -> std::ostream&;
 
 } // namespace muonpi
 

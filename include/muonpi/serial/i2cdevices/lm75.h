@@ -18,10 +18,10 @@ protected:
     [[nodiscard]] auto readRaw() -> std::int16_t;
 
     enum REG : uint8_t {
-        TEMP = 0x00,
-        CONF = 0x01,
+        TEMP  = 0x00,
+        CONF  = 0x01,
         THYST = 0x02,
-        TOS = 0x03
+        TOS   = 0x03
     };
 };
 
