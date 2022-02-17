@@ -21,7 +21,7 @@ public:
     template <typename T>
     struct field {
         std::string name;
-        T value;
+        T           value;
     };
 
     struct configuration {
@@ -40,8 +40,7 @@ public:
         auto operator<<(const tag& tag) -> entry&;
 
         template <typename T>
-        auto operator<<(const field<T>& field) -> entry&
-        {
+        auto operator<<(const field<T>& field) -> entry& {
             m_fields << ',' << field.name << "=";
             if constexpr (std::is_same_v<T, std::string>) {
                 m_fields << '"' << field.value << '"';
@@ -81,7 +80,7 @@ public:
 private:
     [[nodiscard]] auto send_string(const std::string& query) const -> bool;
 
-    static constexpr short s_port { 8086 };
+    static constexpr short s_port {8086};
 
     std::mutex m_mutex;
 

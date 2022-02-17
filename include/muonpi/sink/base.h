@@ -2,8 +2,8 @@
 #define MUONPI_SINK_BASE_H
 
 #include "muonpi/global.h"
-
 #include "muonpi/threadrunner.h"
+
 #include <array>
 #include <condition_variable>
 #include <mutex>
@@ -19,7 +19,8 @@ template <typename T>
 class LIBMUONPI_PUBLIC base {
 public:
     /**
-     * @brief ~sink The destructor. If this gets called while the event loop is still running, it will tell the loop to finish and wait for it to be done.
+     * @brief ~sink The destructor. If this gets called while the event loop is still running, it
+     * will tell the loop to finish and wait for it to be done.
      */
     virtual ~base();
 
@@ -31,12 +32,15 @@ public:
 };
 
 template <typename T>
-class LIBMUONPI_PUBLIC threaded : public base<T>, public thread_runner {
+class LIBMUONPI_PUBLIC threaded
+    : public base<T>
+    , public thread_runner {
 public:
     /**
      * @brief threaded
      * @param name The name of the thread. Useful for identification.
-     * @param timeout The timeout for how long the thread should wait before calling the process method without parameter.
+     * @param timeout The timeout for how long the thread should wait before calling the process
+     * method without parameter.
      */
     threaded(const std::string& name, std::chrono::milliseconds timeout);
 
@@ -59,7 +63,8 @@ protected:
      * @brief step Reimplemented from thread_runner.
      * Internally this uses the timeout given in the constructor, default is 5 seconds.
      * It waits for a maximum of timeout, if there is no item available,
-     * it calls the process method without parameter, if yes it calls the overloaded process method with the item as parameter.
+     * it calls the process method without parameter, if yes it calls the overloaded process method
+     * with the item as parameter.
      * @return the return code of the process methods. If it is nonzero, the Thread will finish.
      */
     [[nodiscard]] auto step() -> int override;
@@ -77,10 +82,10 @@ protected:
     [[nodiscard]] virtual auto process() -> int;
 
 private:
-    std::chrono::milliseconds m_timeout { std::chrono::seconds { 5 } };
-    std::queue<T> m_items {};
-    std::mutex m_mutex {};
-    std::condition_variable m_has_items {};
+    std::chrono::milliseconds m_timeout {std::chrono::seconds {5}};
+    std::queue<T>             m_items {};
+    std::mutex                m_mutex {};
+    std::condition_variable   m_has_items {};
 };
 
 template <typename T>
@@ -111,8 +116,7 @@ private:
     struct forward {
         base<T>& sink;
 
-        inline void put(T item)
-        {
+        inline void put(T item) {
             sink.get(std::move(item));
         }
     };
@@ -125,16 +129,14 @@ base<T>::~base() = default;
 
 template <typename T>
 threaded<T>::threaded(const std::string& name)
-    : thread_runner { name }
-{
+    : thread_runner {name} {
     start();
 }
 
 template <typename T>
 threaded<T>::threaded(const std::string& name, std::chrono::milliseconds timeout)
-    : thread_runner { name }
-    , m_timeout { timeout }
-{
+    : thread_runner {name}
+    , m_timeout {timeout} {
     start();
 }
 
@@ -142,35 +144,34 @@ template <typename T>
 threaded<T>::~threaded() = default;
 
 template <typename T>
-void threaded<T>::internal_get(T item)
-{
-    std::scoped_lock<std::mutex> lock { m_mutex };
+void threaded<T>::internal_get(T item) {
+    std::scoped_lock<std::mutex> lock {m_mutex};
     m_items.push(item);
     m_condition.notify_all();
 }
 
 template <typename T>
-auto threaded<T>::step() -> int
-{
-    std::mutex mx;
-    std::unique_lock<std::mutex> wait_lock { mx };
-    if ((m_items.empty()) && (m_condition.wait_for(wait_lock, m_timeout) == std::cv_status::timeout)) {
+auto threaded<T>::step() -> int {
+    std::mutex                   mx;
+    std::unique_lock<std::mutex> wait_lock {mx};
+    if ((m_items.empty())
+        && (m_condition.wait_for(wait_lock, m_timeout) == std::cv_status::timeout)) {
         return process();
     }
     if (m_quit) {
         return 0;
     }
 
-    std::size_t n { 0 };
+    std::size_t n {0};
     do {
         auto item = [this]() -> T {
-            std::scoped_lock<std::mutex> lock { m_mutex };
-            T res = m_items.front();
+            std::scoped_lock<std::mutex> lock {m_mutex};
+            T                            res = m_items.front();
             m_items.pop();
             return res;
         }();
 
-        int result { process(item) };
+        int result {process(item)};
         if (result != 0) {
             return result;
         }
@@ -183,36 +184,29 @@ auto threaded<T>::step() -> int
 }
 
 template <typename T>
-auto threaded<T>::process() -> int
-{
+auto threaded<T>::process() -> int {
     return 0;
 }
 
 template <typename T>
 collection<T>::collection(std::vector<base<T>*> sinks, const std::string& name)
-    : threaded<T> { name }
-    , m_sinks { std::move(sinks) }
-{
-}
+    : threaded<T> {name}
+    , m_sinks {std::move(sinks)} {}
 
 template <typename T>
 collection<T>::collection(const std::string& name)
-    : threaded<T> { name }
-{
-}
+    : threaded<T> {name} {}
 
 template <typename T>
 collection<T>::~collection() = default;
 
 template <typename T>
-void collection<T>::get(T item)
-{
+void collection<T>::get(T item) {
     threaded<T>::internal_get(std::move(item));
 }
 
 template <typename T>
-auto collection<T>::process(T item) -> int
-{
+auto collection<T>::process(T item) -> int {
     for (auto& fwd : m_sinks) {
         fwd.put(item);
     }
@@ -220,9 +214,8 @@ auto collection<T>::process(T item) -> int
 }
 
 template <typename T>
-void collection<T>::emplace(base<T>& sink)
-{
-    m_sinks.emplace_back(forward { sink });
+void collection<T>::emplace(base<T>& sink) {
+    m_sinks.emplace_back(forward {sink});
 }
 
 } // namespace muonpi::sink
