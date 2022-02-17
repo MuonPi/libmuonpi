@@ -15,7 +15,8 @@ namespace muonpi {
  */
 class LIBMUONPI_PUBLIC thread_runner {
 public:
-    enum class State : std::uint8_t {
+    enum class State : std::uint8_t
+    {
         Error,
         Stopped,
         Initial,

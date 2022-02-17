@@ -25,7 +25,8 @@ class LIBMUONPI_PUBLIC data_series {
     static_assert(std::is_arithmetic<T>::value);
 
 public:
-    enum class mean_t {
+    enum class mean_t
+    {
         arithmetic,
         geometric,
         harmonic,

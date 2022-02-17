@@ -29,7 +29,8 @@ public:
 
 private:
     static constexpr std::size_t bit_mask {(1 << BITS) - 1};
-    enum REG {
+    enum REG
+    {
         INPUT    = 0x00,
         OUTPUT   = 0x01,
         POLARITY = 0x02,

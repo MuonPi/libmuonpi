@@ -10,7 +10,8 @@
 
 namespace muonpi::log {
 
-enum Level : std::uint8_t {
+enum Level : std::uint8_t
+{
     Shutdown  = 0b0000'0001,
     Emergency = Shutdown | 0b0000'0010,
     Alert     = Shutdown | 0b0000'0100,

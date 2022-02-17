@@ -6,12 +6,15 @@ on:
   schedule:
     - cron: 0 0 */2 * *
   workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Manual run'
 
 env:
   BUILD_TYPE: Release
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
 
     steps:
