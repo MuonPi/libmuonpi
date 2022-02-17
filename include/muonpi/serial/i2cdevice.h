@@ -56,7 +56,7 @@ public:
     [[nodiscard]] auto locked() const -> bool;
 
     [[deprecated]] [[nodiscard]] auto last_interval() const -> double;
-    [[nodiscard]] auto last_access_duration() const -> std::chrono::microseconds;
+    [[nodiscard]] auto                last_access_duration() const -> std::chrono::microseconds;
 
     void               set_name(std::string name);
     [[nodiscard]] auto name() const -> std::string;

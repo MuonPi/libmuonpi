@@ -2,8 +2,7 @@
 
 namespace muonpi::http {
 
-void fail(beast::error_code ec, const std::string& what)
-{
+void fail(beast::error_code ec, const std::string& what) {
     if (ec == net::ssl::error::stream_truncated) {
         return;
     }
