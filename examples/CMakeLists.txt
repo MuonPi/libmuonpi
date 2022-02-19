@@ -3,6 +3,7 @@ add_subdirectory(config)
 
 if (LIBMUONPI_BUILD_DETECTOR)
 add_subdirectory(i2c)
+add_subdirectory(spi)
 add_subdirectory(gpiod)
 endif ()
 

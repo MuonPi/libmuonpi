@@ -10,6 +10,7 @@ if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
         "${PROJECT_SRC_DIR}/serial/i2cdevices/ads1115.cpp"
         "${PROJECT_SRC_DIR}/serial/i2cdevices/mcp4728.cpp"
         "${PROJECT_SRC_DIR}/serial/i2cdevices/hmc5883.cpp"
+        "${PROJECT_SRC_DIR}/serial/spidevice.cpp"
         )
 
     set(DETECTOR_HEADER_FILES
@@ -27,6 +28,7 @@ if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/pca9536.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/pca9554.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/hmc5883.h"
+        "${PROJECT_HEADER_DIR}/muonpi/serial/spidevice.h"
         )
 
     find_library(LIBGPIOD gpiod REQUIRED)
