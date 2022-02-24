@@ -87,14 +87,9 @@ auto spi_device::io_errors() const -> std::size_t
     return m_io_errors;
 }
 
-auto spi_device::rx_bytes() const -> std::size_t
+auto spi_device::transferred_bytes() const -> std::size_t
 {
-    return m_rx_bytes;
-}
-
-auto spi_device::tx_bytes() const -> std::size_t
-{
-    return m_tx_bytes;
+    return m_transferred_bytes;
 }
 
 auto spi_device::flag_set(Flags flag) const -> bool
@@ -165,7 +160,7 @@ auto spi_device::read(std::uint8_t* buffer, std::size_t n_bytes) -> bool
     spi.bits_per_word = 8;
     spi.cs_change     = 0;
 
-    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_rx_bytes += n_bytes) );
+    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_transferred_bytes += n_bytes) );
 }
 
 auto spi_device::read(std::uint16_t* buffer, std::size_t n_words) -> bool
@@ -183,13 +178,13 @@ auto spi_device::read(std::uint16_t* buffer, std::size_t n_words) -> bool
     spi.len           = n_words*2;
     spi.speed_hz      = m_config.clk_rate;
     spi.delay_usecs   = 0;
-    spi.bits_per_word = 16;
+    spi.bits_per_word = m_config.bits_per_word;
     spi.cs_change     = 0;
 
-    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_rx_bytes += n_words*2) );
+    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_transferred_bytes += n_words*2) );
 }
 
-auto spi_device::write(std::uint8_t* buffer, std::size_t n_bytes) -> bool
+auto spi_device::write(const std::uint8_t* buffer, std::size_t n_bytes) -> bool
 {
     if (locked() || !is_open()) {
         return false;
@@ -207,7 +202,7 @@ auto spi_device::write(std::uint8_t* buffer, std::size_t n_bytes) -> bool
     spi.bits_per_word = 8;
     spi.cs_change     = 0;
 
-    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_tx_bytes += n_bytes) );
+    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_transferred_bytes += n_bytes) );
 }
 
 auto spi_device::write(const std::uint16_t* buffer, std::size_t n_words) -> bool
@@ -225,10 +220,10 @@ auto spi_device::write(const std::uint16_t* buffer, std::size_t n_words) -> bool
     spi.len           = n_words;
     spi.speed_hz      = m_config.clk_rate;
     spi.delay_usecs   = 0;
-    spi.bits_per_word = 16;
+    spi.bits_per_word = m_config.bits_per_word;
     spi.cs_change     = 0;
 
-    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_tx_bytes += n_words*2) );
+    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_transferred_bytes += n_words*2) );
 }
 
 auto spi_device::transfer(std::uint8_t* tx_buffer, std::uint8_t* rx_buffer, std::size_t n_bytes) -> bool
@@ -249,7 +244,7 @@ auto spi_device::transfer(std::uint8_t* tx_buffer, std::uint8_t* rx_buffer, std:
     spi.bits_per_word = 8;
     spi.cs_change     = 0;
 
-    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_tx_bytes += n_bytes) && (m_rx_bytes += n_bytes) );
+    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_transferred_bytes += n_bytes) );
 }
 
 auto spi_device::transfer(std::uint16_t* tx_buffer, std::uint16_t* rx_buffer, std::size_t n_words) -> bool
@@ -267,10 +262,10 @@ auto spi_device::transfer(std::uint16_t* tx_buffer, std::uint16_t* rx_buffer, st
     spi.len           = n_words;
     spi.speed_hz      = m_config.clk_rate;
     spi.delay_usecs   = 0;
-    spi.bits_per_word = 16;
+    spi.bits_per_word = m_config.bits_per_word;
     spi.cs_change     = 0;
 
-    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_tx_bytes += n_words*2) && (m_rx_bytes += n_words*2) );
+    return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_transferred_bytes += n_words*2) );
 }
 
 void spi_device::start_timer()
