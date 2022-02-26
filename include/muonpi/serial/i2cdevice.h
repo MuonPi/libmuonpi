@@ -43,7 +43,7 @@ public:
     /**
     * @brief constructor without address definition
     * @param bus a reference to the i2c bus the device is attached to
-    * @note the device address is undefined after construction and has to be explicitely set
+    * @note the device address is undefined and has to be explicitely set after construction
     * with @link #set_address
     */
     explicit i2c_device(i2c_bus& bus);
@@ -162,6 +162,13 @@ public:
     */
     [[nodiscard]] auto name() const -> std::string;
 
+    /**
+    * @brief get a list of possible addresses at which the device can be found
+    * @return a set of potential i2c bus addresses
+    * @note The addresses hint list is a collection of potential addresses at which the device could
+    * respond and defined by the hardware-wise assignable addresses from the manufacturer side.
+    * If this list is non-empty, one can safely assume that the device address will be among these addresses.
+    */
     [[nodiscard]] auto addresses_hint() const -> const std::set<std::uint8_t>&;
 
     /**
