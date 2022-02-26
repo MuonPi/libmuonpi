@@ -39,6 +39,13 @@ public:
     * @param address the i2c device address under which this object communicates at the bus
     */
     i2c_device(i2c_bus& bus, std::uint8_t address);
+
+    /**
+    * @brief constructor without address definition
+    * @param bus a reference to the i2c bus the device is attached to
+    * @note the device address is undefined after construction and has to be explicitely set
+    * with @link #set_address
+    */
     explicit i2c_device(i2c_bus& bus);
 
     /**
@@ -93,6 +100,12 @@ public:
     */
     [[nodiscard]] virtual auto identify() -> bool;
 
+    /**
+    * @brief get the number of interface errors that occurred up to now
+    * @return total number of interface errors so far
+    * @note unsuccessfull accesses to the i2c bus functionality, e.g. read and write functions
+    * that return with an error are accounted as interface errors.
+    */
     [[nodiscard]] auto io_errors() const -> std::size_t;
 
     /**
@@ -109,7 +122,20 @@ public:
 
     [[nodiscard]] auto flag_set(Flags flag) const -> bool;
 
+    /**
+    * @brief lock the current device and prevent further transactions
+    * @param locked the lock condition to be set
+    * @note locking a device means that the device is still considered to be attached to the i2c_bus
+    * but any communication with the device will be prevented
+    */
     void               lock(bool locked = true);
+
+    /**
+    * @brief get the lock status of the device
+    * @return the lock condition currently set
+    * @note locking a device means that the device is still considered to be attached to the i2c_bus
+    * but any communication with the device will be prevented
+    */
     [[nodiscard]] auto locked() const -> bool;
 
     /**
