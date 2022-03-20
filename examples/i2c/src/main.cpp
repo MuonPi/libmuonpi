@@ -47,6 +47,7 @@ auto main() -> int
     }
 
     constexpr std::uint8_t adc_addr { 0x48 };
+
     ok = bus.identify_device<serial::devices::ADS1115>( adc_addr );
     if (ok) {
         // found the specific device at the expected position, so close the previously created generic
@@ -115,7 +116,6 @@ auto main() -> int
         log::error()<<"error identifying EEPROM at 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( eeprom_addr );
     }
 
-    
     log::info()<<"nr of instantiated devices: "<<bus.count_devices();
 
     // close all devices previously found

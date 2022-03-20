@@ -20,6 +20,7 @@ if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/lm75.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/mic184.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/ads1115.h"
+        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/ads1x_adc.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/mcp4728.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/generic_eeprom.h"
         "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/eeproms.h"
