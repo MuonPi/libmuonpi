@@ -12,32 +12,51 @@
 #include <utility>
 #include <array>
 #include <future>
-#include <iterator> // For std::forward_iterator_tag
-#include <cstddef>  // For std::ptrdiff_t
 
 namespace muonpi::serial::devices {
 
 template <int CHANNELS=4, int BITS=16, bool PGA=true>
+/**
+* @brief The ADS1X_ADC i2c device family class template
+* This class handles all functionalities and access for the family of i2c ADCs ADS1xxx (Texas Instruments). The template parameters have the following meaning:
+* <ul>
+*   <li>CHANNELS: number of channels of the device (1 or 4)
+*   <li>BITS: the ADC resolution in bits (12 or 16)
+*   <li>PGA: wether the device exhibits a programmable gain amplifier (true) or not (false).
+* Only valid for single-channel devices (CHANNELS=1)
+* </ul>
+*/
 class ADS1X_ADC : public i2c_device {
 public:
+    /**
+    * @brief The Sample struct
+    * This struct contains all information and data of one ADC sampling measurement
+    */
     struct Sample {
-        std::chrono::time_point<std::chrono::steady_clock> timestamp;
-        int value;
-        float voltage;
-        float lsb_voltage;
-        unsigned int channel;
+        std::chrono::time_point<std::chrono::steady_clock> timestamp; ///<! time at which the sample was recorded
+        int value; ///!< the adc sample value
+        float voltage; ///!< the sampled voltage
+        float lsb_voltage; ///!< the voltage corresponding to the least significant bit, i.e. voltage resolution
+        unsigned int channel; ///!< the adc channel which generated the sample
         [[nodiscard]] auto operator==(const Sample& other) const -> bool;
         [[nodiscard]] auto operator!=(const Sample& other) const -> bool;
     };
     static constexpr Sample InvalidSample { std::chrono::steady_clock::time_point::min(), 0, 0., 0., 0 };
 
-    using SampleCallbackType = std::function<void(Sample)>;
+    using sample_cb_t = std::function<void(Sample)>;
 
-    static constexpr std::int16_t MIN_ADC_VALUE { -(1 << BITS-1) };
-    static constexpr std::int16_t MAX_ADC_VALUE { (1 << BITS-1) - 1 };
-    static constexpr std::uint16_t FULL_SCALE_RANGE { (1 << BITS) - 1 };
+    static constexpr std::int16_t MIN_ADC_VALUE { -(1 << BITS-1) }; ///!< the smallest representable adc value
+    static constexpr std::int16_t MAX_ADC_VALUE { (1 << BITS-1) - 1 }; ///!< the largest representable adc value
+    static constexpr std::uint16_t FULL_SCALE_RANGE { (1 << BITS) - 1 }; ///!< the full scale range of the adc values
 
+    /**
+    * @brief The pga_t struct
+    * This struct contains information about the setting of the PGA (programmable gain amplifier) 
+    */
     struct pga_t {
+        /**
+        * @brief The pga setting values enums
+        */
         enum { 
             PgaMin = 0,
             PGA6V = PgaMin, PGA4V = 1, PGA2V = 2, PGA1V = 3, PGA512MV = 4, PGA256MV = 5, PgaMax = PGA256MV 
@@ -66,30 +85,65 @@ public:
         */
         [[nodiscard]] constexpr explicit operator T() const noexcept;
         
-        // Prefix increment
+        /**
+        * @brief operator++ The prefix increment operator
+        * Increments the PGA setting to the next higher gain setting
+        * @note The highest gain setting will not be affected by the increment.
+        * Thus, bounds checking is not required and the resulting value is always
+        * garanteed to be valid.
+        */
         pga_t& operator++() { m_pga = std::min( m_pga+1, static_cast<int>(PgaMax) ); return *this; }  
 
-        // Postfix increment
+        /**
+        * @brief operator++(int) The postfix increment operator
+        * Increments the PGA setting to the next higher gain setting
+        * @note The highest gain setting will not be affected by the increment.
+        * Thus, bounds checking is not required and the resulting value is always
+        * garanteed to be valid.
+        */
         pga_t operator++(int) { pga_t tmp = *this; ++(*this); return tmp; }
 
-        // Prefix decrement
+        /**
+        * @brief operator-- The prefix decrement operator
+        * Decrements the PGA setting to the next lower gain setting
+        * @note The lowest gain setting will not be affected by the increment.
+        * Thus, bounds checking is not required and the resulting value is always
+        * garanteed to be valid.
+        */
         pga_t& operator--() { m_pga = std::max( m_pga-1, static_cast<int>(PgaMin) ); return *this; }  
 
-        // Postfix decrement
+        /**
+        * @brief operator--(int) The postfix decrement operator
+        * Decrements the PGA setting to the next lower gain setting
+        * @note The lowest gain setting will not be affected by the increment.
+        * Thus, bounds checking is not required and the resulting value is always
+        * garanteed to be valid.
+        */
         pga_t operator--(int) { pga_t tmp = *this; --(*this); return tmp; }
 
-        static constexpr std::array<float, 8> gain_values { 6.144, 4.096, 2.048, 1.024, 0.512, 0.256, 0.256, 0.256 };
+        static constexpr std::array<float, 8> gain_values { 
+            6.144, 4.096, 2.048, 1.024, 0.512, 0.256, 0.256, 0.256 
+        }; ///!< the actual gain factors associated with the pga settings
     private:
-        int m_pga { PgaMin };
+        int m_pga { PgaMin }; ///!< the actual pga setting
     };
 
+    /**
+    * @brief The sample_rate_t struct
+    * This struct contains information about the setting of the ADC's sampling rate
+    */
     struct sample_rate_t {
+        /**
+        * @brief The rate setting enums
+        */
         enum {
             RateMin = 0x00,
             Rate0 = RateMin, Rate1 = 0x01, Rate2 = 0x02, Rate3 = 0x03,
             Rate4 = 0x04, Rate5 = 0x05, Rate6 = 0x06, Rate7 = 0x07, RateMax = Rate7
         };
+
         constexpr sample_rate_t() noexcept = default;
+
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         /**
         * @brief sample_rate_t construct a sample_rate_t object. Explicitly not marked explicit.
@@ -116,7 +170,7 @@ public:
         static constexpr std::array<std::size_t,8> rate_values = { sample_rate_t::sample_rates(TYPE) };
 
     private:
-        int m_setting { RateMin };
+        int m_setting { RateMin }; ///!< the actual rate setting
         static constexpr std::array<std::size_t,8> sample_rates( int bit_width ) {
             if ( bit_width == 16 ) {
                 return { 8,16,32,64,128,250,475,860 };
@@ -125,10 +179,19 @@ public:
         }
     };
 
+    /**
+    * @brief The CONV_MODE enum
+    * The status of the ADC's conversion mode: unknown, single conversion mode or
+    * continuous conversion mode 
+    */
     enum class CONV_MODE { UNKNOWN,
         SINGLE,
         CONTINUOUS };
 
+    /**
+    * @brief The REG enum
+    * Enums representing the addresses of the four ADC registers
+    */
     enum REG : std::uint8_t {
         CONVERSION = 0x00,
         CONFIG = 0x01,
@@ -136,7 +199,13 @@ public:
         HI_THRESH = 0x03
     };
 
-    static auto adcToVoltage(std::int16_t adc, pga_t pga_setting) -> float;
+    /**
+     * @brief adcToVoltage calculates the voltage from given adc value and pga setting
+     * @param adc adc value
+     * @param pga_setting pga setting the value was obtained with
+     * @return corresponding adc voltage
+     */
+    [[nodiscard]] static auto adcToVoltage(std::int16_t adc, pga_t pga_setting) -> float;
 
     ADS1X_ADC(i2c_bus& bus, std::uint8_t address) noexcept;
     ~ADS1X_ADC() override = default;
@@ -167,7 +236,7 @@ public:
     auto triggerConversion(const std::uint8_t channel) -> bool;
     auto getSample(const std::uint8_t channel) -> Sample;
     auto conversionFinished() -> Sample;
-    void registerConversionReadyCallback(std::function<void(Sample)> fn);
+    void registerConversionReadyCallback(sample_cb_t fn);
 
 protected:
     std::array<pga_t,CHANNELS> m_pga { static_cast<int>(pga_t::PGA4V) };
@@ -198,7 +267,7 @@ protected:
      */
     [[nodiscard]] auto wait_conversion_finished() -> bool;
 
-    std::function<void(Sample)> m_conv_ready_fn {};
+    sample_cb_t m_conv_ready_fn {};
 
 private:
     static constexpr std::chrono::microseconds READ_WAIT_DELAY_INIT { 10 }; ///<! ADC ADS1x13/4/5 initial polling readout period
@@ -260,6 +329,8 @@ ADS1X_ADC<CHANNELS,BITS,PGA>::ADS1X_ADC(i2c_bus& bus, std::uint8_t address) noex
                   "illegal number of channels (must be 1 or 4)");
     static_assert( BITS == 12 || BITS == 16,
                   "illegal number of bits (must be 12 or 16)");
+    static_assert( ( CHANNELS == 1 ) || ( CHANNELS == 4 && PGA ),
+                  "4-channel device must be instantiated with PGA=true");
     
     std::string typestr { "ADS1" };
     if ( BITS == 16 ) {
@@ -288,16 +359,19 @@ void ADS1X_ADC<CHANNELS,BITS,PGA>::init() noexcept {
 
 template <int CHANNELS, int BITS, bool PGA>
 void ADS1X_ADC<CHANNELS,BITS,PGA>::setPga(pga_t pga) {
+    static_assert(PGA, "attempting to set pga gain for device without programmable gain amplifier");
     m_pga[0] = m_pga[1] = m_pga[2] = m_pga[3] = pga;
 }
 
 template <int CHANNELS, int BITS, bool PGA>
 void ADS1X_ADC<CHANNELS,BITS,PGA>::setPga(const std::uint8_t channel, pga_t pga) {
+    static_assert(PGA, "attempting to set pga gain for device without programmable gain amplifier");
     m_pga.at(channel) = pga;
 }
 
 template <int CHANNELS, int BITS, bool PGA>
 auto ADS1X_ADC<CHANNELS,BITS,PGA>::getPga(const std::uint8_t ch) const -> pga_t {
+    static_assert(PGA, "attempting to retrieve pga gain for device without programmable gain amplifier");
     return m_pga.at(ch);
 }
 
@@ -492,7 +566,7 @@ auto ADS1X_ADC<CHANNELS,BITS,PGA>::getReadWaitDelay() const -> unsigned int {
 }
 
 template <int CHANNELS, int BITS, bool PGA>
-void ADS1X_ADC<CHANNELS,BITS,PGA>::registerConversionReadyCallback(std::function<void(Sample)> fn) {
+void ADS1X_ADC<CHANNELS,BITS,PGA>::registerConversionReadyCallback(sample_cb_t fn) {
     m_conv_ready_fn = std::move(fn);
 }
 
@@ -526,7 +600,7 @@ auto ADS1X_ADC<CHANNELS,BITS,PGA>::identify() -> bool {
     std::uint16_t dataword2 {0};
     // try to read at addr conf_reg+4 and compare with the previously read config register
     // both should be identical since only the 2 LSBs of the pointer register are evaluated by the
-    // ADS1115
+    // ADS1XXX
     if (read(static_cast<std::uint8_t>(REG::CONFIG) | 0x04u, &dataword2) == 0) {
         return false;
     }
