@@ -33,8 +33,8 @@ public:
 
 template <typename T>
 class LIBMUONPI_PUBLIC threaded
-    : public base<T>
-    , public thread_runner {
+    : public base<T>,
+      public thread_runner {
 public:
     /**
      * @brief threaded
@@ -82,10 +82,10 @@ protected:
     [[nodiscard]] virtual auto process() -> int;
 
 private:
-    std::chrono::milliseconds m_timeout {std::chrono::seconds {5}};
-    std::queue<T>             m_items {};
-    std::mutex                m_mutex {};
-    std::condition_variable   m_has_items {};
+    std::chrono::milliseconds m_timeout { std::chrono::seconds { 5 } };
+    std::queue<T> m_items {};
+    std::mutex m_mutex {};
+    std::condition_variable m_has_items {};
 };
 
 template <typename T>
@@ -116,7 +116,8 @@ private:
     struct forward {
         base<T>& sink;
 
-        inline void put(T item) {
+        inline void put(T item)
+        {
             sink.get(std::move(item));
         }
     };
@@ -129,14 +130,16 @@ base<T>::~base() = default;
 
 template <typename T>
 threaded<T>::threaded(const std::string& name)
-    : thread_runner {name} {
+    : thread_runner { name }
+{
     start();
 }
 
 template <typename T>
 threaded<T>::threaded(const std::string& name, std::chrono::milliseconds timeout)
-    : thread_runner {name}
-    , m_timeout {timeout} {
+    : thread_runner { name }
+    , m_timeout { timeout }
+{
     start();
 }
 
@@ -144,16 +147,18 @@ template <typename T>
 threaded<T>::~threaded() = default;
 
 template <typename T>
-void threaded<T>::internal_get(T item) {
-    std::scoped_lock<std::mutex> lock {m_mutex};
+void threaded<T>::internal_get(T item)
+{
+    std::scoped_lock<std::mutex> lock { m_mutex };
     m_items.push(item);
     m_condition.notify_all();
 }
 
 template <typename T>
-auto threaded<T>::step() -> int {
-    std::mutex                   mx;
-    std::unique_lock<std::mutex> wait_lock {mx};
+auto threaded<T>::step() -> int
+{
+    std::mutex mx;
+    std::unique_lock<std::mutex> wait_lock { mx };
     if ((m_items.empty())
         && (m_condition.wait_for(wait_lock, m_timeout) == std::cv_status::timeout)) {
         return process();
@@ -162,16 +167,16 @@ auto threaded<T>::step() -> int {
         return 0;
     }
 
-    std::size_t n {0};
+    std::size_t n { 0 };
     do {
         auto item = [this]() -> T {
-            std::scoped_lock<std::mutex> lock {m_mutex};
-            T                            res = m_items.front();
+            std::scoped_lock<std::mutex> lock { m_mutex };
+            T res = m_items.front();
             m_items.pop();
             return res;
         }();
 
-        int result {process(item)};
+        int result { process(item) };
         if (result != 0) {
             return result;
         }
@@ -184,29 +189,36 @@ auto threaded<T>::step() -> int {
 }
 
 template <typename T>
-auto threaded<T>::process() -> int {
+auto threaded<T>::process() -> int
+{
     return 0;
 }
 
 template <typename T>
 collection<T>::collection(std::vector<base<T>*> sinks, const std::string& name)
-    : threaded<T> {name}
-    , m_sinks {std::move(sinks)} {}
+    : threaded<T> { name }
+    , m_sinks { std::move(sinks) }
+{
+}
 
 template <typename T>
 collection<T>::collection(const std::string& name)
-    : threaded<T> {name} {}
+    : threaded<T> { name }
+{
+}
 
 template <typename T>
 collection<T>::~collection() = default;
 
 template <typename T>
-void collection<T>::get(T item) {
+void collection<T>::get(T item)
+{
     threaded<T>::internal_get(std::move(item));
 }
 
 template <typename T>
-auto collection<T>::process(T item) -> int {
+auto collection<T>::process(T item) -> int
+{
     for (auto& fwd : m_sinks) {
         fwd.put(item);
     }
@@ -214,8 +226,9 @@ auto collection<T>::process(T item) -> int {
 }
 
 template <typename T>
-void collection<T>::emplace(base<T>& sink) {
-    m_sinks.emplace_back(forward {sink});
+void collection<T>::emplace(base<T>& sink)
+{
+    m_sinks.emplace_back(forward { sink });
 }
 
 } // namespace muonpi::sink

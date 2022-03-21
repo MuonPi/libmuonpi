@@ -9,16 +9,19 @@
 namespace muonpi::link {
 
 influx::entry::entry(const std::string& measurement, influx& link)
-    : m_link {link} {
+    : m_link { link }
+{
     m_tags << measurement;
 }
 
-auto influx::entry::operator<<(const tag& tag) -> entry& {
+auto influx::entry::operator<<(const tag& tag) -> entry&
+{
     m_tags << ',' << tag.name << '=' << tag.value;
     return *this;
 }
 
-auto influx::entry::commit(std::int_fast64_t timestamp) -> bool {
+auto influx::entry::commit(std::int_fast64_t timestamp) -> bool
+{
     if (m_fields.str().empty()) {
         return false;
     }
@@ -27,22 +30,26 @@ auto influx::entry::commit(std::int_fast64_t timestamp) -> bool {
 }
 
 influx::influx(configuration config)
-    : m_config {std::move(config)} {}
+    : m_config { std::move(config) }
+{
+}
 
 influx::influx() = default;
 
 influx::~influx() = default;
 
-auto influx::measurement(const std::string& measurement) -> entry {
-    return entry {measurement, *this};
+auto influx::measurement(const std::string& measurement) -> entry
+{
+    return entry { measurement, *this };
 }
 
-auto influx::send_string(const std::string& query) const -> bool {
+auto influx::send_string(const std::string& query) const -> bool
+{
     http::destination_t destination {};
 
-    destination.host   = m_config.host;
+    destination.host = m_config.host;
     destination.method = http::http_verb::post;
-    destination.port   = s_port;
+    destination.port = s_port;
 
     std::ostringstream target {};
     target << "/write?db=" << m_config.database << "&u=" << m_config.login.username
@@ -51,8 +58,9 @@ auto influx::send_string(const std::string& query) const -> bool {
     destination.target = target.str();
 
     std::vector<http::field_t> fields {
-        {http::http_field::content_type, "application/x-www-form-urlencoded"},
-        {http::http_field::accept, "*/*"}};
+        { http::http_field::content_type, "application/x-www-form-urlencoded" },
+        { http::http_field::accept, "*/*" }
+    };
 
     auto res = http::http_request(destination, query, false, fields);
 

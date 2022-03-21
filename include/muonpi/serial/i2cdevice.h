@@ -5,7 +5,7 @@
 
 #include <chrono>
 #include <cinttypes> // std::uint8_t, etc
-#include <fcntl.h>   // open
+#include <fcntl.h> // open
 #include <iostream>
 #include <set>
 #include <string>
@@ -23,14 +23,13 @@ class i2c_bus;
 */
 class i2c_device {
 public:
-    enum class Flags : std::uint8_t
-    {
-        None        = 0,
-        Normal      = 0x01,
-        Force       = 0x02,
+    enum class Flags : std::uint8_t {
+        None = 0,
+        Normal = 0x01,
+        Force = 0x02,
         Unreachable = 0x04,
-        Failed      = 0x08,
-        Locked      = 0x10
+        Failed = 0x08,
+        Locked = 0x10
     };
 
     /**
@@ -52,13 +51,14 @@ public:
     * @brief set the i2c address on the bus for this device
     * @param address the address under which the device will communicate on the bus
     */
-    void               set_address(std::uint8_t address);
+    void set_address(std::uint8_t address);
 
     /**
     * @brief get the i2c address on the bus for this device
     * @return the device's bus address
     */
-    [[nodiscard]] auto address() const -> std::uint8_t {
+    [[nodiscard]] auto address() const -> std::uint8_t
+    {
         return m_address;
     }
 
@@ -78,9 +78,9 @@ public:
     * @brief close a device which was previously opened for access
     * @return true, if the bus could successfully release the device
     */
-    void               close() const;
+    void close() const;
 
-    void                       read_capabilities() const;
+    void read_capabilities() const;
 
     /**
     * @brief check for the presence of a device on the bus
@@ -128,7 +128,7 @@ public:
     * @note locking a device means that the device is still considered to be attached to the i2c_bus
     * but any communication with the device will be prevented
     */
-    void               lock(bool locked = true);
+    void lock(bool locked = true);
 
     /**
     * @brief get the lock status of the device
@@ -148,13 +148,13 @@ public:
     * @brief get the transfer duration of the last measured access
     * @return the duration of last transfer
     */
-    [[nodiscard]] auto                last_access_duration() const -> std::chrono::microseconds;
+    [[nodiscard]] auto last_access_duration() const -> std::chrono::microseconds;
 
     /**
     * @brief set the name of the i2c device object
     * @param name the name string
     */
-    void               set_name(std::string name);
+    void set_name(std::string name);
 
     /**
     * @brief get the name of the i2c device object
@@ -237,12 +237,12 @@ protected:
 private:
     i2c_bus& m_bus;
 
-    static constexpr std::uint8_t s_default_address {0xff};
+    static constexpr std::uint8_t s_default_address { 0xff };
 
-    std::uint8_t m_address {s_default_address};
+    std::uint8_t m_address { s_default_address };
 
-    int  m_handle {};
-    bool m_locked {false};
+    int m_handle {};
+    bool m_locked { false };
 
     std::size_t m_rx_bytes {};
     std::size_t m_tx_bytes {};
@@ -251,7 +251,7 @@ private:
     std::chrono::microseconds
         m_last_duration {}; // the last time measurement's result is stored here
 
-    std::string  m_name {"I2C device"};
+    std::string m_name { "I2C device" };
     std::uint8_t m_flags {};
 
     std::chrono::system_clock::time_point m_start {};

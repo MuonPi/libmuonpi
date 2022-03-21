@@ -9,9 +9,10 @@ namespace muonpi::serial::devices {
 class PCA9536 : public io_extender<4> {
 public:
     PCA9536(i2c_bus& bus, std::uint8_t address)
-        : io_extender<4>(bus, address) {
+        : io_extender<4>(bus, address)
+    {
         set_name("PCA9536");
-        m_addresses_hint = {0x41};
+        m_addresses_hint = { 0x41 };
     }
 };
 

@@ -11,10 +11,12 @@
 
 namespace muonpi::error {
 
-void inline terminate_handler() {
+void inline terminate_handler()
+{
     try {
         std::cerr << boost::stacktrace::stacktrace();
-    } catch (...) {}
+    } catch (...) {
+    }
     std::abort();
 }
 

@@ -42,15 +42,14 @@ public:
 private:
     [[nodiscard]] auto readRaw() -> std::int16_t;
 
-    enum REG : std::uint8_t
-    {
-        TEMP  = 0x00,
-        CONF  = 0x01,
+    enum REG : std::uint8_t {
+        TEMP = 0x00,
+        CONF = 0x01,
         THYST = 0x02,
-        TOS   = 0x03
+        TOS = 0x03
     };
 
-    bool m_external {false};
+    bool m_external { false };
 };
 
 } // namespace muonpi::serial::devices

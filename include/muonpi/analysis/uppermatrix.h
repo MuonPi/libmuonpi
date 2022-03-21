@@ -88,13 +88,14 @@ private:
      * @param y The y coordinate
      * @return The offset from the beginning of the vector
      */
-    [[nodiscard]] inline auto position(std::size_t x, std::size_t y) const -> std::size_t {
+    [[nodiscard]] inline auto position(std::size_t x, std::size_t y) const -> std::size_t
+    {
         BOOST_ASSERT(x != y);
         BOOST_ASSERT(x < m_columns);
         BOOST_ASSERT(y < m_columns);
 
-        const std::size_t x_c {std::max(x, y)};
-        const std::size_t y_c {std::min(x, y)};
+        const std::size_t x_c { std::max(x, y) };
+        const std::size_t y_c { std::min(x, y) };
 
         return (x_c * x_c - x_c) / 2 + y_c;
     }
@@ -105,29 +106,34 @@ private:
      * @param y the y coordinate
      * @return the iterator
      */
-    [[nodiscard]] inline auto iterator(std::size_t x, std::size_t y) const {
+    [[nodiscard]] inline auto iterator(std::size_t x, std::size_t y) const
+    {
         return m_elements.begin() + position(x, y);
     }
 
-    std::size_t    m_columns {0};
+    std::size_t m_columns { 0 };
     std::vector<T> m_elements {};
 };
 
 template <typename T>
 upper_matrix<T>::upper_matrix(std::size_t n)
-    : m_columns {n}
-    , m_elements {std::vector<T>((n * n - n) / 2)} {}
+    : m_columns { n }
+    , m_elements { std::vector<T>((n * n - n) / 2) }
+{
+}
 
 template <typename T>
 upper_matrix<T>::upper_matrix() = default;
 
 template <typename T>
-auto upper_matrix<T>::at(std::size_t x, std::size_t y) -> T& {
+auto upper_matrix<T>::at(std::size_t x, std::size_t y) -> T&
+{
     return m_elements.at(position(x, y));
 }
 
 template <typename T>
-void upper_matrix<T>::emplace(std::size_t x, std::size_t y, T item) {
+void upper_matrix<T>::emplace(std::size_t x, std::size_t y, T item)
+{
     if (m_elements.empty()) {
         return;
     }
@@ -135,7 +141,8 @@ void upper_matrix<T>::emplace(std::size_t x, std::size_t y, T item) {
 }
 
 template <typename T>
-void upper_matrix<T>::remove_index(std::size_t index) {
+void upper_matrix<T>::remove_index(std::size_t index)
+{
     if (index >= m_columns) {
         return;
     }
@@ -159,45 +166,50 @@ void upper_matrix<T>::remove_index(std::size_t index) {
 }
 
 template <typename T>
-auto upper_matrix<T>::increase() -> std::size_t {
+auto upper_matrix<T>::increase() -> std::size_t
+{
     m_columns++;
     m_elements.resize((m_columns * m_columns - m_columns) / 2);
     return m_columns - 1;
 }
 
 template <typename T>
-void upper_matrix<T>::swap_last(std::size_t first) {
+void upper_matrix<T>::swap_last(std::size_t first)
+{
     if (first >= (m_columns - 1)) {
         return;
     }
 
-    for (std::size_t y {0}; y < first; y++) {
-        T temp {at(first, y)};
-        at(first, y)         = at(m_columns - 1, y);
+    for (std::size_t y { 0 }; y < first; y++) {
+        T temp { at(first, y) };
+        at(first, y) = at(m_columns - 1, y);
         at(m_columns - 1, y) = temp;
     }
 
-    for (std::size_t x {first + 1}; x < m_columns; x++) {
-        T temp {at(x, first)};
-        at(x, first)             = at(m_columns - 1, x - 1);
+    for (std::size_t x { first + 1 }; x < m_columns; x++) {
+        T temp { at(x, first) };
+        at(x, first) = at(m_columns - 1, x - 1);
         at(m_columns - 1, x - 1) = temp;
     }
 }
 
 template <typename T>
-void upper_matrix<T>::reset() {
+void upper_matrix<T>::reset()
+{
     m_columns = 0;
     m_elements.clear();
 }
 
 template <typename T>
-auto upper_matrix<T>::data() -> std::vector<T>& {
+auto upper_matrix<T>::data() -> std::vector<T>&
+{
     return m_elements;
 }
 
 template <typename T>
-auto upper_matrix<T>::iterate(std::size_t index, std::function<void(T&)> function) {
-    for (std::size_t y {0}; y < m_columns; y++) {
+auto upper_matrix<T>::iterate(std::size_t index, std::function<void(T&)> function)
+{
+    for (std::size_t y { 0 }; y < m_columns; y++) {
         if (y == index) {
             continue;
         }

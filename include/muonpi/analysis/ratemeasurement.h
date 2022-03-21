@@ -40,9 +40,9 @@ public:
     auto step(std::chrono::system_clock::time_point now) -> bool;
 
 private:
-    std::size_t                           m_current_n {0};
-    std::chrono::seconds                  m_t {};
-    std::chrono::system_clock::time_point m_last {std::chrono::system_clock::now()};
+    std::size_t m_current_n { 0 };
+    std::chrono::seconds m_t {};
+    std::chrono::system_clock::time_point m_last { std::chrono::system_clock::now() };
 };
 
 // +++++++++++++++++++++++++++++++
@@ -52,21 +52,26 @@ private:
 template <typename T>
 rate_measurement<T>::rate_measurement(std::size_t n, std::chrono::seconds t) noexcept
     : data_series<T>(n)
-    , m_t {t} {}
+    , m_t { t }
+{
+}
 
 template <typename T>
-void rate_measurement<T>::increase_counter() {
+void rate_measurement<T>::increase_counter()
+{
     m_current_n++;
 }
 
 template <typename T>
-auto rate_measurement<T>::step() -> bool {
+auto rate_measurement<T>::step() -> bool
+{
     return step(std::chrono::system_clock::now());
 }
 
 template <typename T>
-auto rate_measurement<T>::step(std::chrono::system_clock::time_point now) -> bool {
-    const auto diff {now - m_last};
+auto rate_measurement<T>::step(std::chrono::system_clock::time_point now) -> bool
+{
+    const auto diff { now - m_last };
     if (diff >= m_t) {
         m_last = now;
         data_series<T>::add(

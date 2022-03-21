@@ -40,13 +40,16 @@ private:
 
 template <typename T>
 base<T>::base(sink::base<T>& sink)
-    : m_sink {sink} {}
+    : m_sink { sink }
+{
+}
 
 template <typename T>
 base<T>::~base() = default;
 
 template <typename T>
-void base<T>::put(T item) {
+void base<T>::put(T item)
+{
     m_sink.get(std::move(item));
 }
 

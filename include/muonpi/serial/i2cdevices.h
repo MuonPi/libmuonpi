@@ -13,9 +13,9 @@
 #include "muonpi/serial/i2cdevices/pca9554.h"
 
 namespace muonpi::serial::devices {
-    
-typedef ADS1X_ADC<4,16> ADS1115;
-typedef ADS1X_ADC<4,12> ADS1015;
+
+typedef ADS1X_ADC<4, 16> ADS1115;
+typedef ADS1X_ADC<4, 12> ADS1015;
 
 }
 

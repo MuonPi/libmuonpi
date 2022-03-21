@@ -13,7 +13,7 @@
 #include <set>
 #include <string>
 #include <sys/ioctl.h> // ioctl
-#include <sys/time.h>  // for gettimeofday()
+#include <sys/time.h> // for gettimeofday()
 #include <type_traits>
 #include <unistd.h>
 
@@ -57,8 +57,8 @@ public:
         auto software_update() -> bool;
 
     private:
-        i2c_bus* m_bus {nullptr};
-    } general_call {nullptr};
+        i2c_bus* m_bus { nullptr };
+    } general_call { nullptr };
 
     /**
      * @brief constructor with specific device address path
@@ -93,7 +93,8 @@ public:
      * @link i2c_device
      */
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
-    [[nodiscard]] auto open(std::uint8_t address) -> T& {
+    [[nodiscard]] auto open(std::uint8_t address) -> T&
+    {
         m_devices.emplace(address, std::make_shared<T>(*this, address));
 
         return this->get<T>(address);
@@ -107,7 +108,8 @@ public:
      * @link i2c_device
      */
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
-    [[nodiscard]] auto get(std::uint8_t address) -> T& {
+    [[nodiscard]] auto get(std::uint8_t address) -> T&
+    {
         return dynamic_cast<T&>(*(m_devices[address].get()));
     }
 
@@ -178,7 +180,7 @@ public:
         -> const std::map<std::uint8_t, std::shared_ptr<i2c_device>>&;
 
 protected:
-    std::string                                         m_address {"/dev/i2c-1"};
+    std::string m_address { "/dev/i2c-1" };
     std::map<std::uint8_t, std::shared_ptr<i2c_device>> m_devices {};
 
     std::size_t m_rx_bytes {};
@@ -186,8 +188,9 @@ protected:
 };
 
 template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool>>
-auto i2c_bus::identify_device(std::uint8_t address) -> bool {
-    T dev {*this, address};
+auto i2c_bus::identify_device(std::uint8_t address) -> bool
+{
+    T dev { *this, address };
     if (!dev.is_open() || !dev.present()) {
         return false;
     }
@@ -196,7 +199,8 @@ auto i2c_bus::identify_device(std::uint8_t address) -> bool {
 
 template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool>>
 auto i2c_bus::identify_devices(const std::set<std::uint8_t>& possible_addresses)
-    -> std::set<std::uint8_t> {
+    -> std::set<std::uint8_t>
+{
     std::set<std::uint8_t> found_addresses {};
 
     for (const auto address : possible_addresses) {

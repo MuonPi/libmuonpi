@@ -98,14 +98,16 @@ public:
     /** the total capacity of the eeprom memory
      * @return eeprom memory size in bytes
      */
-    [[nodiscard]] static constexpr auto size() -> std::size_t {
+    [[nodiscard]] static constexpr auto size() -> std::size_t
+    {
         return EEPLENGTH;
     }
 
     /** the page size of the eeprom
      * @return number of bytes per page
      */
-    [[nodiscard]] static constexpr auto page_size() -> std::size_t {
+    [[nodiscard]] static constexpr auto page_size() -> std::size_t
+    {
         return PAGELENGTH;
     }
 
@@ -114,7 +116,8 @@ public:
      * or 16bit addresses
      * @return the address mode: 1=single byte addressing, 2=word addressing
      */
-    [[nodiscard]] static constexpr auto address_mode() -> std::uint8_t {
+    [[nodiscard]] static constexpr auto address_mode() -> std::uint8_t
+    {
         return ADDRESSMODE;
     }
 
@@ -127,14 +130,15 @@ public:
      * the second through (base_address+1) and so forth. Accesses through @link #read and @link
      * #write methods automatically take care for address switching.
      */
-    [[nodiscard]] auto base_address() const -> std::uint8_t {
+    [[nodiscard]] auto base_address() const -> std::uint8_t
+    {
         return m_base_address;
     }
 
 private:
-    std::uint8_t m_base_address {0xff}; ///<! the base address of the device on the bus
-    static constexpr std::chrono::microseconds EEP_WRITE_IDLE_TIME {5000};
-    static constexpr std::size_t               MAX_READ_BLOCK_SIZE {256};
+    std::uint8_t m_base_address { 0xff }; ///<! the base address of the device on the bus
+    static constexpr std::chrono::microseconds EEP_WRITE_IDLE_TIME { 5000 };
+    static constexpr std::size_t MAX_READ_BLOCK_SIZE { 256 };
 };
 
 /*********************
@@ -143,26 +147,28 @@ private:
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
 i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::i2c_eeprom(i2c_bus& bus, std::uint8_t base_address)
     : i2c_device(bus, base_address)
-    , m_base_address(base_address) {
+    , m_base_address(base_address)
+{
     static_assert(ADDRESSMODE == 1 || ADDRESSMODE == 2,
-                  "unknown address mode for eeprom (must be 1 or 2)");
+        "unknown address mode for eeprom (must be 1 or 2)");
     static_assert(EEPLENGTH <= 65536UL, "unsupported eeprom size (must be <=65536)");
     set_name("EEPROM");
-    m_addresses_hint = {0x50};
+    m_addresses_hint = { 0x50 };
 }
 
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
 template <std::uint8_t AM>
 typename std::enable_if_t<AM == 2, int>
 i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::write(std::uint16_t addr,
-                                                      std::uint8_t* buffer,
-                                                      std::size_t   num_bytes) {
-    int total_written {0};
+    std::uint8_t* buffer,
+    std::size_t num_bytes)
+{
+    int total_written { 0 };
 
-    scope_guard timer_guard {setup_timer()};
+    scope_guard timer_guard { setup_timer() };
 
     for (std::size_t i = 0; i < num_bytes;) {
-        std::size_t currAddr {addr + i};
+        std::size_t currAddr { addr + i };
         // determine, how many bytes left on current page
         std::size_t pageRemainder = PAGELENGTH - currAddr % PAGELENGTH;
         if (pageRemainder > num_bytes - total_written) {
@@ -177,7 +183,7 @@ i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::write(std::uint16_t addr,
         std::memcpy(write_buffer.get() + 2, &buffer[i], pageRemainder);
 
         // write data block
-        const int n {write(write_buffer.get(), pageRemainder + 2) - 2};
+        const int n { write(write_buffer.get(), pageRemainder + 2) - 2 };
 
         if (n < 0)
             return total_written;
@@ -191,15 +197,16 @@ i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::write(std::uint16_t addr,
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
 template <std::uint8_t AM>
 typename std::enable_if_t<AM == 1, int>
-i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::write(std::uint8_t  addr,
-                                                      std::uint8_t* buffer,
-                                                      std::size_t   num_bytes) {
-    int total_written {0};
+i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::write(std::uint8_t addr,
+    std::uint8_t* buffer,
+    std::size_t num_bytes)
+{
+    int total_written { 0 };
 
-    scope_guard timer_guard {setup_timer()};
+    scope_guard timer_guard { setup_timer() };
 
     for (std::size_t i = 0; i < num_bytes;) {
-        std::size_t currAddr {addr + i};
+        std::size_t currAddr { addr + i };
         // determine, how many bytes left on current page
         std::size_t pageRemainder = PAGELENGTH - currAddr % PAGELENGTH;
         if (pageRemainder > num_bytes - total_written) {
@@ -209,9 +216,9 @@ i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::write(std::uint8_t  addr,
         if (address() != m_base_address + (currAddr >> 8)) {
             set_address(m_base_address + (currAddr >> 8));
         }
-        const int n {i2c_device::write(static_cast<std::uint8_t>(currAddr & 0xff),
-                                       &buffer[i],
-                                       pageRemainder)};
+        const int n { i2c_device::write(static_cast<std::uint8_t>(currAddr & 0xff),
+            &buffer[i],
+            pageRemainder) };
 
         if (n < 0)
             return total_written;
@@ -226,28 +233,29 @@ template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGT
 template <std::uint8_t AM>
 typename std::enable_if_t<AM == 2, int>
 i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::read(std::uint16_t start_addr,
-                                                     std::uint8_t* buffer,
-                                                     std::size_t   num_bytes) {
-    int total_read {0};
+    std::uint8_t* buffer,
+    std::size_t num_bytes)
+{
+    int total_read { 0 };
 
-    scope_guard timer_guard {setup_timer()};
+    scope_guard timer_guard { setup_timer() };
 
     for (std::size_t i = 0; i < num_bytes;) {
-        std::size_t currAddr {start_addr + i};
+        std::size_t currAddr { start_addr + i };
         // determine, how many bytes left on current page
-        std::size_t pageRemainder {MAX_READ_BLOCK_SIZE - currAddr % MAX_READ_BLOCK_SIZE};
+        std::size_t pageRemainder { MAX_READ_BLOCK_SIZE - currAddr % MAX_READ_BLOCK_SIZE };
         if (pageRemainder > num_bytes - total_read) {
             pageRemainder = num_bytes - total_read;
         }
 
         // write 16bit address first
-        std::array<std::uint8_t, 2> addr_bytes {static_cast<std::uint8_t>((currAddr >> 8) & 0xff),
-                                                static_cast<std::uint8_t>(currAddr & 0xff)};
+        std::array<std::uint8_t, 2> addr_bytes { static_cast<std::uint8_t>((currAddr >> 8) & 0xff),
+            static_cast<std::uint8_t>(currAddr & 0xff) };
         if (i2c_device::write(addr_bytes.data(), 2u) != 2) {
             return total_read;
         }
         // read data block
-        const int n {i2c_device::read(&buffer[i], pageRemainder)};
+        const int n { i2c_device::read(&buffer[i], pageRemainder) };
 
         if (n < 0)
             return total_read;
@@ -260,17 +268,18 @@ i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::read(std::uint16_t start_addr,
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
 template <std::uint8_t AM>
 typename std::enable_if_t<AM == 1, int>
-i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::read(std::uint8_t  start_addr,
-                                                     std::uint8_t* buffer,
-                                                     std::size_t   num_bytes) {
-    int total_read {0};
+i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::read(std::uint8_t start_addr,
+    std::uint8_t* buffer,
+    std::size_t num_bytes)
+{
+    int total_read { 0 };
 
-    scope_guard timer_guard {setup_timer()};
+    scope_guard timer_guard { setup_timer() };
 
     for (std::size_t i = 0; i < num_bytes;) {
-        std::size_t currAddr {start_addr + i};
+        std::size_t currAddr { start_addr + i };
         // determine, how many bytes left on current page
-        std::size_t pageRemainder {MAX_READ_BLOCK_SIZE - currAddr % MAX_READ_BLOCK_SIZE};
+        std::size_t pageRemainder { MAX_READ_BLOCK_SIZE - currAddr % MAX_READ_BLOCK_SIZE };
         if (pageRemainder > num_bytes - total_read) {
             pageRemainder = num_bytes - total_read;
         }
@@ -278,9 +287,9 @@ i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::read(std::uint8_t  start_addr,
         if (address() != m_base_address + (currAddr >> 8)) {
             set_address(m_base_address + (currAddr >> 8));
         }
-        const int n {i2c_device::read(static_cast<std::uint8_t>(currAddr & 0xff),
-                                      &buffer[i],
-                                      pageRemainder)};
+        const int n { i2c_device::read(static_cast<std::uint8_t>(currAddr & 0xff),
+            &buffer[i],
+            pageRemainder) };
 
         if (n < 0)
             return total_read;
@@ -291,7 +300,8 @@ i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::read(std::uint8_t  start_addr,
 }
 
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>
-auto i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::identify() -> bool {
+auto i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::identify() -> bool
+{
     if (flag_set(Flags::Failed) || !present()) {
         return false;
     }

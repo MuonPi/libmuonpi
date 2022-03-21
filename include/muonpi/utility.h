@@ -38,7 +38,7 @@ public:
 
 private:
     std::string m_message {};
-    char        m_delimiter;
+    char m_delimiter;
 };
 
 class LIBMUONPI_PUBLIC message_parser {
@@ -89,9 +89,9 @@ private:
      */
     [[nodiscard]] auto at_end() -> bool;
 
-    std::string           m_content {};
+    std::string m_content {};
     std::string::iterator m_iterator;
-    char                  m_delimiter {};
+    char m_delimiter {};
 
     std::vector<std::pair<std::string::iterator, std::string::iterator>> m_fields {};
 };
@@ -100,14 +100,14 @@ class LIBMUONPI_PUBLIC guid {
 public:
     guid(std::size_t hash, std::uint64_t time);
 
-    [[nodiscard]] auto        to_string() const -> std::string;
+    [[nodiscard]] auto to_string() const -> std::string;
     [[nodiscard]] static auto get_mac() -> std::uint64_t;
 
 private:
     [[nodiscard]] static auto get_number() -> std::uint64_t;
 
-    std::uint64_t m_first {0};
-    std::uint64_t m_second {0};
+    std::uint64_t m_first { 0 };
+    std::uint64_t m_second { 0 };
 };
 
 } // namespace muonpi

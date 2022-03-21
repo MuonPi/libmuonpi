@@ -10,17 +10,16 @@
 
 namespace muonpi::log {
 
-enum Level : std::uint8_t
-{
-    Shutdown  = 0b0000'0001,
+enum Level : std::uint8_t {
+    Shutdown = 0b0000'0001,
     Emergency = Shutdown | 0b0000'0010,
-    Alert     = Shutdown | 0b0000'0100,
-    Critical  = Shutdown | 0b0000'0110,
-    Error     = 0b0001'0000,
-    Warning   = 0b0010'0000,
-    Notice    = 0b0011'0000,
-    Debug     = 0b0100'0000,
-    Info      = 0b1000'0000
+    Alert = Shutdown | 0b0000'0100,
+    Critical = Shutdown | 0b0000'0110,
+    Error = 0b0001'0000,
+    Warning = 0b0010'0000,
+    Notice = 0b0011'0000,
+    Debug = 0b0100'0000,
+    Info = 0b1000'0000
 };
 
 /**
@@ -34,35 +33,37 @@ public:
      * @param l Maximum Log level to show
      */
     static void setup(
-        Level                    l,
+        Level l,
         std::function<void(int)> callback = [](int c) { exit(c); },
-        std::ostream&            str      = std::cerr);
+        std::ostream& str = std::cerr);
 
     system(Level l, std::function<void(int)> cb, std::ostream& str);
 
     [[nodiscard]] static auto level() -> Level;
     [[nodiscard]] static auto stream() -> std::ostream&;
-    static void               callback(int exit_code);
+    static void callback(int exit_code);
 
 private:
     static std::unique_ptr<system> s_singleton;
 
-    Level                    m_level {};
+    Level m_level {};
     std::function<void(int)> m_callback {};
-    std::ostream&            m_stream;
+    std::ostream& m_stream;
 };
 
 template <Level L>
 class LIBMUONPI_PUBLIC logger {
 public:
     template <typename T>
-    auto operator<<(T content) -> logger<L>& {
+    auto operator<<(T content) -> logger<L>&
+    {
         m_stream << content;
         return *this;
     }
 
     logger(const std::string& component, int exit_code = 0)
-        : m_exit_code {exit_code} {
+        : m_exit_code { exit_code }
+    {
         m_stream << to_string();
         if (!component.empty()) {
             m_stream << " (" << component << ')';
@@ -74,7 +75,8 @@ public:
 
     logger() = default;
 
-    ~logger() {
+    ~logger()
+    {
         if (((L & Level::Info) > 0) || (L <= system::level())) {
             m_stream << '\n';
             system::stream() << m_stream.rdbuf() << std::flush;
@@ -86,9 +88,10 @@ public:
 
 private:
     std::stringstream m_stream {};
-    int               m_exit_code {0};
+    int m_exit_code { 0 };
 
-    [[nodiscard]] constexpr static auto to_string() -> const char* {
+    [[nodiscard]] constexpr static auto to_string() -> const char*
+    {
         switch (L) {
         case Level::Debug:
             return "Debug";

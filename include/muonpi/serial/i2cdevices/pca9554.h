@@ -9,7 +9,8 @@ namespace muonpi::serial::devices {
 class PCA9554 : public io_extender<8> {
 public:
     PCA9554(i2c_bus& bus, std::uint8_t address)
-        : io_extender<8>(bus, address) {
+        : io_extender<8>(bus, address)
+    {
         set_name("PCA9554");
         // clang-format off
         m_addresses_hint = {
