@@ -179,16 +179,16 @@ public:
         * @brief The rate setting enums
         */
         enum {
-            RateMin = 0x00,
-            Rate0 = RateMin,
-            Rate1 = 0x01,
-            Rate2 = 0x02,
-            Rate3 = 0x03,
-            Rate4 = 0x04,
-            Rate5 = 0x05,
-            Rate6 = 0x06,
-            Rate7 = 0x07,
-            RateMax = Rate7
+            RateMin = 0x00, //!< the lowest rate setting
+            Rate0 = RateMin, //!< rate setting 0
+            Rate1 = 0x01, //!< rate setting 1
+            Rate2 = 0x02, //!< rate setting 2
+            Rate3 = 0x03, //!< rate setting 3
+            Rate4 = 0x04, //!< rate setting 4
+            Rate5 = 0x05, //!< rate setting 5
+            Rate6 = 0x06, //!< rate setting 6
+            Rate7 = 0x07, //!< rate setting 7
+            RateMax = Rate7 //!< the highest rate setting
         };
 
         constexpr sample_rate_t() noexcept = default;
