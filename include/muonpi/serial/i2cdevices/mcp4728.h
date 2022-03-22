@@ -15,7 +15,6 @@ namespace muonpi::serial::devices {
 */
 class MCP4728 : public i2c_device {
 public:
-    
     /**
     * @brief enum for possible gain settings of the output amplifier
     */

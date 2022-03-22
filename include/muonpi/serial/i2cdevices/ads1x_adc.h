@@ -168,6 +168,7 @@ public:
         static constexpr std::array<float, 8> gain_values {
             6.144, 4.096, 2.048, 1.024, 0.512, 0.256, 0.256, 0.256
         }; //!< the actual gain factors associated with the pga settings
+
     private:
         int m_pga { PgaMin }; ///!< the actual pga setting
     };
