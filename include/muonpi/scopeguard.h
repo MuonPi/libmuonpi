@@ -17,7 +17,7 @@ public:
     scope_guard() = delete;
     scope_guard(const scope_guard&) = delete;
 
-    auto operator=(scope_guard &&) -> scope_guard& = delete;
+    auto operator=(scope_guard&&) -> scope_guard& = delete;
     auto operator=(const scope_guard&) -> scope_guard& = delete;
 
     ~scope_guard();
