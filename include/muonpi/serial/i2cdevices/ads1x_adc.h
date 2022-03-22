@@ -17,7 +17,7 @@ namespace muonpi::serial::devices {
 
 template <int CHANNELS = 4, int BITS = 16, bool PGA = true>
 /**
-* @brief The ADS1X_ADC i2c device family class template
+* @brief The ADS1X_ADC i2c device family class template.
 * This class handles all functionalities and access for the family of i2c ADCs ADS1xxx (Texas Instruments). The template parameters have the following meaning:
 * <ul>
 *   <li>CHANNELS: number of channels of the device (1 or 4)
@@ -29,15 +29,20 @@ template <int CHANNELS = 4, int BITS = 16, bool PGA = true>
 class ADS1X_ADC : public i2c_device {
 public:
     /**
-    * @brief The Sample struct
+    * @brief The Sample struct.
     * This struct contains all information and data of one ADC sampling measurement
     */
     struct Sample {
-        std::chrono::time_point<std::chrono::steady_clock> timestamp; ///<! time at which the sample was recorded
-        int value; ///!< the adc sample value
-        float voltage; ///!< the sampled voltage
-        float lsb_voltage; ///!< the voltage corresponding to the least significant bit, i.e. voltage resolution
-        unsigned int channel; ///!< the adc channel which generated the sample
+        /// time at which the sample was recorded
+        std::chrono::time_point<std::chrono::steady_clock> timestamp;
+        /// the adc sample value
+        int value;
+        /// the sampled voltage
+        float voltage;
+        /// the voltage corresponding to the least significant bit, i.e. voltage resolution
+        float lsb_voltage;
+        /// the adc channel which generated the sample
+        unsigned int channel;
         [[nodiscard]] auto operator==(const Sample& other) const -> bool;
         [[nodiscard]] auto operator!=(const Sample& other) const -> bool;
     };
@@ -45,34 +50,45 @@ public:
 
     using sample_cb_t = std::function<void(Sample)>;
 
-    static constexpr std::int16_t MIN_ADC_VALUE { -(1 << BITS - 1) }; ///!< the smallest representable adc value
-    static constexpr std::int16_t MAX_ADC_VALUE { (1 << BITS - 1) - 1 }; ///!< the largest representable adc value
-    static constexpr std::uint16_t FULL_SCALE_RANGE { (1 << BITS) - 1 }; ///!< the full scale range of the adc values
+    /// the smallest representable adc value
+    static constexpr std::int16_t MIN_ADC_VALUE { -(1 << BITS - 1) };
+    /// the largest representable adc value
+    static constexpr std::int16_t MAX_ADC_VALUE { (1 << BITS - 1) - 1 };
+    /// the full scale range of the adc values
+    static constexpr std::uint16_t FULL_SCALE_RANGE { (1 << BITS) - 1 };
 
     /**
-    * @brief The pga_t struct
+    * @brief The pga_t struct.
     * This struct contains information about the setting of the PGA (programmable gain amplifier) 
     */
     struct pga_t {
         /**
-        * @brief The pga setting values enums
+        * @brief The pga setting values enums.
         */
         enum {
-            PgaMin = 0,
-            PGA6V = PgaMin,
-            PGA4V = 1,
-            PGA2V = 2,
-            PGA1V = 3,
-            PGA512MV = 4,
-            PGA256MV = 5,
-            PgaMax = PGA256MV
+            PgaMin = 0 //!< the lowest PGA setting (least gain)
+            ,
+            PGA6V = PgaMin //!< least gain, 6V full scale range
+            ,
+            PGA4V = 1 //!< 4.096 V full scale range
+            ,
+            PGA2V = 2 //!< 2.048 V full scale range
+            ,
+            PGA1V = 3 //!< 1.024 V full scale range
+            ,
+            PGA512MV = 4 //!< 0.512 V full scale range
+            ,
+            PGA256MV = 5 //!< highest gain, 0.256 V full scale range
+            ,
+            PgaMax = PGA256MV //!< the highest PGA setting (highest gain)
         };
         constexpr pga_t() noexcept = default;
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         /**
-        * @brief pga_t construct a pga_t object. Explicitly not marked explicit.
-        * @param a_pga The pga setting to represent
+        * @brief constructs a pga_t object.
+        * @param a_pga the pga setting to represent
+        * @note  explicitly not marked explicit.
         */
         constexpr pga_t(T a_pga) noexcept
             : m_pga { std::clamp(static_cast<int>(a_pga), static_cast<int>(PgaMin), static_cast<int>(PgaMax)) }
@@ -81,24 +97,24 @@ public:
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         /**
-        * @brief operator = assign a value to the PGA setting
-        * @param other
-        * @return
+        * @brief assign a value to the PGA setting.
+        * @param other the new value to assign to this instance
+        * @return pga_t object with the new value set
         */
         constexpr auto operator=(T other) noexcept -> const pga_t&;
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         /**
-        * @brief operator T Convert the PGA object to an integral type
+        * @brief convert the pga_t object to an integral type
         */
         [[nodiscard]] constexpr explicit operator T() const noexcept;
 
         /**
-        * @brief operator++ The prefix increment operator
+        * @brief The prefix increment operator.
         * Increments the PGA setting to the next higher gain setting
         * @note The highest gain setting will not be affected by the increment.
         * Thus, bounds checking is not required and the resulting value is always
-        * garanteed to be valid.
+        * guaranteed to be valid.
         */
         pga_t& operator++()
         {
@@ -107,11 +123,11 @@ public:
         }
 
         /**
-        * @brief operator++(int) The postfix increment operator
+        * @brief The postfix increment operator.
         * Increments the PGA setting to the next higher gain setting
         * @note The highest gain setting will not be affected by the increment.
         * Thus, bounds checking is not required and the resulting value is always
-        * garanteed to be valid.
+        * guaranteed to be valid.
         */
         pga_t operator++(int)
         {
@@ -121,11 +137,11 @@ public:
         }
 
         /**
-        * @brief operator-- The prefix decrement operator
+        * @brief The prefix decrement operator.
         * Decrements the PGA setting to the next lower gain setting
         * @note The lowest gain setting will not be affected by the increment.
         * Thus, bounds checking is not required and the resulting value is always
-        * garanteed to be valid.
+        * guaranteed to be valid.
         */
         pga_t& operator--()
         {
@@ -134,11 +150,11 @@ public:
         }
 
         /**
-        * @brief operator--(int) The postfix decrement operator
+        * @brief The postfix decrement operator.
         * Decrements the PGA setting to the next lower gain setting
         * @note The lowest gain setting will not be affected by the increment.
         * Thus, bounds checking is not required and the resulting value is always
-        * garanteed to be valid.
+        * guaranteed to be valid.
         */
         pga_t operator--(int)
         {
@@ -149,14 +165,14 @@ public:
 
         static constexpr std::array<float, 8> gain_values {
             6.144, 4.096, 2.048, 1.024, 0.512, 0.256, 0.256, 0.256
-        }; ///!< the actual gain factors associated with the pga settings
+        }; //!< the actual gain factors associated with the pga settings
     private:
         int m_pga { PgaMin }; ///!< the actual pga setting
     };
 
     /**
-    * @brief The sample_rate_t struct
-    * This struct contains information about the setting of the ADC's sampling rate
+    * @brief The sample_rate_t struct.
+    * This struct contains information about the setting of the ADC's sampling rate.
     */
     struct sample_rate_t {
         /**
@@ -245,6 +261,7 @@ public:
 
     ADS1X_ADC(i2c_bus& bus, std::uint8_t address)
     noexcept;
+
     ~ADS1X_ADC() override = default;
 
     [[nodiscard]] auto identify() -> bool override;
@@ -280,9 +297,9 @@ protected:
     sample_rate_t m_rate { static_cast<int>(sample_rate_t::Rate0) };
     std::uint8_t m_current_channel { 0 };
     std::uint8_t m_selected_channel { 0 };
-    std::chrono::microseconds m_poll_period { READ_WAIT_DELAY_INIT }; ///< conversion wait time in us
-    std::array<bool, CHANNELS> m_agc { false }; ///< software agc which switches over to a better pga setting if voltage too low/high
-    bool m_diff_mode { false }; ///< measure differential input signals (true) or single ended (false=default)
+    std::chrono::microseconds m_poll_period { READ_WAIT_DELAY_INIT }; //!< conversion wait time in us
+    std::array<bool, CHANNELS> m_agc { false }; //!< software agc which switches over to a better pga setting if voltage too low/high
+    bool m_diff_mode { false }; //!< measure differential input signals (true) or single ended (false=default)
     CONV_MODE m_conv_mode { CONV_MODE::UNKNOWN };
     std::array<Sample, CHANNELS> m_last_sample { InvalidSample };
 
@@ -298,7 +315,7 @@ protected:
     }
 
     /**
-     * @brief wait_conversion_finished polls for the conversion to be done.
+     * @brief Polls for the conversion to be done.
      * This is indicated by bit 15 of the config register to change from 0 to 1.
      * Polls in discrete time intervals of m_poll_period
      * @return false in case of timeout or read failure.
@@ -308,7 +325,7 @@ protected:
     sample_cb_t m_conv_ready_fn {};
 
 private:
-    static constexpr std::chrono::microseconds READ_WAIT_DELAY_INIT { 10 }; ///<! ADC ADS1x13/4/5 initial polling readout period
+    static constexpr std::chrono::microseconds READ_WAIT_DELAY_INIT { 10 }; //!< ADC ADS1x13/4/5 initial polling readout period
     static constexpr std::uint16_t HI_RANGE_LIMIT { static_cast<std::uint16_t>(MAX_ADC_VALUE * 0.8) };
     static constexpr std::uint16_t LO_RANGE_LIMIT { static_cast<std::uint16_t>(MAX_ADC_VALUE * 0.2) };
     [[nodiscard]] auto generate_sample(std::int16_t conv_result) -> Sample;
