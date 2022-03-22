@@ -30,7 +30,7 @@ class ADS1X_ADC : public i2c_device {
 public:
     /**
     * @brief The Sample struct.
-    * This struct contains all information and data of one ADC sampling measurement
+    * This struct contains all information and data of one ADC sampling measurement.
     */
     struct Sample {
         /// time at which the sample was recorded
@@ -46,8 +46,10 @@ public:
         [[nodiscard]] auto operator==(const Sample& other) const -> bool;
         [[nodiscard]] auto operator!=(const Sample& other) const -> bool;
     };
+    /// convenience constant definition for invalid sample
     static constexpr Sample InvalidSample { std::chrono::steady_clock::time_point::min(), 0, 0., 0., 0 };
 
+    /// convenience alias definition of sample callback function
     using sample_cb_t = std::function<void(Sample)>;
 
     /// the smallest representable adc value
@@ -59,11 +61,11 @@ public:
 
     /**
     * @brief The pga_t struct.
-    * This struct contains information about the setting of the PGA (programmable gain amplifier) 
+    * This struct contains information about the setting of the PGA (programmable gain amplifier).
     */
     struct pga_t {
         /**
-        * @brief The pga setting values enums.
+        * @brief The pga setting value enums.
         */
         enum {
             PgaMin = 0 //!< the lowest PGA setting (least gain)
@@ -195,8 +197,9 @@ public:
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         /**
-        * @brief sample_rate_t construct a sample_rate_t object. Explicitly not marked explicit.
+        * @brief constructs a sample_rate_t object.
         * @param a_rate_setting The sample rate setting to represent
+        * @note Explicitly not marked explicit.
         */
         constexpr sample_rate_t(T a_rate_setting) noexcept
             : m_setting { std::clamp(static_cast<int>(a_rate_setting), static_cast<int>(RateMin), static_cast<int>(RateMax)) }
@@ -205,23 +208,25 @@ public:
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         /**
-        * @brief operator = assign a value to the sample rate setting
-        * @param other
-        * @return
+        * @brief assign a value to the sample rate setting
+        * @param other the new value to assign to this instance
+        * @return sample_rate_t object with the new value set
         */
         constexpr auto operator=(T other) noexcept -> const sample_rate_t&;
 
         template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
         /**
-        * @brief operator T Convert the sample rate setting object to an integral type
+        * @brief convert the sample rate setting object to an integral type
         */
         [[nodiscard]] constexpr explicit operator T() const noexcept;
 
         template <int TYPE = BITS, std::enable_if_t<TYPE == 16 || TYPE == 12, bool> = true>
+
+        /// constant array with the actual rate values
         static constexpr std::array<std::size_t, 8> rate_values = { sample_rate_t::sample_rates(TYPE) };
 
     private:
-        int m_setting { RateMin }; ///!< the actual rate setting
+        int m_setting { RateMin }; //!< the actual rate setting
         static constexpr std::array<std::size_t, 8> sample_rates(int bit_width)
         {
             if (bit_width == 16) {
@@ -232,27 +237,28 @@ public:
     };
 
     /**
-    * @brief The CONV_MODE enum
+    * @brief The CONV_MODE enum.
     * The status of the ADC's conversion mode: unknown, single conversion mode or
     * continuous conversion mode 
     */
-    enum class CONV_MODE { UNKNOWN,
-        SINGLE,
-        CONTINUOUS };
-
-    /**
-    * @brief The REG enum
-    * Enums representing the addresses of the four ADC registers
-    */
-    enum REG : std::uint8_t {
-        CONVERSION = 0x00,
-        CONFIG = 0x01,
-        LO_THRESH = 0x02,
-        HI_THRESH = 0x03
+    enum class CONV_MODE { UNKNOWN, //!< unknown conversion mode
+        SINGLE, //!< single-shot conversion mode
+        CONTINUOUS //!< continuous sampling conversion mode
     };
 
     /**
-     * @brief adcToVoltage calculates the voltage from given adc value and pga setting
+    * @brief The REG enum
+    * Enums representing the addresses of the four ADC registers.
+    */
+    enum REG : std::uint8_t {
+        CONVERSION = 0x00, //!< conversion register
+        CONFIG = 0x01, //!< config register
+        LO_THRESH = 0x02, //!< low threshold register
+        HI_THRESH = 0x03 //!< high threshold register
+    };
+
+    /**
+     * @brief calculates the voltage from given adc value and pga setting
      * @param adc adc value
      * @param pga_setting pga setting the value was obtained with
      * @return corresponding adc voltage
@@ -266,6 +272,14 @@ public:
 
     [[nodiscard]] auto identify() -> bool override;
 
+    /**
+     * @brief sets the active channel for sampling
+     * @param channel channel to be selected
+     * @param differential_mode configure the input multiplexer for
+     * differential (true) or single-ended input signals (false=default)
+     * @note setting the active channel takes effect after the currently active
+     * sampling cycle
+     */
     void setActiveChannel(std::uint8_t channel, bool differential_mode = false);
     void setPga(pga_t pga);
     void setPga(const std::uint8_t channel, pga_t pga);

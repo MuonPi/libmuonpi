@@ -6,9 +6,9 @@
 namespace muonpi::serial::devices {
 
 /**
-* @brief MIC184 i2c temperature sensor device class
+* @brief I2C temperature sensor device class.
 * This class provides access to the temperature measurement for MIC184 i2c temperature sensors.
-* The temperature value (in degrees Celsius) is returned by the @link #get_temperature method.
+* The temperature value (in degrees Celsius) is returned by the @link #get_temperature get_temperature @endlink method.
 * Furthermore, switching between internal and external zone is supported. For temperature
 * measurements in the external zone, a sense device must be connected according to the data sheet:
 * https://ww1.microchip.com/downloads/en/DeviceDoc/MIC184-Local-Remote-Thermal-Supervisor-DS20006457A.pdf

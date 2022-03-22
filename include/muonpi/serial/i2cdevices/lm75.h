@@ -6,9 +6,9 @@
 namespace muonpi::serial::devices {
 
 /**
-* @brief LM75 i2c temperature sensor device class
+* @brief I2C temperature sensor device class.
 * This class provides access to the temperature measurement for all LM75-like i2c temperature sensors.
-* The temperature value (in degrees Celsius) is returned by the @link #get_temperature method. 
+* The temperature value (in degrees Celsius) is returned by the @link #get_temperature get_temperature @endlink method. 
 */
 class LM75 : public i2c_device {
 public:

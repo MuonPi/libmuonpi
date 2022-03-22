@@ -8,11 +8,14 @@
 namespace muonpi::serial::devices {
 
 template <std::size_t BITS>
+/**
+* @brief I2C io extender device class.
+* This class provides access to i2c 4-bit and 8-bit bidirectional digital i/o 
+* extenders.
+* @note valid template specializations are available for values of the template
+* parameter BITS of 4 and 8. 
+*/
 class io_extender : public i2c_device {
-    // the device supports reading the incoming logic levels of the pins if set to input in the
-    // configuration register (will probably not use this feature) the device supports polarity
-    // inversion (by configuring the polarity inversion register) (will probably not use this
-    // feature)
 public:
     static constexpr std::size_t width()
     {

@@ -18,12 +18,11 @@ namespace muonpi::serial::devices {
  * or allows word addresses (ADDRESSMODE=2) <li>PAGELENGTH: The page size in bytes which can be
  * written in one chunk
  * </ul><p>
- * @note The class overwrites the @link i2c_device base class' methods @link i2c_device#read and
- * @link i2c_device#write in order to manage the paged access correctly. This is intended behavior.
+ * @note The class overwrites the @link i2c_device i2c_device @endlink base class' methods @link i2c_device#read read @endlink and
+ * @link i2c_device#write write @endlink in order to manage the paged access correctly. This is intended behavior.
  * @note Devices with ADDRESSMODE=1 may occupy more than one i2c address on the bus. For this end,
- * an additional member base_address keeps track of the primary address while the @link
- * i2c_device#address property may change during read/write operations.
- * @note This class provides two templated versions for either @link #read and @link #write methods
+ * an additional member base_address keeps track of the primary address while the @link i2c_device#address address @endlink property may change during read/write operations.
+ * @note This class provides two templated versions for either @link #read read @endlink and @link #write write @endlink methods
  * for 8bit register and 16bit register access, respectively. Depending on the address mode
  * (ADDRESSMODE template param), only one of the two methods participates in overload resolution. In
  * this way, there are only 16bit versions of read and write visible for devices instantiated as
