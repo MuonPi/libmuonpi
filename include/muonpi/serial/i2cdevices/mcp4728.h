@@ -8,32 +8,41 @@
 #include <optional>
 
 namespace muonpi::serial::devices {
-
-/* MCP4728 4ch 12bit DAC */
+/**
+* @brief I2C Digital-to-Analog Converter (DAC) device class.
+* Device class for interfacing the 4-channel 12-bit Digital-to-Analog Converter (DAC) MCP4728 from Microchip. Datasheet: http://ww1.microchip.com/downloads/en/devicedoc/22187e.pdf
+* @note the device supports I2C Generall Call Commands reset,wake-up, software update and read address bits.
+*/
 class MCP4728 : public i2c_device {
-    // the DAC supports writing to input register but not sending latch bit to update the output
-    // register here we will always send the "UDAC" (latch) bit because we don't need this
-    // functionality MCP4728 listens to I2C Generall Call Commands reset, wake-up, software update,
-    // read address bits reset is "0x00 0x06" wake-up is "0x00 0x09"
 public:
+    
+    /**
+    * @brief enum for possible gain settings of the output amplifier
+    */
     enum CFG_GAIN {
-        GAIN1 = 0,
-        GAIN2 = 1
-    };
-    enum CFG_VREF {
-        VREF_VDD = 0,
-        VREF_2V = 1
+        GAIN1 = 0, //!< unity gain
+        GAIN2 = 1 //!< double gain 
     };
 
-    // struct that characterizes one dac output channel
-    // setting the eeprom flag enables access to the eeprom registers instead of the dac output
-    // registers
+    /**
+    * @brief enum for selection of reference voltage source
+    */
+    enum CFG_VREF {
+        VREF_VDD = 0, //!< reference is supply voltage
+        VREF_2V = 1 //!< internal reference voltage source
+    };
+
+    /**
+    * @brief struct that characterizes one DAC output channel.
+    * Setting the eeprom flag enables access to the eeprom registers instead of the dac output
+    * registers
+    */
     struct DacChannel {
-        std::uint8_t pd = 0x00;
-        CFG_GAIN gain = GAIN1;
-        CFG_VREF vref = VREF_2V;
-        bool eeprom = false;
-        std::uint16_t value = 0;
+        std::uint8_t pd = 0x00; //!< power-down bit pattern for channels 0..4
+        CFG_GAIN gain = GAIN1; //!< output amplifier gain setting
+        CFG_VREF vref = VREF_2V; //!< reference voltage setting
+        bool eeprom = false; //!< the settings are read/written to eeprom memory (true) or to DAC registers (false)
+        std::uint16_t value = 0; //!< the DAC value
     };
 
     MCP4728(i2c_bus& bus, std::uint8_t address);
