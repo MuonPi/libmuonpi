@@ -152,7 +152,7 @@ i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::i2c_eeprom(i2c_bus& bus, std::ui
         "unknown address mode for eeprom (must be 1 or 2)");
     static_assert(EEPLENGTH <= 65536UL, "unsupported eeprom size (must be <=65536)");
     set_name("EEPROM");
-    m_addresses_hint = { 0x50 };
+    set_addresses_hint( { 0x50 } );
 }
 
 template <std::size_t EEPLENGTH, std::uint8_t ADDRESSMODE, std::size_t PAGELENGTH>

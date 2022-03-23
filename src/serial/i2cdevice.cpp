@@ -162,6 +162,11 @@ auto i2c_device::addresses_hint() const -> const std::set<std::uint8_t>&
     return m_addresses_hint;
 }
 
+void i2c_device::set_addresses_hint( std::set<std::uint8_t> address_list )
+{
+    m_addresses_hint = std::move( address_list );
+}
+
 auto i2c_device::read(std::uint8_t* buffer, std::size_t bytes) -> int
 {
     if (locked() || (m_handle <= 0)) {

@@ -13,10 +13,10 @@ public:
     {
         set_name("PCA9554");
         // clang-format off
-        m_addresses_hint = {
+        set_addresses_hint( {
             0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
             0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f
-        };
+        } );
         // clang-format on
     }
 };

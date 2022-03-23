@@ -425,7 +425,7 @@ ADS1X_ADC<CHANNELS, BITS, PGA>::ADS1X_ADC(i2c_bus& bus, std::uint8_t address) no
     }
 
     set_name(name() + "::" + typestr);
-    m_addresses_hint = { 0x48, 0x49, 0x4a, 0x4b };
+    set_addresses_hint( { 0x48, 0x49, 0x4a, 0x4b } );
     init();
 }
 

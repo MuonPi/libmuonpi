@@ -240,8 +240,8 @@ protected:
     void stop_timer();
 
     [[nodiscard]] auto setup_timer() -> scope_guard;
-
-    std::set<std::uint8_t> m_addresses_hint {};
+    
+    void set_addresses_hint( std::set<std::uint8_t> address_list );
 
 private:
     i2c_bus& m_bus;
@@ -264,6 +264,8 @@ private:
     std::uint8_t m_flags {};
 
     std::chrono::system_clock::time_point m_start {};
+    
+    std::set<std::uint8_t> m_addresses_hint {};
 };
 
 } // namespace muonpi::serial
