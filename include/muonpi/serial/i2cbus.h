@@ -28,6 +28,9 @@ class i2c_bus {
 public:
     friend class i2c_device;
 
+    /// the definition of the general call bus address
+    static constexpr std::uint8_t GeneralCallAddress { 0x00 };
+
     /**
      * @brief The general_call_t struct
      * This member struct of i2c_bus provides access to the i2c general call mechanism.

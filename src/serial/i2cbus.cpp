@@ -2,8 +2,6 @@
 
 namespace muonpi::serial {
 
-constexpr std::uint8_t GeneralCallAddress { 0x00 };
-
 i2c_bus::general_call_t::general_call_t(i2c_bus* bus)
     : m_bus(bus)
 {
