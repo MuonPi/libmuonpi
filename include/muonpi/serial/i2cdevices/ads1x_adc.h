@@ -266,8 +266,9 @@ public:
      */
     [[nodiscard]] static auto adcToVoltage(std::int16_t adc, pga_t pga_setting) -> float;
 
-    ADS1X_ADC(i2c_bus& bus, std::uint8_t address)
-    noexcept;
+    // clang-format off
+    ADS1X_ADC(i2c_bus& bus, std::uint8_t address) noexcept;
+    // clang-format on
 
     ~ADS1X_ADC() override = default;
 
@@ -425,7 +426,7 @@ ADS1X_ADC<CHANNELS, BITS, PGA>::ADS1X_ADC(i2c_bus& bus, std::uint8_t address) no
     }
 
     set_name(name() + "::" + typestr);
-    set_addresses_hint( { 0x48, 0x49, 0x4a, 0x4b } );
+    set_addresses_hint({ 0x48, 0x49, 0x4a, 0x4b });
     init();
 }
 

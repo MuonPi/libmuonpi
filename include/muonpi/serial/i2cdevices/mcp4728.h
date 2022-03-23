@@ -20,7 +20,7 @@ public:
     */
     enum CFG_GAIN {
         GAIN1 = 0, //!< unity gain
-        GAIN2 = 1 //!< double gain 
+        GAIN2 = 1 //!< double gain
     };
 
     /**

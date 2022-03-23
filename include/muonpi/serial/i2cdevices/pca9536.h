@@ -12,7 +12,7 @@ public:
         : io_extender<4>(bus, address)
     {
         set_name("PCA9536");
-        set_addresses_hint( { 0x41 } );
+        set_addresses_hint({ 0x41 });
     }
 };
 

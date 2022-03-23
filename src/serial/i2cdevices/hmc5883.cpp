@@ -20,7 +20,7 @@ HMC5883::HMC5883(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address)
 {
     set_name("HMC5883");
-    set_addresses_hint( { 0x1e } );
+    set_addresses_hint({ 0x1e });
 }
 
 HMC5883::~HMC5883() = default;
