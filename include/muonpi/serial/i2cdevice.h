@@ -23,13 +23,15 @@ class i2c_bus;
 */
 class i2c_device {
 public:
+    /** @brief Flags enum defining the possible operation states of the device
+     */
     enum class Flags : std::uint8_t {
-        None = 0,
-        Normal = 0x01,
-        Force = 0x02,
-        Unreachable = 0x04,
-        Failed = 0x08,
-        Locked = 0x10
+        None = 0, //!< undefined, uninitialized or unknown state
+        Normal = 0x01, //!< normal operational state
+        Force = 0x02, //!< device is operational, but has conflicting access to another driver
+        Unreachable = 0x04, //!< device does not respond
+        Failed = 0x08, //!< system interface could not open a channel to the device
+        Locked = 0x10 //!< device is operational, but access is inhibited
     };
 
     /**
@@ -70,7 +72,7 @@ public:
     * @note A positive return value does not imply that an actual device is physically present.
     * The device was merely instantiated and opened for access.
     * Yet, the result of bus transactions is not reflected by this query.
-    * Use @link i2c_device#present (if implemented) to check for the physical presence of a device.
+    * Use method @link i2c_device#present present() @endlink (if implemented) to check for the physical presence of a device.
     */
     [[nodiscard]] auto is_open() const -> bool;
 
@@ -85,7 +87,7 @@ public:
     /**
     * @brief check for the presence of a device on the bus
     * @return true, if a device is found
-    * @note: this method may be overriden in derived classes. If not, it tries to read a byte succesfully
+    * @note this method may be overriden in derived classes. If not, it tries to read a byte succesfully
     * from the device and returns the result of this read operation. This may not work for some devices,
     * so providing an individual version of this presence probing method is a good idea in these cases.
     */
@@ -94,7 +96,7 @@ public:
     /**
     * @brief check for the presence of a specific device on the bus
     * @return true, if the device could be identified
-    * @note: this method should be overriden in derived classes, if there is a possibility to tell
+    * @note this method should be overriden in derived classes, if there is a possibility to tell
     * the presence of a specific device from the bit battern read. If it is not reimplemented,
     * this method returns false by default.
     */
@@ -185,7 +187,7 @@ public:
 
     /**
     * @brief read an array of bytes from sub-address of the device
-    * @param reg sub-address (8bit register) from which the data should be read
+    * @param reg sub-address (8-bit register) from which the data should be read
     * @param buffer pointer to the buffer in which the data shall be placed
     * @param bytes the number of bytes to read
     * @return number of bytes actually read, or -1 on error
@@ -194,7 +196,7 @@ public:
 
     /**
     * @brief read an array of words from sub-address of the device
-    * @param reg sub-address (8bit register) from which the data should be read
+    * @param reg sub-address (8-bit register) from which the data should be read
     * @param buffer pointer to the buffer in which the data shall be placed
     * @param n_words the number of words to read
     * @return number of words actually read, or -1 on error
@@ -212,11 +214,18 @@ public:
 
     auto write(std::uint8_t reg, std::uint8_t bit_mask, std::uint8_t value) -> bool;
 
+    /**
+    * @brief write an array of bytes to sub-address of the device
+    * @param reg sub-address (8-bit register) to which the data should be written
+    * @param buffer pointer to the buffer with the data to be written
+    * @param bytes the number of bytes to write
+    * @return number of bytes actually written, or -1 on error
+    */
     auto write(std::uint8_t reg, std::uint8_t* buffer, std::size_t bytes = 1) -> int;
 
     /**
     * @brief write an array of words to sub-address of the device
-    * @param reg sub-address (8bit register) to which the data should be written
+    * @param reg sub-address (8-bit register) to which the data should be written
     * @param buffer pointer to the buffer with the data to be written
     * @param length the number of words to write
     * @return number of words actually written, or -1 on error
