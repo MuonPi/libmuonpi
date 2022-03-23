@@ -21,8 +21,8 @@ namespace muonpi::serial {
 
 /**
  * @brief The i2c_bus class
- * This class defines and abstracts an access interface to the hardware i2c bus (master mode) of the
- * system.
+ * This class defines and abstracts an access interface to the hardware i2c bus (master mode)
+ * of the system.
  */
 class i2c_bus {
 public:
@@ -72,11 +72,11 @@ public:
 
     /**
      * @brief default constructor without specific device address path
-     * @note To not specify a device path at construction time of @link i2c_bus will be utilized for
-     * the instantiation of sub-buses (e.g. from address translators). However, this functionality
-     * is not available yet and will be implemented in the future.
-     * @todo Still need to implement the sub-bus functionality, where the default constructor will
-     * be reasonably defined.
+     * @note To not specify a device path at construction time of @link i2c_bus i2c_bus @endlink
+     * will be utilized for the instantiation of sub-buses (e.g. from address translators).
+     * However, this functionality is not available yet and will be implemented in the future.
+     * @todo Still need to implement the sub-bus functionality, where the default 
+     * constructor will be reasonably defined.
      */
     explicit i2c_bus();
 
@@ -143,9 +143,10 @@ public:
      * @brief check whether a device was opened for access
      * @param address i2c device address
      * @return true, if the device was opened for access
-     * @note A positive return value does not imply that an actual device is physically present at
-     * the specified address. The device was merely instantiated and opened for access. Yet, the
-     * result of bus transactions are not reflected by this query.Use @link i2c_device#present to
+     * @note A positive return value does not imply that an actual device is physically present
+     * at the specified address. The device was merely instantiated and opened for access.
+     * Yet, the result of bus transactions are not reflected by this query.
+     * Use @link i2c_device#present i2c_device::present() @endlink to
      * check for the physical presence of devices.
      */
     [[nodiscard]] auto is_open(std::uint8_t address) const -> bool;
