@@ -221,16 +221,19 @@ auto MCP4728::identify() -> bool
     if (!present()) {
         return false;
     }
-    // perform a read sequence of all 24 bytes// explicitely do not use the read_registers() method
-    // to prevent parsing of the raw data values into meaningful content
-    // TODO: Use named constants.
-    std::array<std::uint8_t, 24> buf {};
-    if (24 != read(buf.data(), 24u)) {
+    /* perform a read sequence of all 24 bytes
+    * explicitely do not use the read_registers() method
+    * to prevent parsing of the raw data values into meaningful content
+    */
+    constexpr unsigned int sequence_length { 24 };
+    std::array<std::uint8_t, sequence_length> buf {};
+    if (read(buf.data(), sequence_length) != sequence_length) {
         return false;
     }
 
-    return ((buf[0u] & 0xf0u) == 0xc0u) && ((buf[6u] & 0xf0u) == 0xd0u)
-        && ((buf[12u] & 0xf0u) == 0xe0u) && ((buf[18u] & 0xf0u) == 0xf0u);
+    // TODO: Use named constants.
+    return ((buf[0] & 0xf0U) == 0xc0U) && ((buf[6] & 0xf0U) == 0xd0U)
+        && ((buf[12] & 0xf0U) == 0xe0U) && ((buf[18] & 0xf0U) == 0xf0U);
 }
 
 auto MCP4728::set_vref(unsigned int channel, CFG_VREF vref_setting) -> bool

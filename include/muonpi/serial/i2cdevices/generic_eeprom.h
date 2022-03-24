@@ -126,8 +126,9 @@ public:
      * 8bit-addressable range encode the hi-byte of the memory address as access to an i2c device
      * address incremental to the base address. In this way, different 256-Byte pages are accessed
      * through consecutive i2c device addresses. The first page is accessed through base_address,
-     * the second through (base_address+1) and so forth. Accesses through @link #read and @link
-     * #write methods automatically take care for address switching.
+     * the second through (base_address+1) and so forth. Accesses through 
+     * @link #read read @endlink and @link #write write @endlink methods automatically 
+     * take care for address switching.
      */
     [[nodiscard]] auto base_address() const -> std::uint8_t
     {
