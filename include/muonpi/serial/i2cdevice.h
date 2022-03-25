@@ -167,8 +167,9 @@ public:
     /**
     * @brief get a list of possible addresses at which the device can be found
     * @return a set of potential i2c bus addresses
-    * @note The addresses hint list is a collection of potential addresses at which the device could
-    * respond and defined by the hardware-wise assignable addresses from the manufacturer side.
+    * @note The addresses hint list is a collection of potential addresses at which
+    * the device may respond and is defined by the hardware-wise assignable addresses
+    * from the manufacturer side.
     * If this list is non-empty, one can safely assume that the device address will be among these addresses.
     */
     [[nodiscard]] auto addresses_hint() const -> const std::set<std::uint8_t>&;
@@ -236,11 +237,45 @@ protected:
     void set_flag(Flags flag);
     void unset_flag(Flags flag);
 
+    /**
+    * @brief start the timer to measure time intervals
+    * @note a valid measurement of a time interval is only taken with a successive call
+    * to @link stop_timer stop_timer() @endlink. The result of the measurement can then
+    * be obtained through the @link last_access_duration last_access_duration() 
+    * @endlink method.
+    */
     void start_timer();
+
+    /**
+    * @brief stop the timer for measuring a time interval
+    * @note a valid measurement of a time interval is only taken with a preceding call
+    * to @link start_timer start_timer() @endlink. The result of the measurement can
+    * be obtained through the @link last_access_duration last_access_duration() 
+    * @endlink method.
+    */
     void stop_timer();
 
+    /**
+    * @brief set up and start the timer to measure time intervals
+    * @return a scope_guard object which stops the timer on destruction
+    * @note Use this method to measure time intervals (e.g. access or readout intervals)
+    * without explicitely calling the @link stop_timer stop_timer() @endlink method.
+    * The returned @link scope_guard scope_guard @endlink object takes care for
+    * stopping the timer as soon as it goes out of scope. The result of the measurement 
+    * can be obtained through the @link last_access_duration last_access_duration() 
+    * @endlink method.
+    */
     [[nodiscard]] auto setup_timer() -> scope_guard;
 
+    /**
+    * @brief set the list of possible addresses at which the device can be found
+    * @param address_list a std::set of potential i2c bus addresses
+    * @note The addresses hint list is a collection of potential addresses at which
+    * the device may respond and is defined by the hardware-wise assignable addresses
+    * from the manufacturer side.
+    * Use this method to define the hardware-addressable range as indicated in 
+    * the device's datasheet
+    */
     void set_addresses_hint(std::set<std::uint8_t> address_list);
 
 private:
