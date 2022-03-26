@@ -18,7 +18,7 @@ jobs:
       run: sudo apt install -y clang-format-11 git
 
     - name: clang-format
-      run: cmake --build ${{github.workspace}}/build --target clangformat --config ${{enc.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build --target clangformat --config ${{env.BUILD_TYPE}}
     
     - name: show-changed-files
       run: git status
