@@ -115,6 +115,6 @@ set(PROJECT_HEADER_FILES
     ${DETECTOR_HEADER_FILES}
     )
 
-add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})
+add_custom_target(clangformat WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMMAND clang-format-11 -style=file -i ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")
