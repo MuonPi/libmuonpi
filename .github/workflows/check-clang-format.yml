@@ -8,6 +8,9 @@ on:
       tags:
         description: 'Manual run'
 
+env:
+  BUILD_TYPE: Release
+
 jobs:
   clang-format:
     runs-on: ubuntu-latest
@@ -16,6 +19,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: install dependencies
       run: sudo apt install -y clang-format-11 git
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBMUONPI_BUILD_HTTP:BOOL=ON -DLIBMUONPI_BUILD_LINK:BOOL=ON -DLIBMUONPI_BUILD_DETECTOR:BOOL=ON -DLIBMUONPI_TESTS:BOOL=OFF -DLIBMUONPI_HARDWARE_TESTS:BOOL=OFF -DLIBMUONPI_BUILD_EXAMPLES:BOOL=ON -DLIBMUONPI_BUILD_SANITIZERS:BOOL=OFF
 
     - name: clang-format
       run: cmake --build ${{github.workspace}}/build --target clangformat
