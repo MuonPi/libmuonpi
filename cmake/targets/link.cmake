@@ -10,6 +10,7 @@ set(LINK_HEADER_FILES
     "${PROJECT_HEADER_DIR}/muonpi/link/influx.h"
     )
 
+if (NOT LIBMUONPI_FORMAT_ONLY)
 if (LIBMUONPI_BUILD_LINK) # libraries specific to the link library
     find_library(MOSQUITTO mosquitto REQUIRED)
 
@@ -27,4 +28,5 @@ if (LIBMUONPI_BUILD_LINK) # libraries specific to the link library
      Link package"
         DESCRIPTIONDEV "Libraries for MuonPi
      Link dev package")
+endif ()
 endif ()
