@@ -1,18 +1,16 @@
-#include <boost/test/unit_test.hpp>
-
 #include "muonpi/analysis/dataseries.h"
 
+#include <boost/test/unit_test.hpp>
 #include <numeric>
 
 namespace utf = boost::unit_test;
 
-BOOST_AUTO_TEST_SUITE(core_data_series_test_small_sample, * utf::tolerance(0.00001))
+BOOST_AUTO_TEST_SUITE(core_data_series_test_small_sample, *utf::tolerance(0.00001))
 
-BOOST_AUTO_TEST_CASE(empty_test)
-{
+BOOST_AUTO_TEST_CASE(empty_test) {
     using data_s = muonpi::data_series<double>;
 
-    data_s series{10};
+    data_s series {10};
 
     BOOST_TEST(series.n() == 0);
 
@@ -29,11 +27,10 @@ BOOST_AUTO_TEST_CASE(empty_test)
     BOOST_TEST(series.sum() == 0.0);
 }
 
-BOOST_AUTO_TEST_CASE(fill_test)
-{
+BOOST_AUTO_TEST_CASE(fill_test) {
     using data_s = muonpi::data_series<double>;
 
-    data_s series{10};
+    data_s series {10};
 
     BOOST_TEST(series.n() == 0);
     series.add(1.0);
