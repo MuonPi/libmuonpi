@@ -19,5 +19,12 @@ jobs:
     - name: clang-format
       run: clang-format-11 -style=file -i $(find include src -type f)
     
+    
+    - name: show-changed-files
+      run: git status
+      
+    - name: show-changes
+      run: git diff
+      
     - name: check-changes
       run: bash -c '[ -z "$(git status --porcelain=v1 2>/dev/null)" ]'
