@@ -17,6 +17,6 @@ namespace muonpi::serial::devices {
 typedef ADS1X_ADC<4, 16> ADS1115;
 typedef ADS1X_ADC<4, 12> ADS1015;
 
-}
+} // namespace muonpi::serial::devices
 
 #endif // MUONPI_SERIAL_I2CDEVICES_H

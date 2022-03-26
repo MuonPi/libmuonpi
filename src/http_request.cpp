@@ -10,8 +10,7 @@
 
 namespace muonpi::http {
 
-void load_root_ca(ssl::context& ctx)
-{
+void load_root_ca(ssl::context& ctx) {
 #if BOOST_OS_WINDOWS
     /*
      * +++++++++++++++++++++++++++++++++++++++++++++
@@ -24,12 +23,12 @@ void load_root_ca(ssl::context& ctx)
         return;
     }
 
-    X509_STORE* store = X509_STORE_new();
+    X509_STORE*    store    = X509_STORE_new();
     PCCERT_CONTEXT pContext = NULL;
     while ((pContext = CertEnumCertificatesInStore(hStore, pContext)) != NULL) {
         X509* x509 = d2i_X509(NULL,
-            (const unsigned char**)&pContext->pbCertEncoded,
-            pContext->cbCertEncoded);
+                              (const unsigned char**)&pContext->pbCertEncoded,
+                              pContext->cbCertEncoded);
         if (x509 != NULL) {
             X509_STORE_add_cert(store, x509);
             X509_free(x509);
@@ -48,13 +47,12 @@ void load_root_ca(ssl::context& ctx)
 }
 
 template <typename Stream>
-[[nodiscard]] auto create_request(Stream& stream,
-    const destination_t& destination,
-    const std::string& body,
-    const std::vector<field_t>& fields) -> response_type
-{
+[[nodiscard]] auto create_request(Stream&                     stream,
+                                  const destination_t&        destination,
+                                  const std::string&          body,
+                                  const std::vector<field_t>& fields) -> response_type {
     // Set up an HTTP GET request message
-    request_type req { destination.method, destination.target, destination.version };
+    request_type req {destination.method, destination.target, destination.version};
     req.set(http_field::host, destination.host);
     req.set(http_field::user_agent, BOOST_BEAST_VERSION_STRING);
     req.set(http_field::content_length, std::to_string(body.size()));
@@ -78,10 +76,9 @@ template <typename Stream>
     return res;
 }
 
-[[nodiscard]] auto https_request(const destination_t& destination,
-    const std::string& body,
-    const std::vector<field_t>& fields) -> response_type
-{
+[[nodiscard]] auto https_request(const destination_t&        destination,
+                                 const std::string&          body,
+                                 const std::vector<field_t>& fields) -> response_type {
     net::io_context ioc;
 
     // The SSL context is required, and holds certificates
@@ -93,15 +90,15 @@ template <typename Stream>
     load_root_ca(ctx);
 
     // These objects perform our I/O
-    tcp::resolver resolver { ioc };
+    tcp::resolver resolver {ioc};
 
-    detail::ssl_stream_t stream { ioc, ctx };
+    detail::ssl_stream_t stream {ioc, ctx};
 
     // Set SNI Hostname (many hosts need this to handshake successfully)
     if (!SSL_set_tlsext_host_name(stream.native_handle(), destination.host.c_str())) {
-        beast::error_code ec { static_cast<int>(::ERR_get_error()), net::error::get_ssl_category() };
+        beast::error_code ec {static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
         fail(ec, "request handshake");
-        throw beast::system_error { ec };
+        throw beast::system_error {ec};
     }
 
     // Look up the domain name
@@ -118,7 +115,7 @@ template <typename Stream>
     // Perform the SSL handshake
     stream.handshake(ssl::stream_base::client);
 
-    response_type res { create_request(stream, destination, body, fields) };
+    response_type res {create_request(stream, destination, body, fields)};
 
     // Gracefully close the stream
     beast::error_code ec;
@@ -132,23 +129,22 @@ template <typename Stream>
 
     if (ec) {
         fail(ec, "request shutdown");
-        throw beast::system_error { ec };
+        throw beast::system_error {ec};
     }
 
     return res;
 }
 
-auto http_request(const destination_t& destination,
-    const std::string& body,
-    const std::vector<field_t>& fields) -> response_type
-{
+auto http_request(const destination_t&        destination,
+                  const std::string&          body,
+                  const std::vector<field_t>& fields) -> response_type {
     // The io_context is required for all I/O
     net::io_context ioc;
 
     // These objects perform our I/O
-    tcp::resolver resolver { ioc };
+    tcp::resolver resolver {ioc};
 
-    detail::tcp_stream_t stream { ioc };
+    detail::tcp_stream_t stream {ioc};
 
     // Look up the domain name
     auto const results = resolver.resolve(destination.host, std::to_string(destination.port));
@@ -160,7 +156,7 @@ auto http_request(const destination_t& destination,
     stream.connect(results);
 #endif
 
-    response_type res { create_request(stream, destination, body, fields) };
+    response_type res {create_request(stream, destination, body, fields)};
 
     // Write the message to standard out
     // Gracefully close the socket
@@ -175,17 +171,16 @@ auto http_request(const destination_t& destination,
     // so don't bother reporting it.
     if (ec && ec != beast::errc::not_connected) {
         fail(ec, "request shutdown");
-        throw beast::system_error { ec };
+        throw beast::system_error {ec};
     }
 
     return res;
 }
 
-auto http_request(const destination_t& destination,
-    const std::string& body,
-    bool ssl,
-    const std::vector<field_t>& fields) -> response_type
-{
+auto http_request(const destination_t&        destination,
+                  const std::string&          body,
+                  bool                        ssl,
+                  const std::vector<field_t>& fields) -> response_type {
     if (ssl) {
         return https_request(destination, body, fields);
     }

@@ -24,9 +24,9 @@ public:
     static_assert(std::is_arithmetic<T>::value);
 
     struct bin {
-        T lower {};
-        T upper {};
-        std::size_t count { 0 };
+        T           lower {};
+        T           upper {};
+        std::size_t count {0};
     };
 
     /**
@@ -145,9 +145,9 @@ public:
     [[nodiscard]] auto rms() const -> T;
 
 private:
-    T m_lower {};
-    T m_upper {};
-    T m_width {};
+    T           m_lower {};
+    T           m_upper {};
+    T           m_width {};
     std::size_t m_n {};
     std::size_t m_lowest {};
     std::size_t m_highest {};
@@ -161,61 +161,54 @@ private:
 
 template <typename T, typename C>
 histogram<T, C>::histogram(std::size_t n) noexcept
-    : m_n { n }
-{
+    : m_n {n} {
     reset();
 }
 
 template <typename T, typename C>
 histogram<T, C>::histogram(std::size_t n, T width) noexcept
-    : m_upper { width * n }
-    , m_width { width }
-    , m_n { n }
-{
+    : m_upper {width * n}
+    , m_width {width}
+    , m_n {n} {
     reset();
 }
 
 template <typename T, typename C>
 histogram<T, C>::histogram(std::size_t n, T lower, T upper) noexcept
-    : m_lower { lower }
-    , m_upper { upper }
-    , m_width { (upper - lower) / static_cast<T>(n) }
-    , m_n { n }
-{
+    : m_lower {lower}
+    , m_upper {upper}
+    , m_width {(upper - lower) / static_cast<T>(n)}
+    , m_n {n} {
     reset();
 }
 
 template <typename T, typename C>
-void histogram<T, C>::fill(const std::vector<T>& data)
-{
+void histogram<T, C>::fill(const std::vector<T>& data) {
     for (const auto& p : data) {
         add(p);
     }
 }
 
 template <typename T, typename C>
-void histogram<T, C>::add(T value)
-{
+void histogram<T, C>::add(T value) {
     if ((value < m_lower) || (value >= m_upper)) {
         return;
     }
 
-    const std::size_t i { static_cast<std::size_t>(std::floor((value - m_lower) / m_width)) };
+    const std::size_t i {static_cast<std::size_t>(std::floor((value - m_lower) / m_width))};
 
     m_bins[i]++;
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::bins() const -> const std::vector<C>&
-{
+auto histogram<T, C>::bins() const -> const std::vector<C>& {
     return m_bins;
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::qualified_bins() const -> std::vector<bin>
-{
+auto histogram<T, C>::qualified_bins() const -> std::vector<bin> {
     std::vector<bin> bins;
-    T last { m_lower };
+    T                last {m_lower};
     for (auto& b : m_bins) {
         bin current {};
         current.lower = last;
@@ -228,35 +221,30 @@ auto histogram<T, C>::qualified_bins() const -> std::vector<bin>
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::width() const -> T
-{
+auto histogram<T, C>::width() const -> T {
     return m_width;
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::integral() const -> std::uint64_t
-{
+auto histogram<T, C>::integral() const -> std::uint64_t {
     return std::accumulate(m_bins.begin(), m_bins.end(), 0);
 }
 
 template <typename T, typename C>
-void histogram<T, C>::reset()
-{
+void histogram<T, C>::reset() {
     m_bins.clear();
     m_bins.resize(m_n);
 }
 
 template <typename T, typename C>
-void histogram<T, C>::reset(std::size_t n)
-{
+void histogram<T, C>::reset(std::size_t n) {
     m_n = n;
     reset();
 }
 
 template <typename T, typename C>
-void histogram<T, C>::reset(std::size_t n, T width)
-{
-    m_n = n;
+void histogram<T, C>::reset(std::size_t n, T width) {
+    m_n     = n;
     m_lower = 0;
     m_upper = width * n;
     m_width = width;
@@ -265,9 +253,8 @@ void histogram<T, C>::reset(std::size_t n, T width)
 }
 
 template <typename T, typename C>
-void histogram<T, C>::reset(std::size_t n, T lower, T upper)
-{
-    m_n = n;
+void histogram<T, C>::reset(std::size_t n, T lower, T upper) {
+    m_n     = n;
     m_lower = lower;
     m_upper = upper;
     m_width = (upper - lower) / static_cast<T>(n);
@@ -276,15 +263,14 @@ void histogram<T, C>::reset(std::size_t n, T lower, T upper)
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::mode() const -> T
-{
-    C maximum { std::numeric_limits<C>::min() };
-    std::size_t max_i { 0 };
+auto histogram<T, C>::mode() const -> T {
+    C           maximum {std::numeric_limits<C>::min()};
+    std::size_t max_i {0};
 
-    for (std::size_t i { 0 }; i < m_bins.size(); i++) {
+    for (std::size_t i {0}; i < m_bins.size(); i++) {
         if (maximum < m_bins.at(i)) {
             maximum = m_bins.at(i);
-            max_i = i;
+            max_i   = i;
         }
     }
 
@@ -292,12 +278,11 @@ auto histogram<T, C>::mode() const -> T
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::mean() const -> T
-{
-    T total { 0 };
-    T weighted { 0 };
+auto histogram<T, C>::mean() const -> T {
+    T total {0};
+    T weighted {0};
 
-    for (std::size_t i { 0 }; i < m_n; i++) {
+    for (std::size_t i {0}; i < m_n; i++) {
         total += static_cast<T>(m_bins.at(i));
         weighted += static_cast<T>(m_bins.at(i)) * ((static_cast<T>(i) + 0.5) * m_width);
     }
@@ -306,25 +291,23 @@ auto histogram<T, C>::mean() const -> T
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::median() const -> T
-{
-    const std::size_t l { m_n / 2 };
+auto histogram<T, C>::median() const -> T {
+    const std::size_t l {m_n / 2};
     return m_lower
-        + m_width
-        * (static_cast<T>(l)
-            + (static_cast<T>(m_n) * 0.5
-                  - static_cast<T>(std::accumulate(m_bins.begin(), m_bins.begin() + l, 0)))
-                / m_bins.at(l));
+         + m_width
+               * (static_cast<T>(l)
+                  + (static_cast<T>(m_n) * 0.5
+                     - static_cast<T>(std::accumulate(m_bins.begin(), m_bins.begin() + l, 0)))
+                        / m_bins.at(l));
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::percentile(double percent) const -> T
-{
-    const auto total { static_cast<double>(integral()) };
+auto histogram<T, C>::percentile(double percent) const -> T {
+    const auto    total {static_cast<double>(integral())};
     std::uint64_t lower {};
-    auto edge { static_cast<std::uint64_t>(total * percent) };
+    auto          edge {static_cast<std::uint64_t>(total * percent)};
 
-    for (size_t i { 0 }; i < m_n; i++) {
+    for (size_t i {0}; i < m_n; i++) {
         lower += m_bins.at(i);
         if (lower >= edge) {
             return m_lower + m_width * i;
@@ -334,11 +317,10 @@ auto histogram<T, C>::percentile(double percent) const -> T
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::rms() const -> T
-{
-    T total { 0 };
-    for (std::size_t i { 0 }; i < m_bins.size(); i++) {
-        const T middle { m_lower + (static_cast<T>(i) + 0.5) * m_width };
+auto histogram<T, C>::rms() const -> T {
+    T total {0};
+    for (std::size_t i {0}; i < m_bins.size(); i++) {
+        const T middle {m_lower + (static_cast<T>(i) + 0.5) * m_width};
 
         total += static_cast<T>(m_bins.at(i)) * middle * middle;
     }

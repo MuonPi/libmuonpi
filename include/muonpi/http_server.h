@@ -21,12 +21,12 @@ struct LIBMUONPI_PUBLIC path_handler {
         matches {}; //<! Function to determine whether the current path of the request matches this
     // handler
     std::function<response_type(request_type& req, const std::queue<std::string>& path)>
-        handle {}; //<! The registered handler function which gets called by the server
-    std::string name {}; //<! The name of this handler
-    bool requires_auth { false }; //<! Whether this handler requires authentication
+                handle {}; //<! The registered handler function which gets called by the server
+    std::string name {};   //<! The name of this handler
+    bool        requires_auth {false}; //<! Whether this handler requires authentication
     std::function<bool(request_type& req, std::string_view username, std::string_view password)>
-        authenticate {}; //<! The authentication handler to use
-    std::vector<path_handler> children {}; //<! Child handlers of this handler.
+                              authenticate {}; //<! The authentication handler to use
+    std::vector<path_handler> children {};     //<! Child handlers of this handler.
 };
 
 /**
@@ -38,12 +38,12 @@ public:
      * @brief The configuration struct
      */
     struct configuration {
-        int port {}; //<! The port on which to listen
+        int         port {};    //<! The port on which to listen
         std::string address {}; //<! The bind address to use
 
-        bool ssl {}; //<! whether to use ssl or not.
-        std::string cert {}; //<! The certificate file to use
-        std::string privkey {}; //<! The private key to use
+        bool        ssl {};       //<! whether to use ssl or not.
+        std::string cert {};      //<! The certificate file to use
+        std::string privkey {};   //<! The private key to use
         std::string fullchain {}; //<! The full keychain to use
     };
 
@@ -69,20 +69,20 @@ protected:
 private:
     [[nodiscard]] auto handle(request_type req) const -> response_type;
 
-    [[nodiscard]] auto handle(request_type req,
-        std::queue<std::string> path,
-        const std::vector<path_handler>& handlers) const -> response_type;
-    [[nodiscard]] auto handle(request_type req,
-        std::queue<std::string> path,
-        const path_handler& hand) const -> response_type;
+    [[nodiscard]] auto handle(request_type                     req,
+                              std::queue<std::string>          path,
+                              const std::vector<path_handler>& handlers) const -> response_type;
+    [[nodiscard]] auto handle(request_type            req,
+                              std::queue<std::string> path,
+                              const path_handler&     hand) const -> response_type;
 
     std::vector<path_handler> m_handler {};
 
-    net::io_context m_ioc { 1 };
-    ssl::context m_ctx { ssl::context::tlsv12 };
-    tcp::acceptor m_acceptor { m_ioc };
-    tcp::endpoint m_endpoint;
-    configuration m_conf;
+    net::io_context m_ioc {1};
+    ssl::context    m_ctx {ssl::context::tlsv12};
+    tcp::acceptor   m_acceptor {m_ioc};
+    tcp::endpoint   m_endpoint;
+    configuration   m_conf;
 };
 
 } // namespace muonpi::http
