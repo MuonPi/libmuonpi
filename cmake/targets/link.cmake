@@ -1,17 +1,16 @@
 option(LIBMUONPI_BUILD_LINK "Build the link code" ON )
 
+set(LINK_SOURCE_FILES
+    "${PROJECT_SRC_DIR}/link/mqtt.cpp"
+    "${PROJECT_SRC_DIR}/link/influx.cpp"
+    )
+
+set(LINK_HEADER_FILES
+    "${PROJECT_HEADER_DIR}/muonpi/link/mqtt.h"
+    "${PROJECT_HEADER_DIR}/muonpi/link/influx.h"
+    )
+
 if (LIBMUONPI_BUILD_LINK) # libraries specific to the link library
-    set(LINK_SOURCE_FILES
-        "${PROJECT_SRC_DIR}/link/mqtt.cpp"
-        "${PROJECT_SRC_DIR}/link/influx.cpp"
-        )
-
-    set(LINK_HEADER_FILES
-        "${PROJECT_HEADER_DIR}/muonpi/link/mqtt.h"
-        "${PROJECT_HEADER_DIR}/muonpi/link/influx.h"
-        )
-
-
     find_library(MOSQUITTO mosquitto REQUIRED)
 
 
