@@ -35,6 +35,7 @@ set(CORE_HEADER_FILES
 
 
 
+if (NOT LIBMUONPI_FORMAT_ONLY)
 add_library(muonpi-core SHARED ${CORE_SOURCE_FILES} ${CORE_HEADER_FILES})
 target_link_libraries(muonpi-core ${PROJECT_INCLUDE_LIBS})
 
@@ -45,3 +46,4 @@ setup_packaging(
  Core package"
     DESCRIPTIONDEV "Libraries for MuonPi
  Core dev package")
+ endif ()

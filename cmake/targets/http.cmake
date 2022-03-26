@@ -16,6 +16,7 @@ set(HTTP_HEADER_FILES
     "${PROJECT_DETAIL_DIR}/http_session.hpp"
     )
 
+if (NOT LIBMUONPI_FORMAT_ONLY)
 if (LIBMUONPI_BUILD_HTTP) # libraries specific to the REST library
     add_library(muonpi-http SHARED ${HTTP_SOURCE_FILES} ${HTTP_HEADER_FILES})
 
@@ -29,4 +30,5 @@ if (LIBMUONPI_BUILD_HTTP) # libraries specific to the REST library
  Link package"
         DESCRIPTIONDEV "Libraries for MuonPi
  Link dev package")
+endif ()
 endif ()

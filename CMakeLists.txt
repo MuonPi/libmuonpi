@@ -16,6 +16,7 @@ option(LIBMUONPI_BUILD_EXAMPLES "Build examples for how to use the library" ON)
 option(LIBMUONPI_TESTS "Build unit tests" OFF)
 option(LIBMUONPI_HARDWARE_TESTS "Build unit tests which depend on specific hardware" OFF)
 option(LIBMUONPI_BUILD_CLANG_TIDY "Run clang-tidy" OFF)
+option(LIBMUONPI_FORMAT_ONLY "Don't actually build the project. Only create the format target" OFF)
 
 if (LIBMUONPI_BUILD_CLANG_TIDY)
 set(CMAKE_CXX_CLANG_TIDY clang-tidy  -checks=-*,bugprone-*,clang-*,cppcoreguidelines-*,hicpp-*,llvm-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers)
@@ -43,7 +44,7 @@ else()
 endif()
 
 
-
+if (NOT LIBMUONPI_FORMAT_ONLY)
 set(USE_BOOST_COMPONENTS system program_options)
 if (LIBMUONPI_TESTS)
 set(USE_BOOST_COMPONENTS ${USE_BOOST_COMPONENTS} unit_test_framework)
@@ -75,7 +76,7 @@ endif()
 # --- necessary for compatability with older compilers
 
 configure_file("${PROJECT_CONFIG_DIR}/config.h" "${PROJECT_HEADER_DIR}/muonpi/global.h")
-
+endif()
 
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake")
@@ -86,6 +87,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/http.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/link.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/targets/detector.cmake")
 
+if (NOT LIBMUONPI_FORMAT_ONLY)
 if(${LIBMUONPI_BUILD_SANITIZERS})
     add_compile_options(-fsanitize=address,undefined)
     add_link_options(-fsanitize=address,undefined)
@@ -99,7 +101,7 @@ endif()
 if(LIBMUONPI_TESTS)
     add_subdirectory(tests)
 endif()
-
+endif ()
 
 set(PROJECT_SOURCE_FILES
     ${CORE_SOURCE_FILES}
