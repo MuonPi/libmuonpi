@@ -1,2 +1,3 @@
 *.user
 global.h
+build/
