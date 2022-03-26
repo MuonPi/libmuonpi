@@ -24,17 +24,14 @@ public:
      * @param calculation The calculation to perform in order to get a new value
      */
     explicit cached_value(std::function<T(P...)> calculation)
-        : m_calculation { calculation }
-    {
-    }
+        : m_calculation {calculation} {}
 
     /**
      * @brief get Get the buffered value. If the function marker returns true, a new value is
      * calculated.
      * @return The most recent value
      */
-    [[nodiscard]] inline auto get(P... params) const -> T
-    {
+    [[nodiscard]] inline auto get(P... params) const -> T {
         if (m_dirty) {
             m_value = m_calculation(params...);
             m_dirty = false;
@@ -47,20 +44,18 @@ public:
      * calculated.
      * @return The most recent value
      */
-    [[nodiscard]] inline auto operator()(P... params) const -> T
-    {
+    [[nodiscard]] inline auto operator()(P... params) const -> T {
         return get(params...);
     }
 
-    inline void mark_dirty()
-    {
+    inline void mark_dirty() {
         m_dirty = true;
     }
 
 private:
     std::function<T(P...)> m_calculation {};
-    mutable bool m_dirty { true };
-    mutable T m_value {};
+    mutable bool           m_dirty {true};
+    mutable T              m_value {};
 };
 
 } // namespace muonpi

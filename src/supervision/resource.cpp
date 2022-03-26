@@ -7,8 +7,7 @@
 
 namespace muonpi::supervision {
 
-auto resource::get_data() -> data_t
-{
+auto resource::get_data() -> data_t {
     std::ifstream total_stream("/proc/stat", std::ios_base::in);
 
     std::size_t cpu_total {};
@@ -22,9 +21,9 @@ auto resource::get_data() -> data_t
 
     cpu_total += system_user + system_nice + system_system;
 
-    constexpr static std::size_t n_data { 7 };
+    constexpr static std::size_t n_data {7};
 
-    for (std::size_t i { 0 }; i < n_data; i++) {
+    for (std::size_t i {0}; i < n_data; i++) {
         std::size_t v {};
         total_stream >> v;
         cpu_total += v;
@@ -57,11 +56,11 @@ auto resource::get_data() -> data_t
     std::string itrealvalue;
     std::string starttime;
 
-    std::size_t process_user { 0 };
-    std::size_t process_system { 0 };
+    std::size_t process_user {0};
+    std::size_t process_system {0};
 
-    std::size_t vsize { 0 };
-    std::size_t rss { 0 };
+    std::size_t vsize {0};
+    std::size_t rss {0};
 
     stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr >> tpgid >> flags
         >> minflt >> cminflt >> majflt >> cmajflt >> process_user >> process_system >> cutime
@@ -70,21 +69,22 @@ auto resource::get_data() -> data_t
 
     long page_size_b = sysconf(_SC_PAGE_SIZE);
 
-    auto total = static_cast<float>(cpu_total - m_cpu.total_time_last);
+    auto total   = static_cast<float>(cpu_total - m_cpu.total_time_last);
     auto process = static_cast<float>(process_user + process_system - m_cpu.process_time_last);
-    auto system = static_cast<float>(system_user + system_system + system_nice - m_cpu.system_time_last);
-    m_cpu.total_time_last = cpu_total;
+    auto system =
+        static_cast<float>(system_user + system_system + system_nice - m_cpu.system_time_last);
+    m_cpu.total_time_last   = cpu_total;
     m_cpu.process_time_last = process_user + process_system;
-    m_cpu.system_time_last = system_user + system_system + system_nice;
+    m_cpu.system_time_last  = system_user + system_system + system_nice;
 
     data_t data;
-    data.memory_usage = static_cast<float>(rss * page_size_b);
+    data.memory_usage     = static_cast<float>(rss * page_size_b);
     data.process_cpu_load = 0;
-    data.system_cpu_load = 0;
+    data.system_cpu_load  = 0;
 
     if (!m_first) {
         data.process_cpu_load = 100.0F * process / std::max(total, 1.0F);
-        data.system_cpu_load = 100.0F * system / std::max(total, 1.0F);
+        data.system_cpu_load  = 100.0F * system / std::max(total, 1.0F);
     } else {
         m_first = false;
     }
