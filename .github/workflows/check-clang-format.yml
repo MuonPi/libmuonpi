@@ -21,7 +21,7 @@ jobs:
       run: sudo apt install -y clang-format-11 git
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBMUONPI_FORMAT_ONLY:BOOL=ON
+      run: cmake -B ${{github.workspace}}/build -DLIBMUONPI_FORMAT_ONLY:BOOL=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
 
     - name: clang-format
       run: cmake --build ${{github.workspace}}/build --target clangformat

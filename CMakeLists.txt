@@ -119,4 +119,6 @@ set(PROJECT_HEADER_FILES
 
 add_custom_target(clangformat WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMMAND clang-format-11 -style=file -i ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})
 
+if (NOT LIBMUONPI_FORMAT_ONLY)
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")
+endif ()
