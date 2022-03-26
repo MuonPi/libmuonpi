@@ -29,6 +29,7 @@ set(DETECTOR_HEADER_FILES
     "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/hmc5883.h"
     "${PROJECT_HEADER_DIR}/muonpi/serial/spidevice.h"
     )
+if (NOT LIBMUONPI_FORMAT_ONLY)
 if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
     find_library(LIBGPIOD gpiod REQUIRED)
 
@@ -44,4 +45,5 @@ if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
      Link package"
         DESCRIPTIONDEV "Libraries for MuonPi
      Link dev package")
+endif ()
 endif ()
