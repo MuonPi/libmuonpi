@@ -26,7 +26,7 @@ set(DETECTOR_HEADER_FILES
     "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/pca9554.h"
     "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/hmc5883.h"
     )
-
+if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
     find_library(LIBGPIOD gpiod REQUIRED)
 
 
