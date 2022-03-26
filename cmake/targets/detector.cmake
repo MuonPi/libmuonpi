@@ -1,32 +1,32 @@
 option(LIBMUONPI_BUILD_DETECTOR "Build the detector code" ON )
 
+set(DETECTOR_SOURCE_FILES
+    "${PROJECT_SRC_DIR}/gpio_handler.cpp"
+    "${PROJECT_SRC_DIR}/serial/i2cdevice.cpp"
+    "${PROJECT_SRC_DIR}/serial/i2cbus.cpp"
+    "${PROJECT_SRC_DIR}/serial/i2cdevices/lm75.cpp"
+    "${PROJECT_SRC_DIR}/serial/i2cdevices/mic184.cpp"
+    "${PROJECT_SRC_DIR}/serial/i2cdevices/ads1115.cpp"
+    "${PROJECT_SRC_DIR}/serial/i2cdevices/mcp4728.cpp"
+    "${PROJECT_SRC_DIR}/serial/i2cdevices/eeprom24aa02.cpp"
+    )
+
+set(DETECTOR_HEADER_FILES
+    "${PROJECT_HEADER_DIR}/muonpi/gpio_handler.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevice.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cbus.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/lm75.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/mic184.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/ads1115.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/mcp4728.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/eeprom24aa02.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/io_extender.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/pca9536.h"
+    "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/pca9554.h"
+    )
+
 if (LIBMUONPI_BUILD_DETECTOR) # libraries specific to the Detector library
-    set(DETECTOR_SOURCE_FILES
-        "${PROJECT_SRC_DIR}/gpio_handler.cpp"
-        "${PROJECT_SRC_DIR}/serial/i2cdevice.cpp"
-        "${PROJECT_SRC_DIR}/serial/i2cbus.cpp"
-        "${PROJECT_SRC_DIR}/serial/i2cdevices/lm75.cpp"
-        "${PROJECT_SRC_DIR}/serial/i2cdevices/mic184.cpp"
-        "${PROJECT_SRC_DIR}/serial/i2cdevices/ads1115.cpp"
-        "${PROJECT_SRC_DIR}/serial/i2cdevices/mcp4728.cpp"
-        "${PROJECT_SRC_DIR}/serial/i2cdevices/eeprom24aa02.cpp"
-        )
-
-    set(DETECTOR_HEADER_FILES
-        "${PROJECT_HEADER_DIR}/muonpi/gpio_handler.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevice.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cbus.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/lm75.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/mic184.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/ads1115.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/mcp4728.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/eeprom24aa02.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/io_extender.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/pca9536.h"
-        "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevices/pca9554.h"
-        )
-
     find_library(LIBGPIOD gpiod REQUIRED)
 
 
