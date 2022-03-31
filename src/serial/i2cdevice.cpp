@@ -17,13 +17,14 @@ i2c_device::i2c_device(i2c_bus& bus, std::uint8_t address)
     : m_bus {bus}
     , m_address {address}
     , m_handle {open(bus.address().c_str(), O_RDWR)} {
-    if (m_handle > 0) {
+    if (m_handle > 0 && m_address < 0x80) {
         set_address(m_address);
     } else {
         set_flag(Flags::Failed);
     }
 }
 
+/*
 i2c_device::i2c_device(i2c_bus& bus)
     : m_bus {bus}
     , m_handle {open(bus.address().c_str(), O_RDWR)} {
@@ -33,6 +34,7 @@ i2c_device::i2c_device(i2c_bus& bus)
         set_flag(Flags::Failed);
     }
 }
+*/
 
 void i2c_device::set_address(std::uint8_t address) {
     if (m_handle > 0) {
@@ -134,10 +136,6 @@ void i2c_device::set_name(std::string name) {
 
 auto i2c_device::name() const -> std::string {
     return m_name;
-}
-
-auto i2c_device::addresses_hint() const -> const std::set<std::uint8_t>& {
-    return m_addresses_hint;
 }
 
 void i2c_device::set_addresses_hint(std::set<std::uint8_t> address_list) {

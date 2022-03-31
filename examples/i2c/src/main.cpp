@@ -32,61 +32,46 @@ auto main() -> int {
         }
     }
 
-    bool                   ok {false};
-    constexpr std::uint8_t tempsens_addr {0x4b};
-    ok = bus.identify_device<serial::devices::MIC184>(tempsens_addr);
-    if (ok) {
+    auto found_tempsensors = bus.identify_devices<serial::devices::MIC184>(serial::devices::MIC184::default_addresses());
+    for ( auto addr: found_tempsensors ) {
         // found the specific device at the expected position, so close the previously created
         // generic i2c_device and reopen as temp sensor device
-        bus.close(tempsens_addr);
-        auto& tempsensor = bus.open<serial::devices::MIC184>(tempsens_addr);
-        log::info() << "identified " << tempsensor.name() << " at 0x" << std::hex << std::setw(2)
-                    << std::setfill('0') << static_cast<int>(tempsens_addr)
-                    << " : temp=" << std::dec << tempsensor.get_temperature();
-    } else {
-        log::error() << "error identifying MIC184 at 0x" << std::hex << std::setw(2)
-                     << std::setfill('0') << static_cast<int>(tempsens_addr);
+        bus.close(addr);
+        auto& tempsensor = bus.open<serial::devices::MIC184>(addr);
+        log::info() << "identified " << tempsensor.name() << " at 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(addr) << " : temp=" << std::dec << tempsensor.get_temperature();
     }
 
-    constexpr std::uint8_t adc_addr {0x48};
-
-    ok = bus.identify_device<serial::devices::ADS1115>(adc_addr);
-    if (ok) {
+    auto found_adcs = bus.identify_devices<serial::devices::ADS1115>(serial::devices::ADS1115::default_addresses());
+    for ( auto addr: found_adcs ) {
         // found the specific device at the expected position, so close the previously created
         // generic i2c_device and reopen as adc device
-        bus.close(adc_addr);
-        auto& adc = bus.open<serial::devices::ADS1115>(adc_addr);
+        bus.close(addr);
+        auto& adc = bus.open<serial::devices::ADS1115>(addr);
         log::info() << "identified " << adc.name() << " at 0x" << std::hex << std::setw(2)
-                    << std::setfill('0') << static_cast<int>(adc_addr) << " : ch0=" << std::dec
+                    << std::setfill('0') << static_cast<int>(addr) << " : ch0=" << std::dec
                     << adc.getVoltage(0) << " ch1=" << std::dec << adc.getVoltage(1)
                     << " ch2=" << std::dec << adc.getVoltage(2) << " ch3=" << std::dec
                     << adc.getVoltage(3)
                     << "; ro-time=" << 1e-3 * adc.last_access_duration().count() << "ms";
-    } else {
-        log::error() << "error identifying ADS1115 at 0x" << std::hex << std::setw(2)
-                     << std::setfill('0') << static_cast<int>(adc_addr);
     }
 
-    constexpr std::uint8_t i2c_extender_addr {0x41};
-    if (bus.identify_device<serial::devices::PCA9536>(i2c_extender_addr)) {
+    auto found_io_ext_4bit = bus.identify_devices<serial::devices::PCA9536>(serial::devices::PCA9536::default_addresses());
+    for ( auto addr: found_io_ext_4bit ) {
         // found the specific device at the expected position, so close the previously created
         // generic i2c_device and reopen as PCA9536 device
-        bus.close(i2c_extender_addr);
-        auto& pca = bus.open<serial::devices::PCA9536>(i2c_extender_addr);
+        bus.close(addr);
+        auto& pca = bus.open<serial::devices::PCA9536>(addr);
         auto  input_state {pca.get_input_states()};
         auto  output_state {pca.get_output_states()};
         if (!input_state && !output_state) {
             log::error() << "reading " << pca.name() << " state registers";
         } else {
             log::info() << "identified " << pca.name() << " at 0x" << std::hex << std::setw(2)
-                        << std::setfill('0') << static_cast<int>(i2c_extender_addr)
+                        << std::setfill('0') << static_cast<int>(addr)
                         << " : inputs=0x" << std::setw(1) << static_cast<int>(input_state.value())
                         << " : outputs=0x" << std::setw(1) << static_cast<int>(output_state.value())
                         << std::dec;
         }
-    } else {
-        log::error() << "error identifying PCA9536 at 0x" << std::hex << std::setw(2)
-                     << std::setfill('0') << static_cast<int>(i2c_extender_addr);
     }
 
     constexpr std::uint8_t eeprom_addr {0x50};

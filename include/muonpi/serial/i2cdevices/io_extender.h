@@ -15,12 +15,12 @@ template <std::size_t BITS>
  * @note valid template specializations are available for values of the template
  * parameter BITS of 4 and 8.
  */
-class io_extender : public i2c_device {
+class io_extender : public i2c_device, public static_device_base<io_extender<BITS>> {
 public:
     static constexpr std::size_t width() {
         return BITS;
     }
-    io_extender(i2c_bus& bus, std::uint8_t address);
+    explicit io_extender(i2c_bus& bus, std::uint8_t address = InvalidI2cAddress);
 
     [[nodiscard]] auto set_direction_mask(std::uint8_t output_mask) -> bool;
     [[nodiscard]] auto set_output_states(std::uint8_t state_mask) -> bool;
@@ -56,12 +56,19 @@ template <>
 io_extender<4>::io_extender(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address) {
     set_name("4-bit io extender");
+    set_addresses_hint({0x41});
 }
 
 template <>
 io_extender<8>::io_extender(i2c_bus& bus, std::uint8_t address)
     : i2c_device(bus, address) {
     set_name("8-bit io extender");
+    // clang-format off
+    set_addresses_hint( {
+        0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
+        0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f
+    } );
+    // clang-format on
 }
 
 template <std::size_t BITS>

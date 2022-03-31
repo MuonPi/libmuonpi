@@ -15,7 +15,7 @@ namespace muonpi::serial::devices {
  * @note the device supports I2C Generall Call Commands reset,wake-up, software update and read
  * address bits.
  */
-class MCP4728 : public i2c_device {
+class MCP4728 : public i2c_device, public static_device_base<MCP4728> {
 public:
     /**
      * @brief enum for possible gain settings of the output amplifier
@@ -49,7 +49,7 @@ public:
         std::uint16_t value = 0; //!< the DAC value
     };
 
-    MCP4728(i2c_bus& bus, std::uint8_t address);
+    explicit MCP4728(i2c_bus& bus, std::uint8_t address = InvalidI2cAddress);
 
     [[nodiscard]] auto present() -> bool override;
     [[nodiscard]] auto set_voltage(unsigned int channel, float voltage) -> bool;

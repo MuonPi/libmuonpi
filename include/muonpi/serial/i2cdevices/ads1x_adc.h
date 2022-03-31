@@ -25,7 +25,7 @@ template <int CHANNELS = 4, int BITS = 16, bool PGA = true>
  * single-channel devices (CHANNELS=1)
  * </ul>
  */
-class ADS1X_ADC : public i2c_device {
+class ADS1X_ADC : public i2c_device, public static_device_base<ADS1X_ADC<CHANNELS,BITS,PGA>> {
 public:
     /**
      * @brief The Sample struct.
@@ -277,7 +277,7 @@ public:
     [[nodiscard]] static auto adcToVoltage(std::int16_t adc, pga_t pga_setting) -> float;
 
     // clang-format off
-    ADS1X_ADC(i2c_bus& bus, std::uint8_t address) noexcept;
+    explicit ADS1X_ADC(i2c_bus& bus, std::uint8_t address = InvalidI2cAddress) noexcept;
     // clang-format on
 
     ~ADS1X_ADC() override = default;

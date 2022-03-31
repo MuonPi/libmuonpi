@@ -33,9 +33,9 @@ namespace muonpi::serial::devices {
  * instance.
  */
 template <std::size_t EEPLENGTH = 256, std::uint8_t ADDRESSMODE = 1, std::size_t PAGELENGTH = 8>
-class i2c_eeprom : public i2c_device {
+class i2c_eeprom : public i2c_device, public static_device_base<i2c_eeprom<EEPLENGTH,ADDRESSMODE,PAGELENGTH>> {
 public:
-    explicit i2c_eeprom(i2c_bus& bus, std::uint8_t base_address);
+    explicit i2c_eeprom(i2c_bus& bus, std::uint8_t base_address = InvalidI2cAddress);
 
     /** Read multiple bytes starting from given address from EEPROM memory.
      * @param start_addr First 16bit register address to read from

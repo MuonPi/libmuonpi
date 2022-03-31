@@ -11,10 +11,37 @@
 #include <string>
 #include <sys/ioctl.h> // ioctl
 #include <vector>
+//#include "muonpi/serial/i2cbus.h"
 
 namespace muonpi::serial {
 
 class i2c_bus;
+
+constexpr std::uint8_t InvalidI2cAddress { 0xff };
+
+// base class fragment static_device_base which implemets static functions available to all derived classes
+// by the Curiously Recursive Template Pattern (CRTP) mechanism
+template<class T>
+/**
+ * @brief helper struct for providing static methods to all classes derived from i2c_device
+ * @note inheriting this struct facilitates descendants of i2c_device with all methods
+ * from this struct utilizing the Curiously Recursive Template Pattern (CRTP) mechanism
+ */
+struct static_device_base
+{
+    /**
+     * @brief get a list of possible addresses at which the device can be found
+     * @return a set of potential i2c bus addresses
+     * @note The default addresses list is a hint consisting of a collection of
+     * potential addresses at which the device may respond and is defined by
+     * the hardware-wise assignable addresses
+     * from manufacturer side.
+     * If this list is non-empty, one can safely assume that the device address
+     * will be among these addresses.
+     */
+    [[nodiscard]] static auto default_addresses() -> std::set<std::uint8_t>;
+};
+
 
 /**
  * @brief The i2c_device class
@@ -36,20 +63,17 @@ public:
         Locked      = 0x10  //!< device is operational, but access is inhibited
     };
 
+    i2c_device() = delete;
+
     /**
      * @brief constructor with device address
      * @param bus a reference to the i2c bus the device is attached to
-     * @param address the i2c device address under which this object communicates at the bus
+     * @param address optional i2c device address under which this object
+     * communicates on the bus
+     * @note if the device address is not specified it has to be explicitely set after
+     * construction with @link #set_address set_address @endlink
      */
-    i2c_device(i2c_bus& bus, std::uint8_t address);
-
-    /**
-     * @brief constructor without address definition
-     * @param bus a reference to the i2c bus the device is attached to
-     * @note the device address is undefined and has to be explicitely set after construction
-     * with @link #set_address
-     */
-    explicit i2c_device(i2c_bus& bus);
+    i2c_device(i2c_bus& bus, std::uint8_t address = 0xff);
 
     /**
      * @brief set the i2c address on the bus for this device
@@ -168,17 +192,6 @@ public:
     [[nodiscard]] auto name() const -> std::string;
 
     /**
-     * @brief get a list of possible addresses at which the device can be found
-     * @return a set of potential i2c bus addresses
-     * @note The addresses hint list is a collection of potential addresses at which
-     * the device may respond and is defined by the hardware-wise assignable addresses
-     * from the manufacturer side.
-     * If this list is non-empty, one can safely assume that the device address will be among these
-     * addresses.
-     */
-    [[nodiscard]] auto addresses_hint() const -> const std::set<std::uint8_t>&;
-
-    /**
      * @brief read an array of bytes from the device
      * @param buffer pointer to the buffer in which the data shall be placed
      * @param bytes the number of bytes to read
@@ -236,6 +249,18 @@ public:
      * @return number of words actually written, or -1 on error
      */
     auto write(std::uint8_t reg, const std::uint16_t* buffer, std::size_t length = 1) -> int;
+
+    /**
+     * @brief get a list of possible addresses at which the device can be found
+     * @return a set of potential i2c bus addresses
+     * @note The addresses hint list is a collection of
+     * potential addresses at which the device may respond and is defined by
+     * the hardware-wise assignable addresses
+     * from manufacturer side.
+     * If this list is non-empty, one can safely assume that the device address
+     * will be among these addresses.
+     */
+    [[nodiscard]] auto addresses_hint() const -> std::set<std::uint8_t> { return m_addresses_hint; }
 
 protected:
     void set_flag(Flags flag);
@@ -306,6 +331,13 @@ private:
 
     std::set<std::uint8_t> m_addresses_hint {};
 };
+
+template<class T>
+auto static_device_base<T>::default_addresses() -> std::set<std::uint8_t> {
+    i2c_bus bus { };
+    T dev ( bus );
+    return dev.addresses_hint();
+}
 
 } // namespace muonpi::serial
 

@@ -14,9 +14,9 @@ namespace muonpi::serial::devices {
  * according to the data sheet:
  * https://ww1.microchip.com/downloads/en/DeviceDoc/MIC184-Local-Remote-Thermal-Supervisor-DS20006457A.pdf
  */
-class MIC184 : public i2c_device {
+class MIC184 : public i2c_device, public static_device_base<MIC184> {
 public:
-    MIC184(i2c_bus& bus, std::uint8_t address);
+    explicit MIC184(i2c_bus& bus, std::uint8_t address = InvalidI2cAddress);
 
     ~MIC184() override;
 
