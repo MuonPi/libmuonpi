@@ -92,8 +92,8 @@ public:
      * @brief open a i2c device on the bus for access
      * @param address i2c device address in the range 0x01...0x7f
      * @return a reference to the device object
-     * @note the template parameter T specifies the particular device which must be a descendant of
-     * @link i2c_device
+     * @note the template parameter T specifies the particular device which must be a
+     * descendant of @link i2c_device i2c_device @endlink
      */
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
     [[nodiscard]] auto open(std::uint8_t address) -> T& {
@@ -106,8 +106,8 @@ public:
      * @brief get reference of existing i2c device with given address
      * @param address i2c device address in the range 0x01...0x7f
      * @return a reference to the device object
-     * @note the template parameter T specifies the particular device which must be a descendant of
-     * @link i2c_device
+     * @note the template parameter T specifies the particular device which must be a
+     * descendant of @link i2c_device i2c_device @endlink
      */
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
     [[nodiscard]] auto get(std::uint8_t address) -> T& {
@@ -117,10 +117,10 @@ public:
     /**
      * @brief identify an i2c device of type T with given address
      * @param address i2c device address in the range 0x01...0x7f
-     * @return result of the identity check. true, if the device of type T was responding on the
-     * specified address
-     * @note the template parameter T specifies the particular device which must be a descendant of
-     * @link i2c_device
+     * @return result of the identity check. true, if the device of type T was
+     * responding on the specified address
+     * @note the template parameter T specifies the particular device which must be a
+     * descendant of @link i2c_device i2c_device @endlink
      */
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
     [[nodiscard]] auto identify_device(std::uint8_t address) -> bool;
@@ -129,8 +129,8 @@ public:
      * @brief identify one or more i2c devices of type T
      * @param possible_addresses address range in which the devices will be searched for
      * @return a list of addresses at which devices of type T were responding
-     * @note the template parameter T specifies the particular device which must be a descendant of
-     * @link i2c_device
+     * @note the template parameter T specifies the particular device which must be a
+     * descendant of @link i2c_device i2c_device @endlink
      */
     template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
     [[nodiscard]] auto
@@ -144,7 +144,7 @@ public:
      * @note A positive return value does not imply that an actual device is physically present
      * at the specified address. The device was merely instantiated and opened for access.
      * Yet, the result of bus transactions are not reflected by this query.
-     * Use @link i2c_device#present i2c_device::present() @endlink to
+     * Use @link i2c_device#present present() @endlink to
      * check for the physical presence of devices.
      */
     [[nodiscard]] auto is_open(std::uint8_t address) const -> bool;
