@@ -15,7 +15,9 @@ template <std::size_t BITS>
  * @note valid template specializations are available for values of the template
  * parameter BITS of 4 and 8.
  */
-class io_extender : public i2c_device, public static_device_base<io_extender<BITS>> {
+class io_extender
+    : public i2c_device
+    , public static_device_base<io_extender<BITS>> {
 public:
     static constexpr std::size_t width() {
         return BITS;

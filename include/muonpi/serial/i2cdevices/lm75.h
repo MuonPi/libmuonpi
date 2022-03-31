@@ -11,7 +11,9 @@ namespace muonpi::serial::devices {
  * sensors. The temperature value (in degrees Celsius) is returned by the @link #get_temperature
  * get_temperature @endlink method.
  */
-class LM75 : public i2c_device, public static_device_base<LM75> {
+class LM75
+    : public i2c_device
+    , public static_device_base<LM75> {
 public:
     explicit LM75(i2c_bus& bus, std::uint8_t address = InvalidI2cAddress);
 

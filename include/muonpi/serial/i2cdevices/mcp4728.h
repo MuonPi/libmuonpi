@@ -15,7 +15,9 @@ namespace muonpi::serial::devices {
  * @note the device supports I2C Generall Call Commands reset,wake-up, software update and read
  * address bits.
  */
-class MCP4728 : public i2c_device, public static_device_base<MCP4728> {
+class MCP4728
+    : public i2c_device
+    , public static_device_base<MCP4728> {
 public:
     /**
      * @brief enum for possible gain settings of the output amplifier

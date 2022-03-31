@@ -10,7 +10,9 @@
 namespace muonpi::serial::devices {
 
 /* HMC5883 3-axis magnetic field sensor */
-class HMC5883 : public i2c_device, public static_device_base<HMC5883> {
+class HMC5883
+    : public i2c_device
+    , public static_device_base<HMC5883> {
 public:
     typedef std::vector<float> magnetic_field_t;
     enum Axis

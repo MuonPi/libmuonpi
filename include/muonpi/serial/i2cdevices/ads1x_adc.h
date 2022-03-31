@@ -25,7 +25,9 @@ template <int CHANNELS = 4, int BITS = 16, bool PGA = true>
  * single-channel devices (CHANNELS=1)
  * </ul>
  */
-class ADS1X_ADC : public i2c_device, public static_device_base<ADS1X_ADC<CHANNELS,BITS,PGA>> {
+class ADS1X_ADC
+    : public i2c_device
+    , public static_device_base<ADS1X_ADC<CHANNELS, BITS, PGA>> {
 public:
     /**
      * @brief The Sample struct.

@@ -17,18 +17,17 @@ namespace muonpi::serial {
 
 class i2c_bus;
 
-constexpr std::uint8_t InvalidI2cAddress { 0xff };
+constexpr std::uint8_t InvalidI2cAddress {0xff};
 
-// base class fragment static_device_base which implemets static functions available to all derived classes
-// by the Curiously Recursive Template Pattern (CRTP) mechanism
-template<class T>
+// base class fragment static_device_base which implemets static functions available to all derived
+// classes by the Curiously Recursive Template Pattern (CRTP) mechanism
+template <class T>
 /**
  * @brief helper struct for providing static methods to all classes derived from i2c_device
  * @note inheriting this struct facilitates descendants of i2c_device with all methods
  * from this struct utilizing the Curiously Recursive Template Pattern (CRTP) mechanism
  */
-struct static_device_base
-{
+struct static_device_base {
     /**
      * @brief get a list of possible addresses at which the device can be found
      * @return a set of potential i2c bus addresses
@@ -41,7 +40,6 @@ struct static_device_base
      */
     [[nodiscard]] static auto default_addresses() -> std::set<std::uint8_t>;
 };
-
 
 /**
  * @brief The i2c_device class
@@ -260,7 +258,9 @@ public:
      * If this list is non-empty, one can safely assume that the device address
      * will be among these addresses.
      */
-    [[nodiscard]] auto addresses_hint() const -> std::set<std::uint8_t> { return m_addresses_hint; }
+    [[nodiscard]] auto addresses_hint() const -> std::set<std::uint8_t> {
+        return m_addresses_hint;
+    }
 
 protected:
     void set_flag(Flags flag);
@@ -332,10 +332,10 @@ private:
     std::set<std::uint8_t> m_addresses_hint {};
 };
 
-template<class T>
+template <class T>
 auto static_device_base<T>::default_addresses() -> std::set<std::uint8_t> {
-    i2c_bus bus { };
-    T dev ( bus );
+    i2c_bus bus {};
+    T       dev(bus);
     return dev.addresses_hint();
 }
 

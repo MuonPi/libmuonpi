@@ -32,17 +32,21 @@ auto main() -> int {
         }
     }
 
-    auto found_tempsensors = bus.identify_devices<serial::devices::MIC184>(serial::devices::MIC184::default_addresses());
-    for ( auto addr: found_tempsensors ) {
+    auto found_tempsensors =
+        bus.identify_devices<serial::devices::MIC184>(serial::devices::MIC184::default_addresses());
+    for (auto addr : found_tempsensors) {
         // found the specific device at the expected position, so close the previously created
         // generic i2c_device and reopen as temp sensor device
         bus.close(addr);
         auto& tempsensor = bus.open<serial::devices::MIC184>(addr);
-        log::info() << "identified " << tempsensor.name() << " at 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(addr) << " : temp=" << std::dec << tempsensor.get_temperature();
+        log::info() << "identified " << tempsensor.name() << " at 0x" << std::hex << std::setw(2)
+                    << std::setfill('0') << static_cast<int>(addr) << " : temp=" << std::dec
+                    << tempsensor.get_temperature();
     }
 
-    auto found_adcs = bus.identify_devices<serial::devices::ADS1115>(serial::devices::ADS1115::default_addresses());
-    for ( auto addr: found_adcs ) {
+    auto found_adcs = bus.identify_devices<serial::devices::ADS1115>(
+        serial::devices::ADS1115::default_addresses());
+    for (auto addr : found_adcs) {
         // found the specific device at the expected position, so close the previously created
         // generic i2c_device and reopen as adc device
         bus.close(addr);
@@ -55,8 +59,9 @@ auto main() -> int {
                     << "; ro-time=" << 1e-3 * adc.last_access_duration().count() << "ms";
     }
 
-    auto found_io_ext_4bit = bus.identify_devices<serial::devices::PCA9536>(serial::devices::PCA9536::default_addresses());
-    for ( auto addr: found_io_ext_4bit ) {
+    auto found_io_ext_4bit = bus.identify_devices<serial::devices::PCA9536>(
+        serial::devices::PCA9536::default_addresses());
+    for (auto addr : found_io_ext_4bit) {
         // found the specific device at the expected position, so close the previously created
         // generic i2c_device and reopen as PCA9536 device
         bus.close(addr);
@@ -67,10 +72,9 @@ auto main() -> int {
             log::error() << "reading " << pca.name() << " state registers";
         } else {
             log::info() << "identified " << pca.name() << " at 0x" << std::hex << std::setw(2)
-                        << std::setfill('0') << static_cast<int>(addr)
-                        << " : inputs=0x" << std::setw(1) << static_cast<int>(input_state.value())
-                        << " : outputs=0x" << std::setw(1) << static_cast<int>(output_state.value())
-                        << std::dec;
+                        << std::setfill('0') << static_cast<int>(addr) << " : inputs=0x"
+                        << std::setw(1) << static_cast<int>(input_state.value()) << " : outputs=0x"
+                        << std::setw(1) << static_cast<int>(output_state.value()) << std::dec;
         }
     }
 
