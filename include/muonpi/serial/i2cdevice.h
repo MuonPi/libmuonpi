@@ -11,16 +11,14 @@
 #include <string>
 #include <sys/ioctl.h> // ioctl
 #include <vector>
-//#include "muonpi/serial/i2cbus.h"
 
 namespace muonpi::serial {
 
 class i2c_bus;
 
+/// definition of invalid I2C address
 constexpr std::uint8_t InvalidI2cAddress {0xff};
 
-// base class fragment static_device_base which implemets static functions available to all derived
-// classes by the Curiously Recursive Template Pattern (CRTP) mechanism
 template <class T>
 /**
  * @brief helper struct for providing static methods to all classes derived from i2c_device

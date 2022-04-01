@@ -138,9 +138,11 @@ public:
     }
 
 private:
-    std::uint8_t m_base_address {0xff}; ///<! the base address of the device on the bus
-    static constexpr std::chrono::microseconds EEP_WRITE_IDLE_TIME {5000};
-    static constexpr std::size_t               MAX_READ_BLOCK_SIZE {256};
+    std::uint8_t m_base_address {0xff}; //<! the base address of the device on the bus
+    static constexpr std::chrono::microseconds EEP_WRITE_IDLE_TIME {
+        5000}; //<! eeprom write cycle wait time
+    static constexpr std::size_t MAX_READ_BLOCK_SIZE {
+        256}; //<! maximum block size of read transfers in bytes
 };
 
 /*********************
@@ -240,7 +242,7 @@ i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::read(std::uint16_t start_addr,
 
     for (std::size_t i = 0; i < num_bytes;) {
         std::size_t currAddr {start_addr + i};
-        // determine, how many bytes left on current page
+        // determine, how many bytes left for this block transfer
         std::size_t pageRemainder {MAX_READ_BLOCK_SIZE - currAddr % MAX_READ_BLOCK_SIZE};
         if (pageRemainder > num_bytes - total_read) {
             pageRemainder = num_bytes - total_read;
@@ -275,7 +277,7 @@ i2c_eeprom<EEPLENGTH, ADDRESSMODE, PAGELENGTH>::read(std::uint8_t  start_addr,
 
     for (std::size_t i = 0; i < num_bytes;) {
         std::size_t currAddr {start_addr + i};
-        // determine, how many bytes left on current page
+        // determine, how many bytes left for this block transfer
         std::size_t pageRemainder {MAX_READ_BLOCK_SIZE - currAddr % MAX_READ_BLOCK_SIZE};
         if (pageRemainder > num_bytes - total_read) {
             pageRemainder = num_bytes - total_read;
