@@ -13,8 +13,7 @@ struct fixture_i2c_handler {
         bus = std::make_unique<muonpi::serial::i2c_bus>("/dev/i2c-1");
     }
 
-    void teardown() {
-    }
+    void teardown() {}
 };
 
 BOOST_TEST_GLOBAL_FIXTURE(fixture_i2c_handler);
@@ -35,29 +34,32 @@ BOOST_AUTO_TEST_CASE(test_i2c_access_bus) {
 
 BOOST_AUTO_TEST_CASE(test_i2c_mic184) {
     auto found_tempsensors =
-        fixture_i2c_handler::bus->identify_devices<muonpi::serial::devices::MIC184>(muonpi::serial::devices::MIC184::default_addresses());
+        fixture_i2c_handler::bus->identify_devices<muonpi::serial::devices::MIC184>(
+            muonpi::serial::devices::MIC184::default_addresses());
     for (auto addr : found_tempsensors) {
         // found the specific device at the expected position, so close the previously created
         // generic i2c_device and reopen as temp sensor device
-        //fixture_i2c_handler::bus->close(addr);
+        // fixture_i2c_handler::bus->close(addr);
         auto& tempsensor = fixture_i2c_handler::bus->open<muonpi::serial::devices::MIC184>(addr);
-        auto temp = tempsensor.get_temperature();
-        BOOST_TEST( (temp >= -55. && temp <= 127.) );
-        BOOST_TEST( (tempsensor.last_access_duration().count() > 0 && tempsensor.last_access_duration() < std::chrono::seconds(1)) );
+        auto  temp       = tempsensor.get_temperature();
+        BOOST_TEST((temp >= -55. && temp <= 127.));
+        BOOST_TEST((tempsensor.last_access_duration().count() > 0
+                    && tempsensor.last_access_duration() < std::chrono::seconds(1)));
     }
 }
 
 BOOST_AUTO_TEST_CASE(test_i2c_ads1115) {
-    auto found_adcs =
-        fixture_i2c_handler::bus->identify_devices<muonpi::serial::devices::ADS1115>(muonpi::serial::devices::ADS1115::default_addresses());
+    auto found_adcs = fixture_i2c_handler::bus->identify_devices<muonpi::serial::devices::ADS1115>(
+        muonpi::serial::devices::ADS1115::default_addresses());
     for (auto addr : found_adcs) {
         // found the specific device at the expected position, so close the previously created
         // generic i2c_device and reopen as temp sensor device
-        //fixture_i2c_handler::bus->close(addr);
-        auto& adc = fixture_i2c_handler::bus->open<muonpi::serial::devices::ADS1115>(addr);
-        auto voltage = adc.getVoltage(0);
-        BOOST_TEST( (voltage >= -5. && voltage <= 5.) );
-        BOOST_TEST( (adc.last_access_duration().count() > 0 && adc.last_access_duration() < std::chrono::seconds(1)) );
+        // fixture_i2c_handler::bus->close(addr);
+        auto& adc     = fixture_i2c_handler::bus->open<muonpi::serial::devices::ADS1115>(addr);
+        auto  voltage = adc.getVoltage(0);
+        BOOST_TEST((voltage >= -5. && voltage <= 5.));
+        BOOST_TEST((adc.last_access_duration().count() > 0
+                    && adc.last_access_duration() < std::chrono::seconds(1)));
     }
 }
 
@@ -67,12 +69,12 @@ BOOST_AUTO_TEST_CASE(test_i2c_mcp4728) {
     for (auto addr : found_dacs) {
         // found the specific device at the expected position, so close the previously created
         // generic i2c_device and reopen as adc device
-        //fixture_i2c_handler::bus->close(addr);
-        auto& dac = fixture_i2c_handler::bus->open<muonpi::serial::devices::MCP4728>(addr);
-        auto dac_channel = dac.read_channel(0);
-        BOOST_TEST( dac_channel.has_value() );
-        BOOST_TEST( (dac.last_access_duration().count() > 0 && dac.last_access_duration() < std::chrono::seconds(1)) );
-
+        // fixture_i2c_handler::bus->close(addr);
+        auto& dac         = fixture_i2c_handler::bus->open<muonpi::serial::devices::MCP4728>(addr);
+        auto  dac_channel = dac.read_channel(0);
+        BOOST_TEST(dac_channel.has_value());
+        BOOST_TEST((dac.last_access_duration().count() > 0
+                    && dac.last_access_duration() < std::chrono::seconds(1)));
     }
 }
 
