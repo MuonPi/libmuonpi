@@ -78,6 +78,22 @@ auto main() -> int {
         }
     }
 
+    auto found_dacs = bus.identify_devices<serial::devices::MCP4728>(
+        serial::devices::MCP4728::default_addresses());
+    for (auto addr : found_dacs) {
+        // found the specific device at the expected position, so close the previously created
+        // generic i2c_device and reopen as adc device
+        bus.close(addr);
+        auto& dac = bus.open<serial::devices::MCP4728>(addr);
+        auto dac_channel = dac.read_channel(0);
+        if (dac_channel) {
+            log::info() << "identified " << dac.name() << " at 0x" << std::hex << std::setw(2)
+                    << std::setfill('0') << static_cast<int>(addr) << " : ch0=" << std::dec
+                    << serial::devices::MCP4728::code2voltage(dac_channel.value())
+                    << "; ro-time=" << 1e-3 * dac.last_access_duration().count() << "ms";
+        }
+    }
+
     constexpr std::uint8_t eeprom_addr {0x50};
     if (bus.identify_device<serial::devices::eeproms::MC24AA02UID>(eeprom_addr)) {
         // found the specific device at the expected position, so close the previously created
