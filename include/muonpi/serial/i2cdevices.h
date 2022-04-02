@@ -14,8 +14,12 @@
 
 namespace muonpi::serial::devices {
 
-typedef ADS1X_ADC<4, 16> ADS1115;
-typedef ADS1X_ADC<4, 12> ADS1015;
+typedef ADS1X_ADC<4, 12>        ADS1015;
+typedef ADS1X_ADC<1, 12>        ADS1014;
+typedef ADS1X_ADC<1, 12, false> ADS1013;
+typedef ADS1X_ADC<4, 16>        ADS1115;
+typedef ADS1X_ADC<1, 16>        ADS1114;
+typedef ADS1X_ADC<1, 16, false> ADS1113;
 
 } // namespace muonpi::serial::devices
 
