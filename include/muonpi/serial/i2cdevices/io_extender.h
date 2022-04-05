@@ -22,9 +22,30 @@ public:
     }
     explicit io_extender(i2c_bus& bus, std::uint8_t address = InvalidI2cAddress);
 
+    /**
+     * @brief set direction bit mask
+     * @param output_mask bitmask with bits set for output lines
+     * @return true on success
+     */
     [[nodiscard]] auto set_direction_mask(std::uint8_t output_mask) -> bool;
+
+    /**
+     * @brief set states of output lines
+     * @param state_mask mask with output line states
+     * @return true on success
+     */
     [[nodiscard]] auto set_output_states(std::uint8_t state_mask) -> bool;
+
+    /**
+     * @brief get states of output lines
+     * @return std::optional with output line states
+     */
     [[nodiscard]] auto get_output_states() -> std::optional<std::uint8_t>;
+
+    /**
+     * @brief get states of input lines
+     * @return std::optional with input line states
+     */
     [[nodiscard]] auto get_input_states() -> std::optional<std::uint8_t>;
 
     [[nodiscard]] auto present() -> bool override;
