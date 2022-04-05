@@ -126,7 +126,7 @@ public:
      * @brief check for the presence of a specific device on the bus
      * @return true, if the device could be identified
      * @note this method should be overriden in derived classes, if there is a possibility to tell
-     * the presence of a specific device from the bit battern read. If it is not reimplemented,
+     * the presence of a specific device from the bit pattern read. If it is not reimplemented,
      * this method returns false by default.
      */
     [[nodiscard]] virtual auto identify() -> bool;
