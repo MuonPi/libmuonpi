@@ -14,12 +14,14 @@
 
 namespace muonpi::serial::devices {
 
-typedef ADS1X_ADC<4, 12>        ADS1015;
-typedef ADS1X_ADC<1, 12>        ADS1014;
-typedef ADS1X_ADC<1, 12, false> ADS1013;
-typedef ADS1X_ADC<4, 16>        ADS1115;
-typedef ADS1X_ADC<1, 16>        ADS1114;
-typedef ADS1X_ADC<1, 16, false> ADS1113;
+typedef ADS1X_ADC<4, 12> ADS1015; //!< 4-channel, 12-bit I2C ADC with programmable gain amplifier
+typedef ADS1X_ADC<1, 12>
+    ADS1014; //!< single channel, 12-bit I2C ADC with programmable gain amplifier
+typedef ADS1X_ADC<1, 12, false> ADS1013; //!< single channel, 12-bit I2C ADC
+typedef ADS1X_ADC<4, 16> ADS1115; //!< 4-channel, 16-bit I2C ADC with programmable gain amplifier
+typedef ADS1X_ADC<1, 16>
+    ADS1114; //!< single channel, 16-bit I2C ADC with programmable gain amplifier
+typedef ADS1X_ADC<1, 16, false> ADS1113; //!< single channel, 16-bit I2C ADC
 
 } // namespace muonpi::serial::devices
 
