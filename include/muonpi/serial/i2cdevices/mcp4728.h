@@ -54,9 +54,35 @@ public:
     explicit MCP4728(i2c_bus& bus, std::uint8_t address = InvalidI2cAddress);
 
     [[nodiscard]] auto present() -> bool override;
+
+    /**
+     * @brief set output voltage of a channel
+     * @param channel channel for which the output shall be set
+     * @param voltage voltage to be applied to the output in Volts
+     * @return true on success
+     */
     [[nodiscard]] auto set_voltage(unsigned int channel, float voltage) -> bool;
+
+    /**
+     * @brief store output registers and configuration into the device's nonvolatile
+     * eeprom memory
+     * @return true on success
+     */
     [[nodiscard]] auto store_settings() -> bool;
+
+    /**
+     * @brief set output value and configuration of a channel
+     * @param channel channel for which the output shall be set
+     * @param channelData DacChannel configuration struct to be applied to channel
+     * @return true on success
+     */
     [[nodiscard]] auto write_channel(std::uint8_t channel, const DacChannel& channelData) -> bool;
+
+    /**
+     * @brief get output value and configuration of a channel
+     * @param channel channel for which the configuration shall be returned
+     * @return std::optional of DacChannel configuration struct of the channel
+     */
     [[nodiscard]] auto read_channel(std::uint8_t channel, bool eeprom = false)
         -> std::optional<DacChannel>;
     [[nodiscard]] auto set_vref(unsigned int channel, CFG_VREF vref_setting) -> bool;
