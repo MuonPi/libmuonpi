@@ -37,6 +37,7 @@ struct static_device_base {
      * will be among these addresses.
      */
     [[nodiscard]] static auto default_addresses() -> std::set<std::uint8_t>;
+    [[nodiscard]] static auto device_name() -> std::string;
 };
 
 /**
@@ -335,6 +336,13 @@ auto static_device_base<T>::default_addresses() -> std::set<std::uint8_t> {
     i2c_bus bus {};
     T       dev(bus);
     return dev.addresses_hint();
+}
+
+template <class T>
+auto static_device_base<T>::device_name() -> std::string {
+    i2c_bus bus {};
+    T       dev(bus);
+    return dev.name();
 }
 
 } // namespace muonpi::serial
