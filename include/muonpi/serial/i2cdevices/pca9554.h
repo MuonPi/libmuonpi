@@ -1,7 +1,6 @@
 #ifndef MUONPI_SERIAL_I2CDEVICES_PCA9554_H
 #define MUONPI_SERIAL_I2CDEVICES_PCA9554_H
 #include "muonpi/serial/i2cbus.h"
-//#include "muonpi/serial/i2cdevice.h"
 #include "muonpi/serial/i2cdevices/io_extender.h"
 
 namespace muonpi::serial::devices {
