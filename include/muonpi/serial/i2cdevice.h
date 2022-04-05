@@ -37,6 +37,11 @@ struct static_device_base {
      * will be among these addresses.
      */
     [[nodiscard]] static auto default_addresses() -> std::set<std::uint8_t>;
+
+    /**
+     * @brief get the name of this i2c device
+     * @return the name string
+     */
     [[nodiscard]] static auto device_name() -> std::string;
 };
 
