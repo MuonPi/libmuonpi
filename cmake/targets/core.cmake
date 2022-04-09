@@ -30,6 +30,8 @@ set(CORE_HEADER_FILES
     "${PROJECT_HEADER_DIR}/muonpi/supervision/resource.h"
     "${PROJECT_HEADER_DIR}/muonpi/global.h"
     "${PROJECT_HEADER_DIR}/muonpi/types.h"
+    "${PROJECT_HEADER_DIR}/muonpi/concepts.h"
+    "${PROJECT_HEADER_DIR}/muonpi/range.h"
     )
 
 

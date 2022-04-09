@@ -11,6 +11,8 @@ set(DETECTOR_SOURCE_FILES
     )
 
 set(DETECTOR_HEADER_FILES
+    "${PROJECT_HEADER_DIR}/muonpi/addressrange.h"
+    "${PROJECT_HEADER_DIR}/muonpi/multiaddressrange.h"
     "${PROJECT_HEADER_DIR}/muonpi/gpio_handler.h"
     "${PROJECT_HEADER_DIR}/muonpi/serial/i2cdevice.h"
     "${PROJECT_HEADER_DIR}/muonpi/serial/i2cbus.h"
