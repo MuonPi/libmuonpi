@@ -1,216 +1,171 @@
-#ifndef MUONPI_SERIAL_I2CBUS_H
-#define MUONPI_SERIAL_I2CBUS_H
+#ifndef HARDWARE_I2CBUS_H
+#define HARDWARE_I2CBUS_H
 
+#include "muonpi/serial/i2cdefinitions.h"
 #include "muonpi/serial/i2cdevice.h"
 
+#include <atomic>
 #include <cinttypes>
 #include <cstdio>
-#include <fcntl.h> // open
+#include <fcntl.h>
 #include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
-#include <sys/ioctl.h> // ioctl
-#include <sys/time.h>  // for gettimeofday()
+#include <sys/ioctl.h>
 #include <type_traits>
 #include <unistd.h>
 
 namespace muonpi::serial {
 
-/**
- * @brief The i2c_bus class
- * This class defines and abstracts an access interface to the hardware i2c bus (master mode)
- * of the system.
- */
-class i2c_bus {
+class LIBMUONPI_PUBLIC i2c_bus {
 public:
-    friend class i2c_device;
-
-    /// the definition of the general call bus address
-    static constexpr std::uint8_t GeneralCallAddress {0x00};
-
     /**
-     * @brief The general_call_t struct
-     * This member struct of i2c_bus provides access to the i2c general call mechanism.
-     * The general call is a special i2c device which issues commands at address 0x00.
-     * Many devices listen to these 'broadcast' commands and take action
+     * @brief i2c_bus
+     * @param path the path to the i2c device. e.g. "/dev/i2c-1"
      */
-    struct general_call_t {
-    public:
-        explicit general_call_t(i2c_bus* bus);
+    explicit i2c_bus(std::string path);
 
-        /**
-         * @brief issue a general call reset command
-         * @return true, if the command could be issued successful
-         */
-        auto reset() -> bool;
+    i2c_bus();
 
-        /**
-         * @brief issue a general call wake-up command
-         * @return true, if the command could be issued successful
-         */
-        auto wake_up() -> bool;
-
-        /**
-         * @brief issue a general call software-update command
-         * @return true, if the command could be issued successful
-         */
-        auto software_update() -> bool;
-
-    private:
-        i2c_bus* m_bus {nullptr};
-    } general_call {nullptr};
-
-    /**
-     * @brief constructor with specific device address path
-     * @param address the system device address path of the i2c bus.
-     * @note On *ix systems this is usually /dev/i2c-x
-     */
-    explicit i2c_bus(std::string address);
-
-    /**
-     * @brief default constructor without specific device address path
-     * @note To not specify a device path at construction time of @link i2c_bus i2c_bus @endlink
-     * will be utilized for the instantiation of sub-buses (e.g. from address translators).
-     * However, this functionality is not available yet and will be implemented in the future.
-     * @todo Still need to implement the sub-bus functionality, where the default
-     * constructor will be reasonably defined.
-     */
-    explicit i2c_bus();
+    i2c_bus(const i2c_bus&) = delete;
+    void operator=(const i2c_bus&) = delete;
+    i2c_bus(i2c_bus&&)             = delete;
+    void operator=(i2c_bus&&) = delete;
 
     virtual ~i2c_bus();
 
     /**
-     * @brief get the system address path of the bus
-     * @return a string holding the system address of the bus
+     * @brief path
+     * @return The currently used path
      */
-    [[nodiscard]] auto address() const -> std::string;
+    [[nodiscard]] auto path() const -> std::string;
+
+    template <typename T>
+    /**
+     * @brief get Get a device on address.
+     * If it is not yet open, opens the device.
+     * @param address
+     */
+    [[nodiscard]] auto get(std::uint8_t address) -> T& requires is_device_type<T>;
+
+    template <typename T>
+    /**
+     * @brief get Get a device
+     * If it is not yet open, opens the device.
+     * Tries to automatically find the address of the device.
+     */
+    [[nodiscard]] auto get() -> T& requires is_device_type<T>;
+
+    template <typename A>
+    /**
+     * @brief identify_device Try to positively identify a device.
+     * The exact method depends on the specific device, specifically if the manufacturer
+     * provided a mechanism.
+     * @param address
+     * @return true if the device could be identified.
+     */
+    [[nodiscard]] auto identify_device(A address) -> bool requires is_address_type<A>;
+
+    template <typename A>
+    /**
+     * @brief is_open Check if a previously opened device is actually open.
+     * @param address The address on the bus
+     * @return true if the device is open
+     */
+    [[nodiscard]] auto is_open(A address) const -> bool requires is_address_type<A>;
 
     /**
-     * @brief open a i2c device on the bus for access
-     * @param address i2c device address in the range 0x01...0x7f
-     * @return a reference to the device object
-     * @note the template parameter T specifies the particular device which must be a
-     * descendant of @link i2c_device i2c_device @endlink
-     */
-    template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
-    [[nodiscard]] auto open(std::uint8_t address) -> T& {
-        m_devices.emplace(address, std::make_shared<T>(*this, address));
-
-        return this->get<T>(address);
-    }
-
-    /**
-     * @brief get reference of existing i2c device with given address
-     * @param address i2c device address in the range 0x01...0x7f
-     * @return a reference to the device object
-     * @note the template parameter T specifies the particular device which must be a
-     * descendant of @link i2c_device i2c_device @endlink
-     */
-    template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
-    [[nodiscard]] auto get(std::uint8_t address) -> T& {
-        return dynamic_cast<T&>(*(m_devices[address].get()));
-    }
-
-    /**
-     * @brief identify an i2c device of type T with given address
-     * @param address i2c device address in the range 0x01...0x7f
-     * @return result of the identity check. true, if the device of type T was
-     * responding on the specified address
-     * @note the template parameter T specifies the particular device which must be a
-     * descendant of @link i2c_device i2c_device @endlink
-     */
-    template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
-    [[nodiscard]] auto identify_device(std::uint8_t address) -> bool;
-
-    /**
-     * @brief identify one or more i2c devices of type T
-     * @param possible_addresses address range in which the devices will be searched for
-     * @return a list of addresses at which devices of type T were responding
-     * @note the template parameter T specifies the particular device which must be a
-     * descendant of @link i2c_device i2c_device @endlink
-     */
-    template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool> = true>
-    [[nodiscard]] auto
-    identify_devices(const std::set<std::uint8_t>& possible_addresses = std::set<std::uint8_t>())
-        -> std::set<std::uint8_t>;
-
-    /**
-     * @brief check whether a device was opened for access
-     * @param address i2c device address
-     * @return true, if the device was opened for access
-     * @note A positive return value does not imply that an actual device is physically present
-     * at the specified address. The device was merely instantiated and opened for access.
-     * Yet, the result of bus transactions are not reflected by this query.
-     * Use @link i2c_device#present present() @endlink to
-     * check for the physical presence of devices.
-     */
-    [[nodiscard]] auto is_open(std::uint8_t address) const -> bool;
-
-    /**
-     * @brief close a device which was previously opened for access
-     * @param address i2c device address
-     * @return true, if the bus could successfully release the device
+     * @brief close Close a previously opened device.
+     * @param address The address on the bus
+     * @return true if the device was open before.
      */
     auto close(std::uint8_t address) -> bool;
 
     /**
-     * @brief the number of devices which are currently opened for access
-     * @return number of devices open for access
+     * @brief count_devices
+     * @return The number of open devices.
      */
     [[nodiscard]] auto count_devices() const -> std::size_t;
 
     /**
-     * @brief the total number of rx bytes transferred through the bus, i.e. read by the bus
-     * @return total number of bytes read
+     * @brief rx_bytes
+     * @return The number of received bytes on the bus.
      */
     [[nodiscard]] auto rx_bytes() const -> std::size_t;
 
     /**
-     * @brief the total number of tx bytes transferred through the bus, i.e. written by the bus
-     * @return total number of bytes written
+     * @brief rx_bytes
+     * @return The number of transmitted bytes on the bus.
      */
     [[nodiscard]] auto tx_bytes() const -> std::size_t;
 
     /**
-     * @brief get list of all devices currently open for access
-     * @return const reference of the device map
+     * @brief get_devices
+     * @return A map of all currently open devices
      */
     [[nodiscard]] auto get_devices() const
         -> const std::map<std::uint8_t, std::shared_ptr<i2c_device>>&;
 
-protected:
-    std::string                                         m_address {"/dev/i2c-1"};
-    std::map<std::uint8_t, std::shared_ptr<i2c_device>> m_devices {};
+private:
+    std::string m_path {"/dev/i2c-1"}; //<! The path to the i2c bus device file
+    std::map<std::uint8_t, std::shared_ptr<i2c_device>>
+        m_devices {}; //<! Map of all opened devices on this bus
 
-    std::size_t m_rx_bytes {};
-    std::size_t m_tx_bytes {};
+    i2c_device::traffic_t m_traffic_data {};
 };
 
-template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool>>
-auto i2c_bus::identify_device(std::uint8_t address) -> bool {
-    T dev {*this, address};
-    if (!dev.is_open() || !dev.present()) {
-        return false;
+template <typename T>
+auto i2c_bus::get(std::uint8_t address) -> T& requires is_device_type<T> {
+    if (m_devices.find(static_cast<std::uint8_t>(address)) == m_devices.end()) {
+        m_devices.emplace(static_cast<std::uint8_t>(address),
+                          std::make_shared<T>(m_traffic_data, path(), address));
     }
-    return dev.identify();
+
+    return dynamic_cast<T&>(*(m_devices[static_cast<std::uint8_t>(address)].get()));
 }
 
-template <typename T, std::enable_if_t<std::is_base_of<i2c_device, T>::value, bool>>
-auto i2c_bus::identify_devices(const std::set<std::uint8_t>& possible_addresses)
-    -> std::set<std::uint8_t> {
-    std::set<std::uint8_t> found_addresses {};
-
-    for (const auto address : possible_addresses) {
-        if (identify_device<T>(address)) {
-            found_addresses.insert(address);
+template <typename T>
+auto i2c_bus::get() -> T& requires is_device_type<T> {
+    for (const auto& address : T::addresses) {
+        if (m_devices.find(static_cast<std::uint8_t>(address)) != m_devices.end()) {
+            return dynamic_cast<T&>(*(m_devices[static_cast<std::uint8_t>(address)].get()));
         }
     }
-    return found_addresses;
+    auto device {std::make_shared<T>(m_traffic_data, path())};
+
+    const auto address {device->address()};
+
+    m_devices.emplace(address, std::move(device));
+
+    return dynamic_cast<T&>(*(m_devices[static_cast<std::uint8_t>(address)].get()));
+}
+
+template <typename A>
+auto i2c_bus::identify_device(A address) -> bool requires is_address_type<A> {
+    const auto iterator = m_devices.find(static_cast<std::uint8_t>(address));
+    if (iterator == m_devices.end()) {
+        return false;
+    }
+
+    auto& device {*(iterator->second)};
+    if (!device.is_open() || !device.present()) {
+        return false;
+    }
+    return device.identify();
+}
+
+template <typename A>
+auto i2c_bus::is_open(A address) const -> bool requires is_address_type<A> {
+    const auto iterator = m_devices.find(static_cast<std::uint8_t>(address));
+    if (iterator == m_devices.end()) {
+        return false;
+    }
+    return (iterator->second)->is_open();
 }
 
 } // namespace muonpi::serial
 
-#endif // MUONPI_SERIAL_I2CBUS_H
+#endif // HARDWARE_I2CBUS_H
