@@ -5,7 +5,7 @@ string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
 include(GNUInstallDirs)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
