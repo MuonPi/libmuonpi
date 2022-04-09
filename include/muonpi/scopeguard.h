@@ -1,16 +1,32 @@
-#ifndef MUONPI_SCOPEGUARD_H
-#define MUONPI_SCOPEGUARD_H
+#ifndef UTILITY_SCOPEGUARD_H
+#define UTILITY_SCOPEGUARD_H
 
 #include "muonpi/global.h"
 
+#include <chrono>
+#include <condition_variable>
 #include <functional>
+#include <mutex>
 
 namespace muonpi {
-
+/**
+ * @brief The scope_guard class
+ * executes a cleanup function upon destruction unless dismiss() is called.
+ */
 class LIBMUONPI_PUBLIC scope_guard {
 public:
-    template <class F>
-    explicit scope_guard(const F& cleanup);
+    /**
+     * @brief scope_guard
+     * @param cleanup The function to be called on non dismissed destruction
+     */
+    explicit scope_guard(std::function<void()> cleanup);
+
+    /**
+     * @brief scope_guard
+     * @param cleanup The function to be called on non dismissed destruction
+     * @param dismiss The function to be called on dismissed destruction
+     */
+    scope_guard(std::function<void()> cleanup, std::function<void()> dismiss);
 
     scope_guard(scope_guard&& other) noexcept;
 
@@ -23,20 +39,26 @@ public:
     ~scope_guard();
 
     /**
-     * @brief dismiss Dismiss the guard, so the lambda given in the constructor will not be executed
+     * @brief dismiss Dismiss the guard, so the cleanup function will not be executed.
      */
     void dismiss();
 
 private:
+    /**
+     * @brief dissolve moves the function from the scope_guard.
+     * Intended to only be called from another scope_guard object.
+     * @return the function object.
+     */
     [[nodiscard]] auto dissolve() -> std::function<void()>;
 
     std::function<void()> m_cleanup;
+    std::function<void()> m_dismiss {[] {}};
 };
 
-template <class F>
-scope_guard::scope_guard(const F& cleanup)
-    : m_cleanup {cleanup} {}
+[[nodiscard]] auto wait_for(std::condition_variable&  cv,
+                            std::chrono::milliseconds interval,
+                            std::chrono::seconds      total_wait) -> bool;
 
 } // namespace muonpi
 
-#endif // MUONPI_SCOPEGUARD_H
+#endif // UTILITY_SCOPEGUARD_H
