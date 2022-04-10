@@ -57,12 +57,12 @@ public:
      * @brief The config_t struct
      * This member struct of spi_device contains settings for the interface configuration.
      */
-    typedef struct {
+    struct config_t {
         mode_t mode; ///<! the mode bit pattern in which the interface shall be operated
         std::uint8_t bits_per_word; ///<! the number of bits per data word for one transfer
         std::uint32_t clk_rate; ///<! the bit rate of the spi clock (SCLK frequency) in Hertz
         std::uint16_t delay; ///<! the delay between the end of transfer until the CS deselect in us
-    } config_t;
+    };
 
     /**
     * @brief constructor with specific device address path
