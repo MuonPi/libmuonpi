@@ -22,23 +22,7 @@ jobs:
     - name: install dependencies
       run: sudo apt install -y libboost{,-system,-test,-stacktrace,-program-options}-dev libmosquitto-dev libgpiod-dev libssl-dev clang-11
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBMUONPI_BUILD_HTTP:BOOL=ON -DLIBMUONPI_BUILD_LINK:BOOL=ON -DLIBMUONPI_BUILD_DETECTOR:BOOL=ON -DLIBMUONPI_TESTS:BOOL=ON -DLIBMUONPI_HARDWARE_TESTS:BOOL=OFF -DLIBMUONPI_BUILD_EXAMPLES:BOOL=OFF -DLIBMUONPI_BUILD_SANITIZERS:BOOL=OFF -DCMAKE_CXX_COMPILER=clang++-11 -DCMAKE_CXX_COMPILER=clang-11
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBMUONPI_BUILD_HTTP:BOOL=ON -DLIBMUONPI_BUILD_LINK:BOOL=ON -DLIBMUONPI_BUILD_DETECTOR:BOOL=ON -DLIBMUONPI_TESTS:BOOL=OFF -DLIBMUONPI_HARDWARE_TESTS:BOOL=OFF -DLIBMUONPI_BUILD_EXAMPLES:BOOL=OFF -DLIBMUONPI_BUILD_SANITIZERS:BOOL=OFF -DCMAKE_CXX_COMPILER=clang++-11 -DCMAKE_CXX_COMPILER=clang-11
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-    - name: Test core
-      working-directory: ${{github.workspace}}/build/tests
-      run: ./core-test -l all -r short -s --detect_fp_exceptions
-
-    - name: Test http
-      working-directory: ${{github.workspace}}/build/tests
-      run: ./http-test -l all -r short -s --detect_fp_exceptions
-
-    - name: Test link
-      working-directory: ${{github.workspace}}/build/tests
-      run: ./link-test -l all -r short -s --detect_fp_exceptions
-
-    - name: Test detector
-      working-directory: ${{github.workspace}}/build/tests
-      run: ./detector-test -l all -r short -s --detect_fp_exceptions
