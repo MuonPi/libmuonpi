@@ -13,7 +13,7 @@ namespace muonpi::serial::devices {
  * This implementation follows the datasheet closely:
  * https://www.ti.com/lit/ds/symlink/pca9536.pdf
  */
-class pca9536 : public pca95xx<8> {
+class pca9536 : public pca95xx<4> {
 public:
     /**
      * @brief pca9536
