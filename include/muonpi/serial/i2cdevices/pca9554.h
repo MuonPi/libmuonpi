@@ -8,19 +8,32 @@
 #include <optional>
 
 namespace muonpi::serial::devices {
-
 /**
- * @brief I2C io extender device class.
- * This class provides access to i2c 4-bit and 8-bit bidirectional digital i/o
- * extenders.
- * @note valid template specializations are available for values of the template
- * parameter BITS of 4 and 8.
+ * @brief The pca9554 class. interact with the PCA9554 8 bit IO extender.
+ * This implementation follows the datasheet closely:
+ * https://www.ti.com/lit/ds/symlink/pca9554.pdf
  */
 class pca9554 : public pca95xx<8> {
 public:
+    /**
+     * @brief pca9554
+     * @param bus_traffic The bus traffic object from the i2c_bus.
+     * @param path The path of the i2c bus file descriptor
+     * @param address The address to use
+     */
     pca9554(traffic_t& bus_traffic, const std::string& path, i2c_device::address_type address);
+
+    /**
+     * @brief pca9554 Attempts to auto setup the connection
+     * @param bus_traffic The bus traffic object from the i2c_bus.
+     * @param path The path of the i2c bus file descriptor
+     */
     pca9554(traffic_t& bus_traffic, const std::string& path);
 
+    /**
+     * @brief identify Attempts to positively identify the device.
+     * @return true if identification was successful.
+     */
     [[nodiscard]] auto identify() -> bool override;
 
     constexpr static multi_address_range addresses {
