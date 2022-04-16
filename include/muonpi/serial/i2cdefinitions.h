@@ -56,14 +56,13 @@ concept is_register_type =
         std::is_class_v<T>&& is_address_type<decltype(T::address)>;
 
 class i2c_device;
+class i2c_bus;
+
 template <typename T>
 concept is_device_type =
     detail::is_dev_type<T>&&
         std::derived_from<T, i2c_device> && (std::begin(T::addresses) != std::end(T::addresses))
     && std::is_class_v<T>;
-
-class i2c_device;
-class i2c_bus;
 
 template <typename T, typename A = std::uint8_t, A ADDR = 0x00>
 requires is_value_type<T>&& is_value_type<A>
@@ -112,6 +111,25 @@ requires is_value_type<T>&& is_value_type<A>
      */
     [[nodiscard]] constexpr virtual auto get() const noexcept -> std::array<T, N> = 0;
 };
+
+namespace i2c_register_tag {
+constexpr static std::uint8_t read {0b01};
+constexpr static std::uint8_t write {0b10};
+constexpr static std::uint8_t read_write {read | write};
+} // namespace i2c_register_tag
+
+template <typename T>
+concept read_register =
+    is_register_type<T> && ((T::register_tag & i2c_register_tag::read) == i2c_register_tag::read);
+
+template <typename T>
+concept write_register =
+    is_register_type<T> && ((T::register_tag & i2c_register_tag::write) == i2c_register_tag::write);
+
+template <typename T>
+concept read_write_register =
+    is_register_type<
+        T> && ((T::register_tag & i2c_register_tag::read_write) == i2c_register_tag::read_write);
 
 } // namespace muonpi::serial
 
