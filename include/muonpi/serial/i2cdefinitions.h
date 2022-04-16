@@ -112,7 +112,7 @@ requires is_value_type<T>&& is_value_type<A>
     [[nodiscard]] constexpr virtual auto get() const noexcept -> std::array<T, N> = 0;
 };
 
-using tag_type =  std::uint8_t;
+using tag_type = std::uint8_t;
 
 namespace i2c_register_tag {
 constexpr static tag_type read {0b01};
