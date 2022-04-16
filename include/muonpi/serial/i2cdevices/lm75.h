@@ -15,10 +15,26 @@ class lm75 : public i2c_device {
 public:
     constexpr static address_range addresses {0b01001000, {0b111}};
 
+    /**
+     * @brief lm75
+     * @param bus_traffic The bus traffic object from the i2c_bus.
+     * @param path The path of the i2c bus file descriptor
+     * @param address The address to use
+     */
     lm75(traffic_t& bus_traffic, const std::string& path, i2c_device::address_type address);
+
+    /**
+     * @brief lm75 Attempts to automatically setup the device connection.
+     * @param bus_traffic The bus traffic object from the i2c_bus.
+     * @param path The path of the i2c bus file descriptor
+     */
     lm75(traffic_t& bus_traffic, const std::string& path);
 
 
+    /**
+     * @brief identify Attempts to positively identify the device.
+     * @return True if identification was successful.
+     */
     [[nodiscard]] auto identify() -> bool override;
 
     template <std::uint8_t ADDR>
