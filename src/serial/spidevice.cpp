@@ -142,13 +142,27 @@ auto spi_device::clock_rate() const -> unsigned int
     return m_config.clk_rate;
 }
 
+template <typename T>
+auto general_transfer(T* tx, T* rx, std::size_t words) -> bool {
+    constexpr std::size_t bits { sizeof(T) * 8U };
+    spi_ioc_transfer spi {};
+
+    spi.tx_buf          = reinterpret_cast<std::uint64_t>(tx);
+    spi.rx_buf          = reinterpret_cast<std::uint64_t>(rx);
+    spi.len             = words;
+    spi.speed_hz        = 0;
+    spi.delay_usecs     = 0;
+    spi.bits_per_word   = bits;
+    spi.cs_change       = 0;
+}
+
 auto spi_device::read(std::uint8_t* buffer, std::size_t n_bytes) -> bool
 {
     if (locked() || !is_open()) {
         return false;
     }
 
-    struct spi_ioc_transfer spi;
+    spi_ioc_transfer spi{};
 
     memset(&spi, 0, sizeof(spi));
 
@@ -169,7 +183,7 @@ auto spi_device::read(std::uint16_t* buffer, std::size_t n_words) -> bool
         return false;
     }
 
-    struct spi_ioc_transfer spi;
+    spi_ioc_transfer spi{};
 
     memset(&spi, 0, sizeof(spi));
 
@@ -184,15 +198,15 @@ auto spi_device::read(std::uint16_t* buffer, std::size_t n_words) -> bool
     return( (ioctl(m_handle, SPI_IOC_MESSAGE(1), &spi) > 0) && (m_transferred_bytes += n_words*2) );
 }
 
+
+
 auto spi_device::write(const std::uint8_t* buffer, std::size_t n_bytes) -> bool
 {
     if (locked() || !is_open()) {
         return false;
     }
 
-    struct spi_ioc_transfer spi;
-
-    memset(&spi, 0, sizeof(spi));
+    spi_ioc_transfer spi{};
 
     spi.tx_buf        = reinterpret_cast<__u64>( buffer );
     spi.rx_buf        = reinterpret_cast<__u64>( nullptr );
@@ -211,7 +225,7 @@ auto spi_device::write(const std::uint16_t* buffer, std::size_t n_words) -> bool
         return false;
     }
 
-    struct spi_ioc_transfer spi;
+    spi_ioc_transfer spi{};
 
     memset(&spi, 0, sizeof(spi));
 
@@ -232,7 +246,7 @@ auto spi_device::transfer(std::uint8_t* tx_buffer, std::uint8_t* rx_buffer, std:
         return false;
     }
 
-    struct spi_ioc_transfer spi;
+    spi_ioc_transfer spi{};
 
     memset(&spi, 0, sizeof(spi));
 
@@ -253,7 +267,7 @@ auto spi_device::transfer(std::uint16_t* tx_buffer, std::uint16_t* rx_buffer, st
         return false;
     }
 
-    struct spi_ioc_transfer spi;
+    spi_ioc_transfer spi{};
 
     memset(&spi, 0, sizeof(spi));
 

@@ -27,9 +27,9 @@ public:
         Failed = 0x02,
         Locked = 0x04
     };
-    
-    typedef std::uint16_t mode_t;
-    
+
+    using mode_t =  std::uint16_t;
+
     enum class MODE : mode_t {
         CPHA=           0x01,
         CPOL=           0x02,
