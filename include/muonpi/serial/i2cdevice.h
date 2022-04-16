@@ -138,7 +138,7 @@ public:
      */
     [[nodiscard]] auto name() const -> std::string;
 
-    template <typename T>
+    template <is_value_type T>
 
     /**
      * @brief read Read a single byte or word from the device.
@@ -146,37 +146,36 @@ public:
      * @return The read value.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read() -> std::optional<T> requires is_value_type<T>;
+    [[nodiscard]] auto read() -> std::optional<T>;
 
-    template <typename R>
+    template <read_register R>
     /**
      * @brief read Read a single byte or word from a regster from the device.
      * @return The read value.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read() -> std::optional<R> requires is_register_type<R>;
+    [[nodiscard]] auto read() -> std::optional<R>;
 
-    template <typename R, typename T = typename R::value_type>
+    template <read_register R>
     /**
      * @brief read Read a number of bytes or words from a register.
      * @param length Number of bytes or words to read.
      * @return a vector with the read data.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read(std::size_t length) -> std::optional<
-        std::vector<typename R::value_type>> requires is_register_type<R>&& is_value_type<T>;
+    [[nodiscard]] auto read(std::size_t length)
+        -> std::optional<std::vector<typename R::value_type>>;
 
-    template <typename T>
+    template <is_value_type T>
     /**
      * @brief read Read a number of bytes or words from the device.
      * @param length Number of bytes or words to read.
      * @return a vector with the read data.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read(std::size_t length)
-        -> std::optional<std::vector<T>> requires is_value_type<T>;
+    [[nodiscard]] auto read(std::size_t length) -> std::optional<std::vector<T>>;
 
-    template <typename T>
+    template <is_value_type T>
 
     /**
      * @brief write Write a single byte or word to the device.
@@ -184,16 +183,16 @@ public:
      * @param reg The register to write to.
      * @return True on success.
      */
-    [[nodiscard]] auto write(T value) -> bool requires is_value_type<T>;
+    [[nodiscard]] auto write(T value) -> bool;
 
-    template <typename R, typename T = typename R::value_type>
+    template <write_register R>
 
     /**
      * @brief write Write a single byte or word to a register.
      * @param reg The register to write
      * @return True on success.
      */
-    [[nodiscard]] auto write(R reg) -> bool requires is_register_type<R>&& is_value_type<T>;
+    [[nodiscard]] auto write(R reg) -> bool;
 
     /**
      * @brief write Write either a byte or 16 bit word to the i2c device.
@@ -217,7 +216,7 @@ public:
      */
     [[nodiscard]] auto write(value_iterable auto values) -> std::optional<int>;
 
-    template <typename R>
+    template <write_register R>
     /**
      * @brief write Write either a byte or 16 bit word to a register of the i2c device.
      * @param begin Iterator to the beginning of the memory space to write
@@ -229,10 +228,9 @@ public:
      * nullopt in case of failure.
      */
     [[nodiscard]] auto write(iterator<typename R::value_type> auto begin,
-                             iterator<typename R::value_type> auto end)
-        -> std::optional<int> requires is_register_type<R>;
+                             iterator<typename R::value_type> auto end) -> std::optional<int>;
 
-    template <typename R>
+    template <write_register R>
     /**
      * @brief write Write either a byte or 16 bit word to a register of the i2c device.
      * @param begin Iterator to the beginning of the memory space to write
@@ -243,8 +241,7 @@ public:
      * where InputT is the underlying type of the iterable object.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto write(iterable<typename R::value_type> auto values)
-        -> std::optional<int> requires is_register_type<R>;
+    [[nodiscard]] auto write(iterable<typename R::value_type> auto values) -> std::optional<int>;
 
     /**
      * @brief add_tx_bytes Increase the transmitted byte counter
@@ -402,8 +399,8 @@ void i2c_device::copy_from(
     }
 }
 
-template <typename T>
-auto i2c_device::read() -> std::optional<T> requires is_value_type<T> {
+template <is_value_type T>
+auto i2c_device::read() -> std::optional<T> {
     if (!writable()) {
         return std::nullopt;
     }
@@ -434,8 +431,8 @@ auto i2c_device::read() -> std::optional<T> requires is_value_type<T> {
         | static_cast<T>(buffer.at(1)));
 }
 
-template <typename R>
-auto i2c_device::read() -> std::optional<R> requires is_register_type<R> {
+template <read_register R>
+auto i2c_device::read() -> std::optional<R> {
     if (!write(R::address)) {
         return std::nullopt;
     }
@@ -449,9 +446,8 @@ auto i2c_device::read() -> std::optional<R> requires is_register_type<R> {
     return R {result.value()};
 }
 
-template <typename T>
-auto i2c_device::read(std::size_t length)
-    -> std::optional<std::vector<T>> requires is_value_type<T> {
+template <is_value_type T>
+auto i2c_device::read(std::size_t length) -> std::optional<std::vector<T>> {
     if (!writable() || length == 0) {
         return std::nullopt;
     }
@@ -481,9 +477,8 @@ auto i2c_device::read(std::size_t length)
     return output;
 }
 
-template <typename R, typename T>
-auto i2c_device::read(std::size_t length) -> std::optional<
-    std::vector<typename R::value_type>> requires is_register_type<R>&& is_value_type<T> {
+template <read_register R>
+auto i2c_device::read(std::size_t length) -> std::optional<std::vector<typename R::value_type>> {
     if (!write(R::address)) {
         return std::nullopt;
     }
@@ -497,8 +492,8 @@ auto i2c_device::read(std::size_t length) -> std::optional<
     return result.value();
 }
 
-template <typename T>
-auto i2c_device::write(T value) -> bool requires is_value_type<T> {
+template <is_value_type T>
+auto i2c_device::write(T value) -> bool {
     if (!writable()) {
         return false;
     }
@@ -524,8 +519,8 @@ auto i2c_device::write(T value) -> bool requires is_value_type<T> {
     return false;
 }
 
-template <typename R, typename T>
-auto i2c_device::write(R reg) -> bool requires is_register_type<R>&& is_value_type<T> {
+template <write_register R>
+auto i2c_device::write(R reg) -> bool {
     if (!writable()) {
         return false;
     }
@@ -591,10 +586,9 @@ auto i2c_device::write(value_iterable auto values) -> std::optional<int> {
     return write(std::begin(values), std::end(values));
 }
 
-template <typename R>
+template <write_register R>
 auto i2c_device::write(iterator<typename R::value_type> auto begin,
-                       iterator<typename R::value_type> auto end)
-    -> std::optional<int> requires is_register_type<R> {
+                       iterator<typename R::value_type> auto end) -> std::optional<int> {
     if (!writable()) {
         log::error("i2c") << "device not writeable.";
         return std::nullopt;
@@ -634,9 +628,8 @@ auto i2c_device::write(iterator<typename R::value_type> auto begin,
     return (nwritten - reg_size) / factor;
 }
 
-template <typename R>
-auto i2c_device::write(iterable<typename R::value_type> auto values)
-    -> std::optional<int> requires is_register_type<R> {
+template <write_register R>
+auto i2c_device::write(iterable<typename R::value_type> auto values) -> std::optional<int> {
     return write<R>(std::begin(values), std::end(values));
 }
 
