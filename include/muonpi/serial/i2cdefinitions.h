@@ -112,10 +112,12 @@ requires is_value_type<T>&& is_value_type<A>
     [[nodiscard]] constexpr virtual auto get() const noexcept -> std::array<T, N> = 0;
 };
 
+using tag_type =  std::uint8_t;
+
 namespace i2c_register_tag {
-constexpr static std::uint8_t read {0b01};
-constexpr static std::uint8_t write {0b10};
-constexpr static std::uint8_t read_write {read | write};
+constexpr static tag_type read {0b01};
+constexpr static tag_type write {0b10};
+constexpr static tag_type read_write {read | write};
 } // namespace i2c_register_tag
 
 template <typename T>
