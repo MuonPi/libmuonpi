@@ -273,7 +273,9 @@ protected:
      * @param path the path of the I2C device
      * @param addresses iterable object containting all valid addresses
      */
-    i2c_device(traffic_t& bus_traffic, const std::string& path, address_iterable auto addresses);
+    i2c_device(traffic_t&                   bus_traffic,
+               const std::string&           path,
+               const address_iterable auto& addresses);
     /**
      * @brief set_flag Set a status flag
      * @param flag
@@ -289,7 +291,7 @@ protected:
      * @brief auto_setup attempt to automatically find the used address of the device.
      * @return False if the address could be found and setup.
      */
-    [[nodiscard]] auto auto_setup(address_iterable auto addresses) -> bool;
+    [[nodiscard]] auto auto_setup(const address_iterable auto& addresses) -> bool;
 
     /**
      * @brief set_address Set the address of the i2c device.
@@ -343,9 +345,9 @@ private:
 ////// Implementation part //////
 /////////////////////////////////
 
-i2c_device::i2c_device(traffic_t&            bus_traffic,
-                       const std::string&    path,
-                       address_iterable auto addresses)
+i2c_device::i2c_device(traffic_t&                   bus_traffic,
+                       const std::string&           path,
+                       const address_iterable auto& addresses)
     : m_bus_traffic {bus_traffic}
     , m_handle {open(path.c_str(), O_RDWR)} // NOLINT: cppcoreguidelines-pro-type-vararg
 {
@@ -355,7 +357,7 @@ i2c_device::i2c_device(traffic_t&            bus_traffic,
     }
 }
 
-auto i2c_device::auto_setup(address_iterable auto addresses) -> bool {
+auto i2c_device::auto_setup(const address_iterable auto& addresses) -> bool {
     return std::any_of(std::begin(addresses),
                        std::end(addresses),
                        [&](const auto& address) -> bool { return set_address(address); });
