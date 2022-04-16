@@ -14,7 +14,7 @@ namespace muonpi::serial {
 * @brief The spi_device class
 * This class defines an access interface to the hardware spi bus (master mode) using the linux sysfs interface.
 * Basic data exchange is implemented, such as read, write and transfer of byte-aligned data blocks.
-* @note The sysfs device files /dev/spidevX.Y must be existing and access rights for the user 
+* @note The sysfs device files /dev/spidevX.Y must be existing and access rights for the user
 * executing this code must be granted.
 * @note Setting the word size is possible but the RPi hardware spi interface does not support
 * word sizes other than 8 bit.
@@ -77,7 +77,7 @@ public:
     * @brief check whether a device was opened for access
     * @return true, if the device was opened for access
     * @note A positive return value does not imply that an actual device is physically present.
-    * The device was merely instantiated and opened for access. 
+    * The device was merely instantiated and opened for access.
     * Yet, the result of bus transactions is not reflected by this query.
     * Use @link spi_device#present (if implemented) to check for the physical presence of a device.
     */
@@ -87,14 +87,14 @@ public:
     * @return true, if the spi master could successfully be released
     */
     void close() const;
-    
+
     /**
     * @brief apply a specific configuration to the spi interface
     * @param config the configuration struct to be applied
     * @return true, if the configuration could be successfully written to the interface registers
     */
     [[nodiscard]] auto set_config( config_t config ) -> bool;
-    
+
     /**
     * @brief get the currently set configuration of the spi interface
     * @return the config struct of the current spi interface configuration
@@ -104,7 +104,7 @@ public:
     /**
     * @brief check for the presence of a device on the bus
     * @return true, if a device is found
-    * @note: this method may be overriden in derived classes, if there is a possibility to tell 
+    * @note: this method may be overriden in derived classes, if there is a possibility to tell
     * the presence of a device from the bit battern read. If it is not overridden, this method returns false
     * by default.
     */
@@ -112,8 +112,8 @@ public:
     /**
     * @brief check for the presence of a specific device on the bus
     * @return true, if the device is found
-    * @note: this method may be overriden in derived classes, if there is a possibility to tell 
-    * the presence of a specific device from the bit battern read. If it is not overridden, 
+    * @note: this method may be overriden in derived classes, if there is a possibility to tell
+    * the presence of a specific device from the bit battern read. If it is not overridden,
     * this method returns false by default.
     */
     [[nodiscard]] virtual auto identify() -> bool;
@@ -148,7 +148,7 @@ public:
     * @return the name string
     */
     [[nodiscard]] auto name() const -> std::string;
-    
+
     /**
     * @brief apply a specific clock rate setting to the spi interface
     * @param clk_rate the bit rate to be set in Hertz
@@ -190,7 +190,7 @@ public:
     * @note the bit width of the data words actually written is determined by the bits_per_word configuration setting
     */
     [[nodiscard]] auto write(const std::uint16_t* buffer, std::size_t n_words = 1) -> bool;
-    
+
     /**
     * @brief transfer bytes to/from the spi device
     * @param tx_buffer pointer to the buffer with the data to be written

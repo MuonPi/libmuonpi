@@ -6,13 +6,13 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
-#include <string>
 #include <fcntl.h> // open
-#include <unistd.h>
 #include <iostream>
-#include <sys/ioctl.h>
 #include <linux/spi/spidev.h> // SPI device definitions for linux like systems
 #include <linux/types.h>
+#include <string>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 namespace muonpi::serial {
 
