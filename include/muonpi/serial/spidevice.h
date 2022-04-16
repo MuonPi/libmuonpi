@@ -219,7 +219,7 @@ protected:
 
 private:
 
-    static constexpr char s_default_device_path[] { "/dev/spidev0.0" };
+    static constexpr const char* s_default_device_path { "/dev/spidev0.0" };
 
     std::string m_device_path { s_default_device_path };
 
