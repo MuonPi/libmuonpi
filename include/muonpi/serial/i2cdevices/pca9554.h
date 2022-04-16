@@ -37,7 +37,7 @@ public:
     [[nodiscard]] auto identify() -> bool override;
 
     constexpr static multi_address_range addresses {
-        {address_range {0b01000000, {0b00000111}}, address_range {0b01110000, {0b00000111}}}};
+        {address_range {0b0100000, {0b00000111}}, address_range {0b0111000, {0b00000111}}}};
 
     template <std::uint8_t ADDR>
     using register_t = simple_register<std::uint8_t, std::uint8_t, ADDR>;

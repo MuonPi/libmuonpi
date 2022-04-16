@@ -36,7 +36,7 @@ public:
      */
     [[nodiscard]] auto identify() -> bool override;
 
-    constexpr static std::array<address_type, 1> addresses {0b10000011};
+    constexpr static std::array<address_type, 1> addresses {0b1000001};
 
     template <std::uint8_t ADDR>
     using register_t = simple_register<std::uint8_t, std::uint8_t, ADDR>;
