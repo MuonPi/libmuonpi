@@ -98,6 +98,7 @@ auto http_server::handle(request_type req) const -> response_type {
         || (req.target().find("..") != beast::string_view::npos)) {
         return http_response<beast::http::status::bad_request>(req)("Malformed request-target");
     }
+
     if (m_handler.empty()) {
         return http_response<beast::http::status::service_unavailable>(req)("No handler installed");
     }

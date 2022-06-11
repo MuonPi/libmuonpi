@@ -56,6 +56,14 @@ public:
     explicit http_response(request_type& req);
 
     /**
+     * @brief set
+     * Sets http flags for underlying http_response
+     * @param field Http field
+     * @param value Field value
+     */
+    void set(beast::http::field field, const std::string& value);
+
+    /**
      * @brief commit Complete the response
      * @param body The body to attach to the response
      */
@@ -84,6 +92,11 @@ http_response<Status>::http_response(request_type&       req,
 template <beast::http::status Status>
 http_response<Status>::http_response(request_type& req)
     : http_response<Status> {req, content_type::html()} {}
+
+template <beast::http::status Status>
+void http_response<Status>::set(beast::http::field field, const std::string& value) {
+    m_response.set(field, value);
+}
 
 template <beast::http::status Status>
 auto http_response<Status>::commit(std::string body) -> response_type {
