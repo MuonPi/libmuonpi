@@ -45,6 +45,9 @@ public:
         std::string cert {};      //<! The certificate file to use
         std::string privkey {};   //<! The private key to use
         std::string fullchain {}; //<! The full keychain to use
+        std::string cors_origin {}; //<! The allowed CORS request origin
+        std::string cors_headers {};//<! Allowed CORS headers
+        std::string cors_methods {};//<! Allowed CORS methods (GET, PUT, POST etc.)
     };
 
     /**

@@ -120,15 +120,16 @@ auto http_server::handle(request_type                     req,
         path.pop();
     }
 
-    if (path.empty()) {
-        return http_response<beast::http::status::bad_request>(req)("Request-target empty");
-    }
-
     for (const auto& hand : handlers) {
         if (hand.matches(path.front())) {
             return handle(req, path, hand);
         }
     }
+
+    if (path.empty()) {
+        return http_response<beast::http::status::bad_request>(req)("Request-target empty");
+    }
+
     return http_response<beast::http::status::bad_request>(req)("Illegal request-target");
 }
 
@@ -136,6 +137,17 @@ auto http_server::handle(request_type            req,
                          std::queue<std::string> path,
                          const path_handler&     hand) const -> response_type {
     path.pop();
+
+    try{
+        req.at(boost::beast::http::field::access_control_request_method);
+        req.at(boost::beast::http::field::access_control_request_headers);
+        auto response = muonpi::http::http_response<muonpi::http::http_status::no_content>(req);
+        response.set(boost::beast::http::field::access_control_allow_origin, m_conf.cors_origin);
+        response.set(boost::beast::http::field::access_control_allow_methods, m_conf.cors_methods);
+        response.set(boost::beast::http::field::access_control_allow_headers, m_conf.cors_headers);
+        return response("");
+    }catch(std::out_of_range::exception &e){
+    }
 
     if (hand.requires_auth) {
         std::string auth {req[beast::http::field::authorization]};
