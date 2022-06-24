@@ -5,7 +5,9 @@
 
 #include <functional>
 #include <iostream>
+#include <ostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 namespace muonpi::log {
@@ -20,7 +22,20 @@ enum Level : std::uint8_t
     Warning   = 0b0010'0000,
     Notice    = 0b0011'0000,
     Debug     = 0b0100'0000,
-    Info      = 0b1000'0000
+    Info      = 0b1000'0000,
+    Invalid   = 0
+};
+
+class LIBMUONPI_PUBLIC writer {
+public:
+    explicit writer(Level l, std::ostream& stream = std::cerr);
+
+    [[nodiscard]] auto stream() const -> std::ostream&;
+    [[nodiscard]] auto level() const -> Level;
+
+private:
+    Level           m_level;
+    std::ostream&   m_stream;
 };
 
 /**
@@ -31,25 +46,52 @@ class LIBMUONPI_PUBLIC system {
 public:
     /**
      * @brief
-     * @param l Maximum Log level to show
+     * @param l Maximum Log level to show in the default writer.
+     * @param callback The callback which gets called from a log message which has the shutdown flag enabled.
+     * @param str The stream which gets used by the default writer.
      */
     static void setup(
         Level                    l,
         std::function<void(int)> callback = [](int c) { exit(c); },
         std::ostream&            str      = std::cerr);
 
-    system(Level l, std::function<void(int)> cb, std::ostream& str);
+    template <Level L>
+    /**
+     * @brief write a log message.
+     * 
+     * @param stream The message construction stream.
+     * @param exit_code The exit code which to use in case of a set shutdown flag.
+     */
+    static void write(std::stringstream stream, int exit_code) {
+        stream << '\n';
+        for (const auto& writer : s_singleton->m_writers) {
+            if (((L & Level::Info) > 0) || (L <= writer.level())) {
+                writer.stream() << stream.rdbuf() << std::flush;
+            }
+        }
+        if constexpr ((L & Level::Shutdown) > 0) {
+            s_singleton->m_callback(exit_code);
+        }
+    }
 
-    [[nodiscard]] static auto level() -> Level;
-    [[nodiscard]] static auto stream() -> std::ostream&;
-    static void               callback(int exit_code);
+    /**
+     * @brief Add another writer to the logging system.
+     * 
+     * @param w The writer to add.
+     */
+    static void add_writer(writer w);
 
+    /**
+    * @brief Set the callback object which gets called in case of a set Shutdown flag.
+    * 
+    * @param callback The callback object.
+    */
+    static void set_callback(std::function<void(int)> callback);
 private:
     static std::unique_ptr<system> s_singleton;
 
-    Level                    m_level {};
-    std::function<void(int)> m_callback {};
-    std::ostream&            m_stream;
+    std::function<void(int)>    m_callback {[](int c){exit(c);}};
+    std::vector<writer>         m_writers{};
 };
 
 template <Level L>
@@ -75,13 +117,7 @@ public:
     logger() = default;
 
     ~logger() {
-        if (((L & Level::Info) > 0) || (L <= system::level())) {
-            m_stream << '\n';
-            system::stream() << m_stream.rdbuf() << std::flush;
-        }
-        if constexpr ((L & Level::Shutdown) > 0) {
-            system::callback(m_exit_code);
-        }
+        system::write<L>(std::move(m_stream), m_exit_code);
     }
 
 private:
