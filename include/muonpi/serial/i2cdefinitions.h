@@ -109,7 +109,7 @@ struct multi_register : public i2c_register<T, A, ADDR> {
      * @brief get Get the raw value of the register
      * @return The raw array of data of type value_type.
      */
-    [[nodiscard]] constexpr virtual auto get() const noexcept -> std::array<T, N> = 0;
+    [[nodiscard]] constexpr virtual auto get() const noexcept -> data_type = 0;
 };
 
 using i2c_tag_type =  std::uint8_t;
