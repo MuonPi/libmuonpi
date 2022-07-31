@@ -1,3 +1,5 @@
 *.user
 global.h
+.vscode/
+.cache/
 build/
