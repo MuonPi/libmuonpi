@@ -7,6 +7,7 @@
 #include <concepts>
 #include <cstdint>
 #include <iterator>
+#include <algorithm>
 
 namespace muonpi {
 template <std::size_t N = 1, typename T = std::uint8_t>

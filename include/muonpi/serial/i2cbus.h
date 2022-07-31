@@ -43,23 +43,23 @@ public:
      */
     [[nodiscard]] auto path() const -> std::string;
 
-    template <typename T>
+    template <i2c_device_type T>
     /**
      * @brief get Get a device on address.
      * If it is not yet open, opens the device.
      * @param address
      */
-    [[nodiscard]] auto get(std::uint8_t address) -> T& requires is_device_type<T>;
+    [[nodiscard]] auto get(std::uint8_t address) -> T&;
 
-    template <typename T>
+    template <i2c_device_type T>
     /**
      * @brief get Get a device
      * If it is not yet open, opens the device.
      * Tries to automatically find the address of the device.
      */
-    [[nodiscard]] auto get() -> T& requires is_device_type<T>;
+    [[nodiscard]] auto get() -> T&;
 
-    template <typename A>
+    template <i2c_address_type A>
     /**
      * @brief identify_device Try to positively identify a device.
      * The exact method depends on the specific device, specifically if the manufacturer
@@ -67,15 +67,15 @@ public:
      * @param address
      * @return true if the device could be identified.
      */
-    [[nodiscard]] auto identify_device(A address) -> bool requires is_address_type<A>;
+    [[nodiscard]] auto identify_device(A address) -> bool;
 
-    template <typename A>
+    template <i2c_address_type A>
     /**
      * @brief is_open Check if a previously opened device is actually open.
      * @param address The address on the bus
      * @return true if the device is open
      */
-    [[nodiscard]] auto is_open(A address) const -> bool requires is_address_type<A>;
+    [[nodiscard]] auto is_open(A address) const -> bool;
 
     /**
      * @brief close Close a previously opened device.
@@ -117,8 +117,8 @@ private:
     i2c_device::traffic_t m_traffic_data {};
 };
 
-template <typename T>
-auto i2c_bus::get(std::uint8_t address) -> T& requires is_device_type<T> {
+template <i2c_device_type T>
+auto i2c_bus::get(std::uint8_t address) -> T& {
     if (m_devices.find(static_cast<std::uint8_t>(address)) == m_devices.end()) {
         m_devices.emplace(static_cast<std::uint8_t>(address),
                           std::make_shared<T>(m_traffic_data, path(), address));
@@ -127,8 +127,8 @@ auto i2c_bus::get(std::uint8_t address) -> T& requires is_device_type<T> {
     return dynamic_cast<T&>(*(m_devices[static_cast<std::uint8_t>(address)].get()));
 }
 
-template <typename T>
-auto i2c_bus::get() -> T& requires is_device_type<T> {
+template <i2c_device_type T>
+auto i2c_bus::get() -> T& {
     for (const auto& address : T::addresses) {
         if (m_devices.find(static_cast<std::uint8_t>(address)) != m_devices.end()) {
             return dynamic_cast<T&>(*(m_devices[static_cast<std::uint8_t>(address)].get()));
@@ -143,8 +143,8 @@ auto i2c_bus::get() -> T& requires is_device_type<T> {
     return dynamic_cast<T&>(*(m_devices[static_cast<std::uint8_t>(address)].get()));
 }
 
-template <typename A>
-auto i2c_bus::identify_device(A address) -> bool requires is_address_type<A> {
+template <i2c_address_type A>
+auto i2c_bus::identify_device(A address) -> bool {
     const auto iterator = m_devices.find(static_cast<std::uint8_t>(address));
     if (iterator == m_devices.end()) {
         return false;
@@ -157,8 +157,8 @@ auto i2c_bus::identify_device(A address) -> bool requires is_address_type<A> {
     return device.identify();
 }
 
-template <typename A>
-auto i2c_bus::is_open(A address) const -> bool requires is_address_type<A> {
+template <i2c_address_type A>
+auto i2c_bus::is_open(A address) const -> bool {
     const auto iterator = m_devices.find(static_cast<std::uint8_t>(address));
     if (iterator == m_devices.end()) {
         return false;
