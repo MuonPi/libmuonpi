@@ -1,6 +1,7 @@
 #ifndef MUONPI_SERIAL_I2CDEVICES_HMC5883_H
 #define MUONPI_SERIAL_I2CDEVICES_HMC5883_H
 
+#include "muonpi/serial/i2cdefinitions.h"
 #include "muonpi/serial/i2cdevice.h"
 #include "muonpi/fixedaddress.h"
 
@@ -11,7 +12,8 @@ public:
     constexpr static fixed_address addresses { 0b0011110 };
 
 
-    struct configuration_r : public simple_register<std::uint16_t, std::uint8_t, 0x00, i2c_register_tag::read_write> {
+    struct configuration_r : public simple_register<std::uint16_t, std::uint8_t, 0x00> {
+        constexpr static i2c_tag_type register_tag {i2c_register_tag::read_write};
 
         const value_type CRA : 1 { 0 };
         value_type MA : 2 { 0b11 };
@@ -21,7 +23,8 @@ public:
         const value_type CRB : 5 { 0 };
     };
 
-    struct mode_r : public simple_register<std::uint8_t, std::uint8_t, 0x02, i2c_register_tag::read_write> {
+    struct mode_r : public simple_register<std::uint8_t, std::uint8_t, 0x02> {
+        constexpr static i2c_tag_type register_tag {i2c_register_tag::read_write};
 
         const value_type MR : 6 { 0 };
         value_type MD : 2 { 0b01 };
