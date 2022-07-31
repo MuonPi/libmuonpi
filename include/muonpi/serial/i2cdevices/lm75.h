@@ -61,7 +61,7 @@ public:
     };
 
     struct temperature_r : public basic_temperature_r<0x00> {
-        constexpr static tag_type register_tag {i2c_register_tag::read};
+        constexpr static i2c_tag_type register_tag {i2c_register_tag::read};
 
         constexpr explicit temperature_r(value_type v) noexcept
             : basic_temperature_r {v} {}
@@ -70,7 +70,7 @@ public:
     };
 
     struct t_hyst_r : public basic_temperature_r<0x01> {
-        constexpr static tag_type register_tag {i2c_register_tag::read_write};
+        constexpr static i2c_tag_type register_tag {i2c_register_tag::read_write};
 
         constexpr explicit t_hyst_r(value_type v) noexcept
             : basic_temperature_r {v} {}
@@ -80,7 +80,7 @@ public:
     };
 
     struct t_os_r : public basic_temperature_r<0x02> {
-        constexpr static tag_type register_tag {i2c_register_tag::read_write};
+        constexpr static i2c_tag_type register_tag {i2c_register_tag::read_write};
 
         constexpr explicit t_os_r(value_type v) noexcept
             : basic_temperature_r {v} {}
@@ -90,7 +90,7 @@ public:
     };
 
     struct configuration_r : public simple_register<std::uint8_t, std::uint8_t, 0x00> {
-        constexpr static tag_type register_tag {i2c_register_tag::read_write};
+        constexpr static i2c_tag_type register_tag {i2c_register_tag::read_write};
 
         const value_type reserved    : 3 {};
         value_type       fault_queue : 2 {};
