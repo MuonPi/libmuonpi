@@ -36,11 +36,11 @@ public:
         value_type Y { 0 };
         value_type Z { 0 };
 
-        [[nodiscard]] constexpr auto get() const noexcept -> std::array<value_type, register_length> override {
+        [[nodiscard]] constexpr auto get() const noexcept -> data_type override {
             return {X, Y, Z};
         }
 
-        constexpr explicit data_r(const std::array<value_type, register_length>& data) noexcept
+        constexpr explicit data_r(const data_type& data) noexcept
             : X { data.at(0) }
             , Y { data.at(1) }
             , Z { data.at(2) }
@@ -58,13 +58,13 @@ public:
 
     struct identification_r : public multi_register<std::uint8_t, 3, std::uint8_t, 0x10> {
 
-        const std::array<value_type, register_length> value { 'H', '4', '3' };
+        const data_type value { 'H', '4', '3' };
 
-        [[nodiscard]] constexpr auto get() const noexcept -> std::array<value_type, register_length> override {
+        [[nodiscard]] constexpr auto get() const noexcept -> data_type override {
             return value;
         }
 
-        constexpr explicit identification_r(const std::array<value_type, register_length>& data) noexcept
+        constexpr explicit identification_r(const data_type& data) noexcept
             : value { data }
         {}
 
