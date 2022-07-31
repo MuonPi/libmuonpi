@@ -103,6 +103,7 @@ struct multi_register : public i2c_register<T, A, ADDR> {
     using value_type   = T;
     using address_type = A;
     constexpr static std::uint8_t register_length = N;
+    using data_type   = std::array<value_type, register_length>;
 
     /**
      * @brief get Get the raw value of the register
