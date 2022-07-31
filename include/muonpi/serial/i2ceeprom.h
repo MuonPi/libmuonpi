@@ -25,7 +25,7 @@ template <std::uint16_t WORDS  = detail::default_eeprom_length,
           std::size_t PAGESIZE = detail::default_eeprom_pagesize,
           typename VALUE_T     = std::uint8_t>
     requires((WORDS % PAGESIZE) == 0)
-    && is_address_type<ADDR_T> class LIBMUONPI_PUBLIC i2c_eeprom : public i2c_device {
+    && i2c_address_type<ADDR_T> class LIBMUONPI_PUBLIC i2c_eeprom : public i2c_device {
 public:
     using address_type                            = ADDR_T;
     using value_type                              = VALUE_T;
@@ -77,7 +77,7 @@ protected:
  *********************/
 template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename VALUE_T>
     requires((WORDS % PAGESIZE) == 0)
-    && is_address_type<ADDR_T> i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::i2c_eeprom(
+    && i2c_address_type<ADDR_T> i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::i2c_eeprom(
         traffic_t&            bus_traffic,
         const std::string&    path,
         address_iterable auto addresses)
@@ -85,12 +85,12 @@ template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename V
 
 template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename VALUE_T>
     requires((WORDS % PAGESIZE) == 0)
-    && is_address_type<ADDR_T> i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::~i2c_eeprom() =
+    && i2c_address_type<ADDR_T> i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::~i2c_eeprom() =
     default;
 
 template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename VALUE_T>
     requires((WORDS % PAGESIZE) == 0)
-    && is_address_type<ADDR_T> i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::i2c_eeprom(
+    && i2c_address_type<ADDR_T> i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::i2c_eeprom(
         traffic_t&         bus_traffic,
         const std::string& path,
         value_type         address)
@@ -98,7 +98,7 @@ template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename V
 
 template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename VALUE_T>
     requires((WORDS % PAGESIZE) == 0)
-    && is_address_type<ADDR_T> auto i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::read(
+    && i2c_address_type<ADDR_T> auto i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::read(
            address_type start_addr,
            std::size_t  num_bytes) -> std::optional<std::vector<value_type>> {
     if (start_addr + num_bytes >= WORDS) {
@@ -133,7 +133,7 @@ template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename V
 
 template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename VALUE_T>
     requires((WORDS % PAGESIZE) == 0)
-    && is_address_type<ADDR_T> auto i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::write(
+    && i2c_address_type<ADDR_T> auto i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::write(
            address_type        start_addr,
            value_iterator auto begin,
            value_iterator auto end) -> std::optional<int> {
@@ -180,7 +180,7 @@ template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename V
 
 template <std::uint16_t WORDS, typename ADDR_T, std::size_t PAGESIZE, typename VALUE_T>
     requires((WORDS % PAGESIZE) == 0)
-    && is_address_type<ADDR_T> auto i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::write(
+    && i2c_address_type<ADDR_T> auto i2c_eeprom<WORDS, ADDR_T, PAGESIZE, VALUE_T>::write(
            address_type        start_addr,
            value_iterable auto values) -> std::optional<int> {
     return write(start_addr, std::begin(values), std::end(values));
