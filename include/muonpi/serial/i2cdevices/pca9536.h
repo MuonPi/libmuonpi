@@ -42,7 +42,7 @@ public:
     using register_t = simple_register<std::uint8_t, std::uint8_t, ADDR>;
 
     struct input_r : public register_t<0x00> {
-        constexpr static tag_type register_tag { i2c_register_tag::read };
+        constexpr static i2c_tag_type register_tag { i2c_register_tag::read };
 
         const value_type I4_7 : 4 {};
         value_type       I3   : 1 {};
@@ -64,7 +64,7 @@ public:
     };
 
     struct output_r : public register_t<0x01> {
-        constexpr static tag_type register_tag { i2c_register_tag::read_write };
+        constexpr static i2c_tag_type register_tag { i2c_register_tag::read_write };
 
         const value_type O4_7 : 4 {0xF};
         value_type       O3   : 1 {1};
@@ -86,7 +86,7 @@ public:
     };
 
     struct polarity_r : public register_t<0x02> {
-        constexpr static tag_type register_tag { i2c_register_tag::read_write };
+        constexpr static i2c_tag_type register_tag { i2c_register_tag::read_write };
 
         constexpr static value_type invert {1};
         constexpr static value_type retain {0};
@@ -110,7 +110,7 @@ public:
     };
 
     struct configuration_r : public register_t<0x03> {
-        constexpr static tag_type register_tag { i2c_register_tag::read_write };
+        constexpr static i2c_tag_type register_tag { i2c_register_tag::read_write };
 
         constexpr static value_type input {1};
         constexpr static value_type output {0};
