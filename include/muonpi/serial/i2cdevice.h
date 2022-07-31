@@ -138,7 +138,7 @@ public:
      */
     [[nodiscard]] auto name() const -> std::string;
 
-    template <is_value_type T>
+    template <i2c_value_type T>
 
     /**
      * @brief read Read a single byte or word from the device.
@@ -166,7 +166,7 @@ public:
     [[nodiscard]] auto read(std::size_t length)
         -> std::optional<std::vector<typename R::value_type>>;
 
-    template <is_value_type T>
+    template <i2c_value_type T>
     /**
      * @brief read Read a number of bytes or words from the device.
      * @param length Number of bytes or words to read.
@@ -175,7 +175,7 @@ public:
      */
     [[nodiscard]] auto read(std::size_t length) -> std::optional<std::vector<T>>;
 
-    template <is_value_type T>
+    template <i2c_value_type T>
 
     /**
      * @brief write Write a single byte or word to the device.
@@ -399,7 +399,7 @@ void i2c_device::copy_from(
     }
 }
 
-template <is_value_type T>
+template <i2c_value_type T>
 auto i2c_device::read() -> std::optional<T> {
     if (!writable()) {
         return std::nullopt;
@@ -446,7 +446,7 @@ auto i2c_device::read() -> std::optional<R> {
     return R {result.value()};
 }
 
-template <is_value_type T>
+template <i2c_value_type T>
 auto i2c_device::read(std::size_t length) -> std::optional<std::vector<T>> {
     if (!writable() || length == 0) {
         return std::nullopt;
@@ -492,7 +492,7 @@ auto i2c_device::read(std::size_t length) -> std::optional<std::vector<typename 
     return result.value();
 }
 
-template <is_value_type T>
+template <i2c_value_type T>
 auto i2c_device::write(T value) -> bool {
     if (!writable()) {
         return false;
