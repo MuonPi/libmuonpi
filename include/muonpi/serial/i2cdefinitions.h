@@ -65,13 +65,12 @@ concept i2c_device_type =
         std::derived_from<T, i2c_device> && (std::begin(T::addresses) != std::end(T::addresses))
     && std::is_class_v<T>;
 
-template <typename T, typename A = std::uint8_t, A ADDR = 0x00>
-requires i2c_value_type<T>&& i2c_value_type<A>
+template <i2c_value_type T, i2c_address_type A = std::uint8_t, A ADDR = 0x00>
     /**
      * @brief The i2c_register struct
      * Used to safely represent a i2c register address.
      */
-    struct i2c_register {
+struct i2c_register {
     constexpr static A address {ADDR};
 
     [[nodiscard]] constexpr static auto base() -> i2c_register<T, A, ADDR> {
@@ -79,13 +78,12 @@ requires i2c_value_type<T>&& i2c_value_type<A>
     }
 };
 
-template <typename T, typename A = std::uint8_t, A ADDR = 0x00>
-requires i2c_value_type<T>&& i2c_value_type<A>
+template <i2c_value_type T, i2c_address_type A = std::uint8_t, A ADDR = 0x00>
     /**
      * @brief The simple_register struct
      * Defines a register with a single value oftype value_type.
      */
-    struct simple_register : public i2c_register<T, A, ADDR> {
+struct simple_register : public i2c_register<T, A, ADDR> {
     using value_type   = T;
     using address_type = A;
 
@@ -96,15 +94,15 @@ requires i2c_value_type<T>&& i2c_value_type<A>
     [[nodiscard]] constexpr virtual auto get() const noexcept -> value_type = 0;
 };
 
-template <typename T, std::uint8_t N, typename A = std::uint8_t, A ADDR = 0x00>
-requires i2c_value_type<T>&& i2c_value_type<A>
+template <i2c_value_type T, std::uint8_t N, i2c_address_type A = std::uint8_t, A ADDR = 0x00>
     /**
      * @brief The multi_register struct
      * Defines a register with N values of type value_type
      */
-    struct multi_register : public i2c_register<T, A, ADDR> {
+struct multi_register : public i2c_register<T, A, ADDR> {
     using value_type   = T;
     using address_type = A;
+    constexpr static std::uint8_t register_length = N;
 
     /**
      * @brief get Get the raw value of the register
