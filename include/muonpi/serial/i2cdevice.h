@@ -519,6 +519,23 @@ auto i2c_device::write(T value) -> bool {
     return false;
 }
 
+template <std::integral T, iterator<std::uint8_t> IT>
+/**
+ * @brief Set a value of either one or two byte size at an byte iterator position.
+ * @param value The value to set
+ * @param it The iterator to which to add the value
+ * @returns The next iterator after the inserted value.
+ */
+[[nodiscard]] constexpr auto add_value(T value, IT it) -> IT requires (sizeof(T) <= 2) {
+    if constexpr (sizeof(value) > 1) {
+        *it = static_cast<std::uint8_t>(value >> 8U);
+        ++it;
+    }
+    *it = static_cast<std::uint8_t>(value);
+    ++it;
+    return it;
+}
+
 template <write_register R>
 auto i2c_device::write(R reg) -> bool {
     if (!writable()) {
