@@ -153,14 +153,21 @@ public:
 
     template <read_register R>
     /**
-     * @brief read Read a single byte or word from a regster from the device.
+     * @brief read Read an entire register from the device.
+     * Takes a register with just one value.
      * @return The read value.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read() -> std::optional<R>;
+    [[nodiscard]] auto read() -> std::optional<R> requires (R::register_length == 1);
 
     template <read_register R>
     /**
+     * @brief read Read an entire register from the device.
+     * Takes registers with an array of values.
+     * @return The read value.
+     * nullopt in case of failure.
+     */
+    [[nodiscard]] auto read() -> std::optional<R> requires (R::register_length > 1);
 
     template <read_register R, std::uint8_t N>
     /**
@@ -437,7 +444,7 @@ auto i2c_device::read() -> std::optional<T> {
 }
 
 template <read_register R>
-auto i2c_device::read() -> std::optional<R> {
+auto i2c_device::read() -> std::optional<R> requires (R::register_length == 1) {
     if (!write(R::address)) {
         return std::nullopt;
     }
@@ -451,6 +458,20 @@ auto i2c_device::read() -> std::optional<R> {
     return R {result.value()};
 }
 
+template <read_register R>
+auto i2c_device::read() -> std::optional<R> requires (R::register_length > 1) {
+    if (!write(R::address)) {
+        return std::nullopt;
+    }
+
+    const auto result { read<typename R::value_type, R::register_length>() };
+
+    if (!result) {
+        return std::nullopt;
+    }
+
+    return R {result.value()};
+}
 
 template <i2c_value_type T, std::uint8_t N>
 auto i2c_device::read() -> std::optional<std::array<T, N>> requires (N > 0) {
