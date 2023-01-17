@@ -542,21 +542,18 @@ auto i2c_device::write(R reg) -> bool {
         return false;
     }
 
-    std::vector<std::uint8_t> data {};
-
+    constexpr std::uint8_t bytes {(R::address == 0?0:1) + R::register_length*sizeof(typename R::value_type)};
+    std::array<std::uint8_t, bytes> data {};
+    auto begin { std::begin(data) };
     if constexpr (R::address != 0) {
-        data.emplace_back(R::address);
+        begin = add_value(R::address, begin);
     }
 
     const auto value {reg.get()};
-
-    if constexpr (sizeof(typename R::value_type) == sizeof(std::uint8_t)) {
-        data.emplace_back(static_cast<std::uint8_t>(value));
+    if constexpr (R::register_length > 1) {
+        copy_from(std::begin(value), std::end(value), begin);
     } else {
-        data.emplace_back(static_cast<std::uint8_t>(
-            value
-            >> 8U)); // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        data.emplace_back(static_cast<std::uint8_t>(value));
+        begin = add_value(value, begin);
     }
 
     const auto nwritten = ::write(m_handle, data.data(), data.size());
@@ -621,17 +618,10 @@ auto i2c_device::write(iterator<typename R::value_type> auto begin,
     }
 
     std::vector<std::uint8_t> data(distance, 0);
+    auto back { std::begin(data) };
+    back = add_value(R::address, back);
 
-    if constexpr (reg_size > 1) {
-        data.at(0) = (static_cast<std::uint8_t>(
-            R::address
-            >> 8U)); // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        data.at(0) = (static_cast<std::uint8_t>(R::address));
-    } else {
-        data.at(0) = static_cast<std::uint8_t>(R::address);
-    }
-
-    copy_from(begin, end, std::begin(data) + reg_size);
+    copy_from(begin, end, back);
 
     const int nwritten = ::write(m_handle, data.data(), distance);
     if (nwritten > 0) {
