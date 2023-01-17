@@ -4,16 +4,19 @@
 #include "muonpi/log.h"
 #include "muonpi/serial/i2cdefinitions.h"
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cinttypes>
 #include <fcntl.h>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <set>
 #include <string>
 #include <sys/ioctl.h>
+#include <type_traits>
 #include <unistd.h>
 #include <vector>
 
@@ -150,30 +153,39 @@ public:
 
     template <read_register R>
     /**
-     * @brief read Read a single byte or word from a regster from the device.
+     * @brief read Read an entire register from the device.
+     * Takes a register with just one value.
      * @return The read value.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read() -> std::optional<R>;
+    [[nodiscard]] auto read() -> std::optional<R> requires (R::register_length == 1);
 
     template <read_register R>
     /**
-     * @brief read Read a number of bytes or words from a register.
-     * @param length Number of bytes or words to read.
-     * @return a vector with the read data.
+     * @brief read Read an entire register from the device.
+     * Takes registers with an array of values.
+     * @return The read value.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read(std::size_t length)
-        -> std::optional<std::vector<typename R::value_type>>;
+    [[nodiscard]] auto read() -> std::optional<R> requires (R::register_length > 1);
 
-    template <i2c_value_type T>
+    template <read_register R, std::uint8_t N>
+    /**
+     * @brief read Read a number of bytes or words from a register.
+     * @return an array with the read data.
+     * nullopt in case of failure.
+     */
+    [[nodiscard]] auto read()
+        -> std::optional<std::array<typename R::value_type, N>> requires (N > 0);
+
+    template <i2c_value_type T, std::uint8_t N>
     /**
      * @brief read Read a number of bytes or words from the device.
      * @param length Number of bytes or words to read.
      * @return a vector with the read data.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read(std::size_t length) -> std::optional<std::vector<T>>;
+    [[nodiscard]] auto read() -> std::optional<std::array<T, N>> requires (N > 0);
 
     template <i2c_value_type T>
 
@@ -405,9 +417,9 @@ auto i2c_device::read() -> std::optional<T> {
         return std::nullopt;
     }
 
-    constexpr auto bytes {sizeof(T) / sizeof(std::uint8_t)};
+    constexpr auto bytes {sizeof(T)};
 
-    std::vector<std::uint8_t> buffer(bytes, 0);
+    std::array<std::uint8_t, bytes> buffer { 0 };
 
     const auto nread = ::read(m_handle, buffer.data(), bytes);
     if (nread == bytes) {
@@ -419,20 +431,20 @@ auto i2c_device::read() -> std::optional<T> {
     }
 
     if constexpr (bytes == 1) {
-        return static_cast<T>(buffer.at(0));
+        return static_cast<T>(buffer[0]);
     }
 
     // casting multiple times due to integral promotion to `int`:
     // https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
     return static_cast<T>(
         (static_cast<T>(
-            static_cast<T>(buffer.at(0))
+            static_cast<T>(buffer[0])
             << 8U)) // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        | static_cast<T>(buffer.at(1)));
+        | static_cast<T>(buffer[1]));
 }
 
 template <read_register R>
-auto i2c_device::read() -> std::optional<R> {
+auto i2c_device::read() -> std::optional<R> requires (R::register_length == 1) {
     if (!write(R::address)) {
         return std::nullopt;
     }
@@ -446,50 +458,66 @@ auto i2c_device::read() -> std::optional<R> {
     return R {result.value()};
 }
 
-template <i2c_value_type T>
-auto i2c_device::read(std::size_t length) -> std::optional<std::vector<T>> {
-    if (!writable() || length == 0) {
+template <read_register R>
+auto i2c_device::read() -> std::optional<R> requires (R::register_length > 1) {
+    if (!write(R::address)) {
         return std::nullopt;
     }
 
-    constexpr auto factor {sizeof(T) / sizeof(std::uint8_t)};
+    const auto result { read<typename R::value_type, R::register_length>() };
 
-    const auto bytes {length * factor};
+    if (!result) {
+        return std::nullopt;
+    }
 
-    std::vector<std::uint8_t> buffer(bytes, 0);
+    return R {result.value()};
+}
+
+template <i2c_value_type T, std::uint8_t N>
+auto i2c_device::read() -> std::optional<std::array<T, N>> requires (N > 0) {
+    if (!writable()) {
+        return std::nullopt;
+    }
+
+    constexpr auto factor {sizeof(T)};
+
+    constexpr auto bytes { N * factor };
+
+    std::array<std::uint8_t, bytes> buffer { 0 };
 
     const auto nread = ::read(m_handle, buffer.data(), bytes);
+    add_rx_bytes(nread);
     if (nread <= 0) {
         set_flag(Flags::Unreachable);
         return std::nullopt;
     }
+    unset_flag(Flags::Unreachable);
     if (nread % factor != 0) {
         log::warning("i2c") << "incomplete read. Expected multiple of " << factor
                             << " number of bytes, got " << nread;
         set_flag(Flags::Warning);
         return std::nullopt;
     }
-    add_rx_bytes(nread);
-    unset_flag(Flags::Unreachable);
-    std::vector<T> output(nread / factor, 0);
+    if (nread < bytes) {
+        log::warning("i2c") << "incomplete read. Expected " << bytes
+                            << " number of bytes, got " << nread;
+        set_flag(Flags::Warning);
+        return std::nullopt;
+    }
+    std::array<T, N> output { 0 };
 
     copy_from(std::begin(buffer), std::begin(buffer) + nread, std::begin(output));
+
     return output;
 }
 
-template <read_register R>
-auto i2c_device::read(std::size_t length) -> std::optional<std::vector<typename R::value_type>> {
+template <read_register R, std::uint8_t N>
+auto i2c_device::read() -> std::optional<std::array<typename R::value_type, N>> requires (N > 0) {
     if (!write(R::address)) {
         return std::nullopt;
     }
 
-    const auto result {read<R::value_type>(length)};
-
-    if (!result) {
-        return std::nullopt;
-    }
-
-    return result.value();
+    return read<R::value_type, N>();
 }
 
 template <i2c_value_type T>
@@ -498,18 +526,18 @@ auto i2c_device::write(T value) -> bool {
         return false;
     }
 
-    std::vector<std::uint8_t> data {};
+    std::array<std::uint8_t, sizeof(T)> data {};
 
     if constexpr (sizeof(T) == sizeof(std::uint8_t)) {
-        data.emplace_back(static_cast<std::uint8_t>(value));
+        data[0] = static_cast<std::uint8_t>(value);
     } else {
-        data.emplace_back(static_cast<std::uint8_t>(
+        data[0] = static_cast<std::uint8_t>(
             value
-            >> 8U)); // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        data.emplace_back(static_cast<std::uint8_t>(value));
+            >> 8U); // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+        data[1] = static_cast<std::uint8_t>(value);
     }
 
-    const auto nwritten = ::write(m_handle, data.data(), data.size());
+    const auto nwritten = ::write(m_handle, data.data(), sizeof(T));
     if (static_cast<std::size_t>(nwritten) == data.size()) {
         add_tx_bytes(nwritten);
         unset_flag(Flags::Unreachable);
@@ -519,27 +547,41 @@ auto i2c_device::write(T value) -> bool {
     return false;
 }
 
+template <std::integral T, iterator<std::uint8_t> IT>
+/**
+ * @brief Set a value of either one or two byte size at an byte iterator position.
+ * @param value The value to set
+ * @param it The iterator to which to add the value
+ * @returns The next iterator after the inserted value.
+ */
+[[nodiscard]] constexpr auto add_value(T value, IT it) -> IT requires (sizeof(T) <= 2) {
+    if constexpr (sizeof(value) > 1) {
+        *it = static_cast<std::uint8_t>(value >> 8U);
+        ++it;
+    }
+    *it = static_cast<std::uint8_t>(value);
+    ++it;
+    return it;
+}
+
 template <write_register R>
 auto i2c_device::write(R reg) -> bool {
     if (!writable()) {
         return false;
     }
 
-    std::vector<std::uint8_t> data {};
-
+    constexpr std::uint8_t bytes {(R::address == 0?0:1) + R::register_length*sizeof(typename R::value_type)};
+    std::array<std::uint8_t, bytes> data {};
+    auto begin { std::begin(data) };
     if constexpr (R::address != 0) {
-        data.emplace_back(R::address);
+        begin = add_value(R::address, begin);
     }
 
     const auto value {reg.get()};
-
-    if constexpr (sizeof(typename R::value_type) == sizeof(std::uint8_t)) {
-        data.emplace_back(static_cast<std::uint8_t>(value));
+    if constexpr (R::register_length > 1) {
+        copy_from(std::begin(value), std::end(value), begin);
     } else {
-        data.emplace_back(static_cast<std::uint8_t>(
-            value
-            >> 8U)); // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        data.emplace_back(static_cast<std::uint8_t>(value));
+        begin = add_value(value, begin);
     }
 
     const auto nwritten = ::write(m_handle, data.data(), data.size());
@@ -604,17 +646,10 @@ auto i2c_device::write(iterator<typename R::value_type> auto begin,
     }
 
     std::vector<std::uint8_t> data(distance, 0);
+    auto back { std::begin(data) };
+    back = add_value(R::address, back);
 
-    if constexpr (reg_size > 1) {
-        data.at(0) = (static_cast<std::uint8_t>(
-            R::address
-            >> 8U)); // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        data.at(0) = (static_cast<std::uint8_t>(R::address));
-    } else {
-        data.at(0) = static_cast<std::uint8_t>(R::address);
-    }
-
-    copy_from(begin, end, std::begin(data) + reg_size);
+    copy_from(begin, end, back);
 
     const int nwritten = ::write(m_handle, data.data(), distance);
     if (nwritten > 0) {
