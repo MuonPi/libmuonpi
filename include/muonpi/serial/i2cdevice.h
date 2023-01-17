@@ -4,16 +4,19 @@
 #include "muonpi/log.h"
 #include "muonpi/serial/i2cdefinitions.h"
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cinttypes>
 #include <fcntl.h>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <set>
 #include <string>
 #include <sys/ioctl.h>
+#include <type_traits>
 #include <unistd.h>
 #include <vector>
 
@@ -158,22 +161,24 @@ public:
 
     template <read_register R>
     /**
+
+    template <read_register R, std::uint8_t N>
+    /**
      * @brief read Read a number of bytes or words from a register.
-     * @param length Number of bytes or words to read.
-     * @return a vector with the read data.
+     * @return an array with the read data.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read(std::size_t length)
-        -> std::optional<std::vector<typename R::value_type>>;
+    [[nodiscard]] auto read()
+        -> std::optional<std::array<typename R::value_type, N>> requires (N > 0);
 
-    template <i2c_value_type T>
+    template <i2c_value_type T, std::uint8_t N>
     /**
      * @brief read Read a number of bytes or words from the device.
      * @param length Number of bytes or words to read.
      * @return a vector with the read data.
      * nullopt in case of failure.
      */
-    [[nodiscard]] auto read(std::size_t length) -> std::optional<std::vector<T>>;
+    [[nodiscard]] auto read() -> std::optional<std::array<T, N>> requires (N > 0);
 
     template <i2c_value_type T>
 
@@ -405,9 +410,9 @@ auto i2c_device::read() -> std::optional<T> {
         return std::nullopt;
     }
 
-    constexpr auto bytes {sizeof(T) / sizeof(std::uint8_t)};
+    constexpr auto bytes {sizeof(T)};
 
-    std::vector<std::uint8_t> buffer(bytes, 0);
+    std::array<std::uint8_t, bytes> buffer { 0 };
 
     const auto nread = ::read(m_handle, buffer.data(), bytes);
     if (nread == bytes) {
@@ -419,16 +424,16 @@ auto i2c_device::read() -> std::optional<T> {
     }
 
     if constexpr (bytes == 1) {
-        return static_cast<T>(buffer.at(0));
+        return static_cast<T>(buffer[0]);
     }
 
     // casting multiple times due to integral promotion to `int`:
     // https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
     return static_cast<T>(
         (static_cast<T>(
-            static_cast<T>(buffer.at(0))
+            static_cast<T>(buffer[0])
             << 8U)) // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        | static_cast<T>(buffer.at(1)));
+        | static_cast<T>(buffer[1]));
 }
 
 template <read_register R>
@@ -446,50 +451,52 @@ auto i2c_device::read() -> std::optional<R> {
     return R {result.value()};
 }
 
-template <i2c_value_type T>
-auto i2c_device::read(std::size_t length) -> std::optional<std::vector<T>> {
-    if (!writable() || length == 0) {
+
+template <i2c_value_type T, std::uint8_t N>
+auto i2c_device::read() -> std::optional<std::array<T, N>> requires (N > 0) {
+    if (!writable()) {
         return std::nullopt;
     }
 
-    constexpr auto factor {sizeof(T) / sizeof(std::uint8_t)};
+    constexpr auto factor {sizeof(T)};
 
-    const auto bytes {length * factor};
+    constexpr auto bytes { N * factor };
 
-    std::vector<std::uint8_t> buffer(bytes, 0);
+    std::array<std::uint8_t, bytes> buffer { 0 };
 
     const auto nread = ::read(m_handle, buffer.data(), bytes);
+    add_rx_bytes(nread);
     if (nread <= 0) {
         set_flag(Flags::Unreachable);
         return std::nullopt;
     }
+    unset_flag(Flags::Unreachable);
     if (nread % factor != 0) {
         log::warning("i2c") << "incomplete read. Expected multiple of " << factor
                             << " number of bytes, got " << nread;
         set_flag(Flags::Warning);
         return std::nullopt;
     }
-    add_rx_bytes(nread);
-    unset_flag(Flags::Unreachable);
-    std::vector<T> output(nread / factor, 0);
+    if (nread < bytes) {
+        log::warning("i2c") << "incomplete read. Expected " << bytes
+                            << " number of bytes, got " << nread;
+        set_flag(Flags::Warning);
+        return std::nullopt;
+    }
+    std::array<T, N> output { 0 };
 
     copy_from(std::begin(buffer), std::begin(buffer) + nread, std::begin(output));
+
     return output;
 }
 
-template <read_register R>
-auto i2c_device::read(std::size_t length) -> std::optional<std::vector<typename R::value_type>> {
+template <read_register R, std::uint8_t N>
+auto i2c_device::read() -> std::optional<std::array<typename R::value_type, N>> requires (N > 0) {
     if (!write(R::address)) {
         return std::nullopt;
     }
 
-    const auto result {read<R::value_type>(length)};
-
-    if (!result) {
-        return std::nullopt;
-    }
-
-    return result.value();
+    return read<R::value_type, N>();
 }
 
 template <i2c_value_type T>
@@ -498,18 +505,18 @@ auto i2c_device::write(T value) -> bool {
         return false;
     }
 
-    std::vector<std::uint8_t> data {};
+    std::array<std::uint8_t, sizeof(T)> data {};
 
     if constexpr (sizeof(T) == sizeof(std::uint8_t)) {
-        data.emplace_back(static_cast<std::uint8_t>(value));
+        data[0] = static_cast<std::uint8_t>(value);
     } else {
-        data.emplace_back(static_cast<std::uint8_t>(
+        data[0] = static_cast<std::uint8_t>(
             value
-            >> 8U)); // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        data.emplace_back(static_cast<std::uint8_t>(value));
+            >> 8U); // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+        data[1] = static_cast<std::uint8_t>(value);
     }
 
-    const auto nwritten = ::write(m_handle, data.data(), data.size());
+    const auto nwritten = ::write(m_handle, data.data(), sizeof(T));
     if (static_cast<std::size_t>(nwritten) == data.size()) {
         add_tx_bytes(nwritten);
         unset_flag(Flags::Unreachable);
