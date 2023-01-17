@@ -86,6 +86,7 @@ template <i2c_value_type T, i2c_address_type A = std::uint8_t, A ADDR = 0x00>
 struct simple_register : public i2c_register<T, A, ADDR> {
     using value_type   = T;
     using address_type = A;
+    constexpr static std::uint8_t register_length = 1; //<! Contains the number of entries in this register. For simple registers, this value is always 1.
 
     /**
      * @brief get Get the raw value of the register.
